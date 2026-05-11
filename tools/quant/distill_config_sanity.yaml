@@ -1,0 +1,40 @@
+# Sanity 5-epoch distillation recipe on RTX 5060 Laptop 8GB.
+# Uses COCO val2017 as train alias (5K images) because train2017 is not
+# present locally. Eval runs on the same 5K (overfit risk acceptable for
+# sanity verification — we only need loss curves to descend and feat_align
+# to stay >0).
+# Owner: A1 Quantization (M1 W4 sanity sprint, 2026-05-11).
+# Expected wall time: ~1-1.5h total at batch=16, imgsz=256.
+
+optimizer:    AdamW
+lr:           5.0e-4
+lr_schedule:  cosine
+weight_decay: 1.0e-4
+epochs:       5
+batch_size:   16
+warmup_epochs: 1
+
+loss_weights:
+  det:        1.0                 # standard YOLO detection loss
+  kd_logits:  1.5                 # detect-head KD (cls KL + reg L1) — placeholder
+  feat_align: 0.5                 # intermediate feature MSE (active)
+  spike_rate: 0.3                 # SNN-specific spike-rate L1 — placeholder
+
+data:
+  dataset_yaml: ultralytics/cfg/datasets/coco_sanity_val_alias.yaml
+  val_every:    1
+  imgsz:        256
+
+freeze_teacher: true
+adapter_init:   "kaiming"
+seed:           42
+
+teacher_inference_mode: avgpool_from_640
+device:        cuda
+log_interval:  10                  # iterations between distill_log.csv rows
+ckpt_interval: 1                   # epochs between state_dict snapshots
+distill_alignment_layers: [5, 7, 8]
+amp:               false  # was true; FP16 autocast triggers conv bias dtype mismatch in SNN val path (v3 crash @ step 313)
+gradient_clip_norm: 1.0
+data_loader_workers: 2
+prefetch_factor:    2

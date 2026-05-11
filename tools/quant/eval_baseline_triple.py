@@ -45,6 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--skip-student-init", action="store_true")
     p.add_argument("--skip-student-distilled", action="store_true",
                    help="default true if .pt missing; explicit only on retries")
+    p.add_argument("--from-cache", type=Path, default=None,
+                   help="If set, re-emit summary from a cached JSON instead "
+                        "of running ultralytics .val(). Used by D1 run_full.sh "
+                        "and by month-end reports to avoid re-evaluating "
+                        "5000-image COCO each time.")
     return p
 
 
@@ -70,6 +75,19 @@ def _eval_one(label: str, pt: Path, data: Path, imgsz: int, device: str, batch: 
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
+
+    if args.from_cache is not None:
+        if not args.from_cache.exists():
+            print(f"[baseline] --from-cache miss: {args.from_cache}")
+            return 1
+        cached = json.loads(args.from_cache.read_text())
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(cached, indent=2))
+        print(f"[baseline] cached -> {args.out} "
+              f"(teacher={cached.get('teacher')}, "
+              f"student_init={cached.get('student_init')}, "
+              f"student_distilled={cached.get('student_distilled')})")
+        return 0
 
     teacher_map = None if args.skip_teacher else _eval_one(
         "teacher_fp32", args.teacher, args.data,

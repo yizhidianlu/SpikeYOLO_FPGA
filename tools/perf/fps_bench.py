@@ -40,6 +40,12 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Allow `from ultralytics import YOLO` to resolve to the in-repo package
+# (matches tools/quant/eval_baseline_triple.py bootstrap).
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 
 def _git_sha() -> str:
     try:
@@ -79,14 +85,63 @@ def _summarize(samples_ms):
 def run_gpu(args) -> list:
     """Run the torch tiny_fpga model on cuda; return per-frame latency in ms.
 
-    TODO M2: load tiny_fpga_fp32.pt (or _distilled.pt once R8 closes), run
-    args.frames forward passes on a constant random tensor, time each via
-    torch.cuda.Event for accuracy. Skeleton only — currently raises.
+    Loads `args.weights` (ultralytics .pt), runs `args.frames` forward passes
+    on a constant random INT8-uint8-style RGB tensor at `args.input_size`, and
+    times each via `torch.cuda.Event` (preferred) or `time.perf_counter`
+    (CPU fallback). Includes 20 warm-up frames not counted in the samples.
     """
-    raise NotImplementedError(
-        "gpu mode wireup deferred to M2. Skeleton: load student .pt, "
-        "run N forward passes on constant input, time via cuda events."
+    import torch  # lazy
+
+    weights_path = Path(args.weights)
+    if not weights_path.exists():
+        raise FileNotFoundError(f"weights not found: {weights_path}")
+
+    has_cuda = torch.cuda.is_available()
+    if not has_cuda:
+        print(
+            "[fps_bench] WARN: CUDA unavailable; falling back to CPU timing.",
+            file=sys.stderr,
+        )
+    device = torch.device("cuda" if has_cuda else "cpu")
+
+    # Load via ultralytics so we get the wrapped DetectionModel ready to call.
+    from ultralytics import YOLO  # lazy
+    yolo = YOLO(str(weights_path), task="detect")
+    model = yolo.model.to(device)
+    model.eval()
+
+    # tiny_fpga input contract: RGB 256x256, uint8 -> float in [0,1].
+    rng = torch.Generator(device="cpu").manual_seed(0)
+    img_u8 = torch.randint(
+        0, 256, (1, 3, args.input_size, args.input_size),
+        dtype=torch.uint8, generator=rng,
     )
+    x = (img_u8.to(device).float() / 255.0)
+
+    samples_ms = []
+    warmup = 20
+    total = warmup + int(args.frames)
+    with torch.inference_mode():
+        if has_cuda:
+            start_evt = torch.cuda.Event(enable_timing=True)
+            end_evt = torch.cuda.Event(enable_timing=True)
+            for i in range(total):
+                start_evt.record()
+                _ = model(x)
+                end_evt.record()
+                torch.cuda.synchronize()
+                ms = start_evt.elapsed_time(end_evt)
+                if i >= warmup:
+                    samples_ms.append(float(ms))
+        else:
+            for i in range(total):
+                t0 = time.perf_counter()
+                _ = model(x)
+                t1 = time.perf_counter()
+                if i >= warmup:
+                    samples_ms.append((t1 - t0) * 1000.0)
+
+    return samples_ms
 
 
 def run_host_csim(args) -> list:

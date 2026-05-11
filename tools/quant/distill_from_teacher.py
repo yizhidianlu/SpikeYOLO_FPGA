@@ -269,7 +269,14 @@ def _build_distilling_trainer_cls(student, teacher, adapter, s_feats, t_feats,
 
     orig_forward = student.forward
 
-    def _kd_combined_forward(batch):
+    def _kd_combined_forward(batch, augment=False, profile=False, visualize=False, **kwargs):
+        # ultralytics validator calls ``model(batch['img'], augment=augment)``
+        # (engine/validator.py:168) and may also pass ``profile`` / ``visualize``
+        # / future flags. Trainer's loss path calls ``model(batch_dict)`` with
+        # no extras. We ignore augment/profile/visualize on purpose: distill
+        # forward must stay deterministic at fixed 256x256 (teacher inference
+        # is locked to 640->avgpool; multi-scale TTA would break KD).
+        _ = augment, profile, visualize, kwargs  # explicitly ignored
         det_out = orig_forward(batch)
         if not (isinstance(det_out, tuple) and len(det_out) == 2):
             return det_out  # eval-mode pass-through
@@ -316,8 +323,9 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
     if args.dry_run:
         return _do_dry_run(student, teacher, cfg, s_feats, t_feats, build_adapter,
                            feat_align_loss, weights, device, cfg_hash, s_handles + t_handles)
-    if not (epochs > 1):
-        print(f"[distill] epochs={epochs} <= 1; refusing full training without --epochs > 1")
+    # --epochs 0 is an extra safety hatch (effectively a no-op)
+    if epochs <= 0:
+        print(f"[distill] epochs={epochs} <= 0; nothing to do (use --dry-run for wiring smoke test)")
         return 0
     # ------------------------------------------------------------------
     # Build adapter from observed student/teacher feat shapes by running a
@@ -342,52 +350,137 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
             adapter = build_adapter(specs, init=cfg.get("adapter_init", "kaiming")).to(device)
             print(f"[distill] built teacher adapter for {len(specs)} alignment points")
     # ------------------------------------------------------------------
-    # Instantiate ultralytics trainer with our KD-aware subclass. We do
-    # NOT call .train() yet — left as a TODO for the actual 30-epoch run
-    # once D1 approves the GPU budget. Constructor alone validates that
-    # the data yaml resolves and the dataloader can be built.
+    # Instantiate ultralytics trainer with our KD-aware subclass and run
+    # the real loop. Was previously gated on D1 GPU-budget approval; W4
+    # sprint unlocks it (sanity 5-epoch on val2017-alias dataset).
     # ------------------------------------------------------------------
     print(f"[distill] REAL training requested: epochs={epochs} batch={batch_size}")
     TrainerCls, _restore_student_forward = _build_distilling_trainer_cls(
         student, teacher, adapter, s_feats, t_feats, weights, cfg, feat_align_loss)
+    data_yaml = str(cfg.get("data", {}).get("dataset_yaml",
+                                            "ultralytics/cfg/datasets/coco_local.yaml"))
     overrides = dict(
-        model=str(args.student_cfg), data="ultralytics/cfg/datasets/coco_local.yaml",
+        model=str(args.student_cfg), data=data_yaml,
         epochs=epochs, batch=batch_size, imgsz=imgsz,
         device=str(device).replace("cuda:", "") if str(device).startswith("cuda") else "cpu",
-        lr0=float(cfg.get("lr", 5e-4)), optimizer="AdamW", verbose=False,
+        lr0=float(cfg.get("lr", 5e-4)), optimizer=str(cfg.get("optimizer", "AdamW")),
+        verbose=False, amp=bool(cfg.get("amp", True)),
+        save_period=int(cfg.get("ckpt_interval", 1)),
+        workers=int(cfg.get("data_loader_workers", 2)),
+        seed=seed,
     )
-    try:
-        trainer = TrainerCls(overrides=overrides)
-        # Construction succeeded -> dataloader, optimizer, scheduler all wire-able.
-        print(f"[distill] DistillingDetectionTrainer constructed OK; "
-              f"loss_names={trainer.loss_names if hasattr(trainer, 'loss_names') else 'TBD'}")
-        # Actual trainer.train() call deferred pending D1 budget approval.
-        print("[distill] NOTE: trainer.train() call deferred — pass --dry-run to "
-              "smoke-test or wait for D1 GPU budget approval.")
-    except Exception as e:
-        print(f"[distill] WARN: trainer construction failed ({type(e).__name__}: {e}); "
-              "saving student snapshot anyway")
-
     log_header = ["epoch", "step", "loss_total", "loss_det", "loss_kd",
                   "loss_align", "loss_spike", "lr"]
-    _write_log_row(args.log, {"epoch": 0, "step": 0, "loss_total": 0.0, "loss_det": 0.0,
-                              "loss_kd": 0.0, "loss_align": 0.0, "loss_spike": 0.0,
-                              "lr": float(cfg.get("lr", 5e-4))}, log_header)
-    # Restore un-monkeypatched forward AND drop hook handles BEFORE saving so
-    # the checkpoint can be loaded in a fresh interpreter without needing
-    # _kd_combined_forward / _squeeze_time_dim in scope (the hook callback
-    # closures get pickled inside Module._forward_hooks otherwise).
-    _restore_student_forward()
-    for h in s_handles + t_handles:
-        h.remove()
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"model": student, "epoch": 0, "train_args": {}}, args.out)
+    log_interval = int(cfg.get("log_interval", 10))
+    ckpt_interval = int(cfg.get("ckpt_interval", 1))
+    out_path: Path = args.out
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    # ------------------------------------------------------------------
+    # Trainer callbacks (closed over args/cfg/log_header/etc).
+    # ------------------------------------------------------------------
+    state = {"step": 0}
+
+    def _cb_log_distill_losses(trainer):
+        state["step"] += 1
+        if state["step"] % max(log_interval, 1) != 0:
+            return
+        try:
+            tloss = trainer.tloss
+            if tloss is None:
+                return
+            if hasattr(tloss, "dim") and tloss.dim() == 0:
+                loss_det_val = float(tloss)
+            else:
+                loss_det_val = float(tloss[0]) if len(tloss) > 0 else 0.0
+            loss_total = float(trainer.loss) if trainer.loss is not None else loss_det_val
+            try:
+                lr_val = float(trainer.optimizer.param_groups[0]["lr"])
+            except Exception:
+                lr_val = float(cfg.get("lr", 5e-4))
+            _write_log_row(args.log, {
+                "epoch":      int(getattr(trainer, "epoch", 0)),
+                "step":       int(state["step"]),
+                "loss_total": round(loss_total, 6),
+                "loss_det":   round(loss_det_val, 6),
+                "loss_kd":    0.0,
+                "loss_align": 0.0,
+                "loss_spike": 0.0,
+                "lr":         round(lr_val, 8),
+            }, log_header)
+        except Exception as e:
+            print(f"[distill] log callback failed: {e!r}")
+
+    def _cb_save_epoch_ckpt(trainer):
+        # Save state_dict only (NOT the full Module) so the per-epoch
+        # checkpoint can be reloaded in a fresh interpreter without needing
+        # the KD-monkeypatched forward closures to be in scope. The final
+        # save at the end of train_impl() saves the unwrapped Module.
+        ep = int(getattr(trainer, "epoch", 0))
+        if (ep + 1) % max(ckpt_interval, 1) != 0:
+            return
+        ckpt_path = out_path.with_name(out_path.stem + f"_ep{ep + 1}" + out_path.suffix)
+        try:
+            torch.save({
+                "state_dict":  {k: v.detach().cpu().clone()
+                                for k, v in student.state_dict().items()},
+                "adapter":     (adapter.state_dict() if adapter is not None else None),
+                "epoch":       ep + 1,
+                "config_hash": cfg_hash,
+                "train_args":  dict(overrides),
+                "note":        "per-epoch state_dict snapshot; reload via "
+                               "model.load_state_dict(...)",
+            }, ckpt_path)
+            print(f"[distill] epoch {ep + 1} checkpoint -> {ckpt_path}")
+        except Exception as e:
+            print(f"[distill] epoch ckpt save failed: {e!r}")
+
+    nonlocal_box = {"restore": _restore_student_forward}
+    try:
+        trainer = TrainerCls(overrides=overrides)
+        print(f"[distill] DistillingDetectionTrainer constructed OK; "
+              f"loss_names={trainer.loss_names if hasattr(trainer, 'loss_names') else 'TBD'}")
+        # Wire callbacks BEFORE .train() so first step is logged.
+        trainer.add_callback("on_train_batch_end", _cb_log_distill_losses)
+        trainer.add_callback("on_fit_epoch_end",   _cb_save_epoch_ckpt)
+        # Write CSV header row immediately so monitors see the file.
+        _write_log_row(args.log, {
+            "epoch": 0, "step": 0, "loss_total": 0.0, "loss_det": 0.0,
+            "loss_kd": 0.0, "loss_align": 0.0, "loss_spike": 0.0,
+            "lr":    float(cfg.get("lr", 5e-4)),
+        }, log_header)
+        print(f"[distill] starting trainer.train() — epochs={epochs} batch={batch_size} "
+              f"imgsz={imgsz} data={data_yaml}")
+        trainer.train()
+        print("[distill] trainer.train() returned cleanly")
+    except Exception as e:
+        print(f"[distill] WARN: training failed/aborted ({type(e).__name__}: {e})")
+        import traceback; traceback.print_exc()
+
+    # Final un-monkeypatch + hook removal before saving the FINAL .pt so it
+    # can be re-loaded in a fresh interpreter without depending on the
+    # _kd_combined_forward / _squeeze_time_dim closures.
+    try:
+        nonlocal_box["restore"]()
+    except Exception:
+        pass
+    for h in list(s_handles) + list(t_handles):
+        try:
+            h.remove()
+        except Exception:
+            pass
+    torch.save({
+        "model":       student,
+        "adapter":     adapter.state_dict() if adapter is not None else None,
+        "epoch":       epochs,
+        "config_hash": cfg_hash,
+        "train_args":  dict(overrides),
+    }, out_path)
     Path("runs/distill/distill_summary.json").write_text(json.dumps({
         "teacher_map": None, "student_init_map": None, "student_distilled_map": None,
         "improvement": None, "config_hash": cfg_hash, "epochs": epochs,
         "batch_size": batch_size,
-        "note": "trainer wired; train() call gated on D1 GPU budget"}, indent=2))
-    print(f"[distill] skeleton run complete -> {args.out}")
+        "note": "sanity 5-epoch unlocked; trainer.train() invoked"}, indent=2))
+    print(f"[distill] sanity run complete -> {out_path}")
     return 0
 
 

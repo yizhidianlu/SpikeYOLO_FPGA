@@ -42,6 +42,22 @@ jobs:
           python-version: "3.10"
           cache: pip
 
+      - name: Cache pip + (future) conda env
+        # actions/setup-python's built-in `cache: pip` already covers the
+        # default wheel cache, but a label-gated step below installs the
+        # full torch+ultralytics stack via requirements.txt. Add an
+        # explicit cache keyed on both requirements files so the heavy
+        # stack hits warm wheels on rebuild. ~/.conda/envs is included
+        # for forward-compat if a future job switches to micromamba.
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.conda/envs/spikeyolo
+          key: ${{ runner.os }}-pyenv-spikeyolo-${{ hashFiles('requirements-fpga.txt', 'requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pyenv-spikeyolo-
+
       - name: Install minimal CI dependencies
         # Skip the full requirements.txt (torch+ultralytics ~= 8-12 min cold) since
         # all tests below + the --help shims lazy-import torch. CI installs only

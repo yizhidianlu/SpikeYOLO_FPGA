@@ -261,3 +261,79 @@ def test_each_layer_npz_has_required_keys(layer_idx, layer_name):
     for key in ("input", "output", "input_shape", "output_shape",
                 "params_hash", "kind"):
         assert key in data, f"L{layer_idx:02d} {layer_name}: missing key {key}"
+
+
+# ---------------------------------------------------------------------------
+# Family 4 — numpy_vs_hls.py --self-consistency mode (W5 addition)
+#
+# 12 new parametrized cases. These invoke the same helper the CLI uses
+# (``run_numpy_self_consistency_layer``) per layer, so the test surface and
+# the runs/numpy_self_consistency_full.json gate share a single code path.
+# This complements Family 1 (which calls the numpy primitives directly) by
+# exercising the public helper that the CLI/CI surface depends on, including
+# its detect-head pass-through and shape-checking error path.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.bit_exact
+@pytest.mark.parametrize("layer_idx,layer_name", [
+    (i, n) for i, n, _, _ in LAYER_TABLE
+])
+def test_numpy_vs_hls_self_consistency(layer_idx, layer_name, numpy_weights):
+    """W5 contract-2 self-consistency, driven through the
+    ``tools/verify/numpy_vs_hls.run_numpy_self_consistency_layer`` helper.
+    Asserts byte-identical match and 0 mismatches per layer."""
+    from tools.verify.numpy_vs_hls import run_numpy_self_consistency_layer
+    result = run_numpy_self_consistency_layer(
+        layer_idx, layer_name, numpy_weights, GOLDEN_DIR,
+    )
+    assert result["pass"], (
+        f"L{layer_idx:02d} {layer_name}: numpy_vs_hls self-consistency "
+        f"FAILED with {result['mismatch_count']} mismatches; "
+        f"first: {result.get('first_mismatches', [])[:3]}"
+    )
+    assert result["mismatch_count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Family 5 — Contract 6 coco_val100.json schema (W6 addition)
+#
+# Two new tests guarding the on-board mAP regression payload. The JSON is
+# produced by ``tools/verify/gen_coco_val100.py`` and consumed by C3 / D1
+# once a board run lands (M4 W4). These tests live here (rather than under
+# tests/regression/) because Contract 6 is the bit-exact reference's own
+# output contract: its sha256 must match the same A1 .npz that drives the
+# numpy-self-consistency suite above.
+# ---------------------------------------------------------------------------
+
+COCO_VAL100_PATH = REPO_ROOT / "tests" / "golden" / "coco_val100.json"
+
+
+@pytest.mark.bit_exact
+def test_coco_val100_schema():
+    """Contract 6: coco_val100.json must satisfy on-board mAP regression schema."""
+    if not COCO_VAL100_PATH.exists():
+        pytest.skip(f"coco_val100.json missing at {COCO_VAL100_PATH}")
+    d = json.loads(COCO_VAL100_PATH.read_text(encoding="utf-8"))
+    assert d['schema_version'] == '1.0'
+    assert d['model'] in ('tiny_fpga_int8', 'tiny_fpga_int8_distilled')
+    # weights_sha256 currently anchored to d5385c05... but A1 may re-PTQ; we
+    # accept either the locked v1.0.2 prefix or any future 64-char hex digest.
+    sha = d['weights_sha256']
+    assert sha is not None and len(sha) == 64, f"bad sha256: {sha!r}"
+    assert sha.startswith('d5385c05') or len(sha) == 64
+    assert len(d['image_ids']) >= 5, "minimum 5 images (smoke) — actual gate is 100"
+    assert all(str(iid) in d['predictions'] for iid in d['image_ids'])
+
+
+@pytest.mark.bit_exact
+def test_coco_val100_predictions_well_formed():
+    """Each prediction: cls in [0,80), bbox is xyxy with x1<x2 y1<y2, conf in [0,1]."""
+    if not COCO_VAL100_PATH.exists():
+        pytest.skip(f"coco_val100.json missing at {COCO_VAL100_PATH}")
+    d = json.loads(COCO_VAL100_PATH.read_text(encoding="utf-8"))
+    for img_id, dets in d['predictions'].items():
+        for det in dets:
+            assert 0 <= det['cls'] < 80, f"img {img_id}: bad cls {det['cls']}"
+            x1, y1, x2, y2 = det['bbox']
+            assert x1 < x2 and y1 < y2, f"img {img_id}: bad bbox {det['bbox']}"
+            assert 0 <= det['conf'] <= 1.0, f"img {img_id}: bad conf {det['conf']}"

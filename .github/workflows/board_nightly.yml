@@ -2,7 +2,8 @@ name: Board Nightly Regression
 
 on:
   schedule:
-    - cron: "0 3 * * *"   # 每天 UTC 03:00（北京 11:00）
+    - cron: "0 3 * * *"      # 每天 UTC 03:00（北京 11:00） — board_test
+    - cron: "0 4 1 * *"      # 每月 1 号 UTC 04:00 — monthly_artifact (hosted runner)
   workflow_dispatch:
     inputs:
       duration:
@@ -11,7 +12,81 @@ on:
         default: 300
 
 jobs:
+  # ----------------------------------------------------------------------
+  # monthly_artifact: hosted runner snapshot of D1's perf + baseline JSONs.
+  # Runs on the 1st of every month so we keep a 90-day rolling record of
+  # the GPU/CPU FPS bench + baseline triple, independent of self-hosted
+  # board availability. Non-blocking (continue-on-error) — losing a
+  # snapshot must not fail the schedule.
+  # ----------------------------------------------------------------------
+  monthly_artifact:
+    name: Monthly perf + baseline snapshot (hosted)
+    if: ${{ github.event.schedule == '0 4 1 * *' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pyyaml
+
+      - name: Resolve month tag
+        id: tag
+        run: echo "ym=$(date -u +%Y%m)" >> "$GITHUB_OUTPUT"
+
+      - name: FPS bench (CPU fallback on hosted runner — no GPU)
+        # Hosted ubuntu-22.04 has no CUDA device, so we run CPU mode and
+        # tag the snapshot accordingly. The on-device GPU/board numbers
+        # come from board_test below and from D1's manual W4 runs.
+        continue-on-error: true
+        run: |
+          mkdir -p runs/perf
+          python tools/perf/fps_bench.py \
+            --mode cpu \
+            --frames 600 \
+            --weights models/tiny_fpga_fp32.pt \
+            --out runs/perf/fps_bench_cpu_${{ steps.tag.outputs.ym }}.json \
+            || echo "fps_bench CPU snapshot skipped (weights or torch missing)"
+
+      - name: Baseline triple snapshot (from cache)
+        # Re-eval requires the full torch + ultralytics stack and big .pt
+        # files. On hosted runner we instead just copy the latest cached
+        # summary so it lands in the monthly artifact bundle.
+        continue-on-error: true
+        run: |
+          if [ -f runs/baseline_summary.json ]; then
+            python tools/quant/eval_baseline_triple.py \
+              --from-cache runs/baseline_summary.json \
+              --out runs/baseline_summary_${{ steps.tag.outputs.ym }}.json
+          else
+            echo "no cached baseline_summary.json — skipping"
+          fi
+
+      - name: Upload monthly snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-snapshot-${{ steps.tag.outputs.ym }}
+          path: |
+            runs/perf/fps_bench_*_${{ steps.tag.outputs.ym }}.json
+            runs/baseline_summary_${{ steps.tag.outputs.ym }}.json
+          if-no-files-found: warn
+          retention-days: 90
+
   board_test:
+    if: ${{ github.event.schedule == '0 3 * * *' || github.event_name == 'workflow_dispatch' }}
     name: ZYBO Z7-20 end-to-end
     runs-on: [self-hosted, zybo]
     timeout-minutes: 120

@@ -8,8 +8,9 @@ Pipeline:
      c) synthetic deterministic 256x256 INT8 placeholders (RNG seed=0)
 2. Sample ``--num`` images so that every COCO class is covered at least
    ``--per-class-min`` times, then top up by GT-box-count quartile when COCO
-   annotations are present (``annotation-json`` flag). In synthetic mode the
-   per-class step is skipped because we have no class labels.
+   annotations are present (``--annotations`` / ``--annotation-json`` flag).
+   In synthetic mode the per-class step is skipped because we have no class
+   labels.
 3. Run inference with the numpy_reference TinyFpgaNet using A1 weights from
    ``--weights``.
 4. Decode the raw int32 head output into ``(cls, bbox, conf)`` predictions
@@ -107,6 +108,148 @@ def _load_image(path: Path) -> np.ndarray:
     arr = arr.transpose(2, 0, 1)                        # (3, 256, 256)
     arr = (arr - 128).clip(-128, 127).astype(np.int8)   # zero-centred INT8
     return arr
+
+
+# ---------------------------------------------------------------------------
+# Per-class sampling (COCO annotations)
+# ---------------------------------------------------------------------------
+
+def sample_with_coco_annotations(
+    val_dir: Path,
+    annotation_json: Path,
+    num: int,
+    per_class_min: int,
+    seed: int,
+) -> Tuple[List[Tuple[int, np.ndarray]], Dict]:
+    """Sample ``num`` images such that each of the 80 COCO classes appears in
+    at least ``per_class_min`` of the chosen images (best-effort — capped by
+    image availability + per-class scarcity), then top up the remaining slots
+    by GT-box-count (image complexity).
+
+    Returns ``([(image_id, int8_array), ...], stats_dict)``. Falls back to
+    plain sorted-glob sampling if annotations cannot be parsed.
+
+    Strategy:
+      Phase 1 (coverage): for each of the 80 cls (sorted by population
+                          ascending so rare classes get first pick), greedily
+                          pick ``per_class_min`` images that contain that
+                          class and haven't been picked yet.
+      Phase 2 (top up):   remaining slots filled by images ranked by their
+                          GT-box count (descending — prefer richer scenes
+                          first), tie-broken by image_id for determinism.
+    """
+    try:
+        with open(annotation_json, "r", encoding="utf-8") as f:
+            ann = json.load(f)
+    except Exception as exc:
+        print(f"[sampler] failed to parse {annotation_json}: {exc}; "
+              "falling back to plain glob")
+        return _fallback_sample(val_dir, num), {"strategy": "fallback_glob"}
+
+    # Map image_id -> set of category ids it contains, and image_id -> n_boxes
+    img_classes: Dict[int, set] = {}
+    img_boxes: Dict[int, int] = {}
+    for a in ann.get("annotations", []):
+        iid = int(a["image_id"])
+        cid = int(a["category_id"])
+        img_classes.setdefault(iid, set()).add(cid)
+        img_boxes[iid] = img_boxes.get(iid, 0) + 1
+
+    # category_id -> contiguous 0..79 (COCO has 90 cat ids with holes)
+    cat_ids = sorted({int(c["id"]) for c in ann.get("categories", [])})
+    cat_to_idx = {cid: i for i, cid in enumerate(cat_ids)}
+    n_classes = len(cat_to_idx)
+
+    # Build cls_idx -> list of image_ids containing that class
+    cls_to_imgs: Dict[int, List[int]] = {i: [] for i in range(n_classes)}
+    for iid, cids in img_classes.items():
+        for cid in cids:
+            if cid in cat_to_idx:
+                cls_to_imgs[cat_to_idx[cid]].append(iid)
+    for idx in cls_to_imgs:
+        cls_to_imgs[idx].sort()
+
+    # All image_ids that actually have a JPG on disk (intersect with val_dir)
+    available_files: Dict[int, Path] = {}
+    for p in val_dir.glob("*.jpg"):
+        try:
+            available_files[_parse_coco_id(p)] = p
+        except Exception:
+            continue
+    print(f"[sampler] {len(available_files)} JPEGs on disk in {val_dir}")
+
+    rng = np.random.default_rng(seed)
+
+    # Phase 1: rare-first per-class coverage
+    chosen: List[int] = []
+    chosen_set: set = set()
+    # Sort classes by population (rare first) so they don't get crowded out
+    cls_pop_order = sorted(range(n_classes),
+                           key=lambda c: (len(cls_to_imgs[c]), c))
+    for cls_idx in cls_pop_order:
+        # how many of this class do we already cover?
+        already = sum(1 for iid in chosen
+                      if cls_idx in {cat_to_idx[c] for c in img_classes.get(iid, set())
+                                     if c in cat_to_idx})
+        need = max(0, per_class_min - already)
+        if need == 0:
+            continue
+        candidates = [iid for iid in cls_to_imgs[cls_idx]
+                      if iid in available_files and iid not in chosen_set]
+        if not candidates:
+            continue
+        # Pick `need` candidates deterministically (rng.permutation seeded)
+        order = rng.permutation(len(candidates))
+        for k in order[:need]:
+            iid = candidates[int(k)]
+            chosen.append(iid)
+            chosen_set.add(iid)
+            if len(chosen) >= num:
+                break
+        if len(chosen) >= num:
+            break
+
+    # Phase 2: top up by box-count (descending), deterministic tie-break by id
+    if len(chosen) < num:
+        remaining = [iid for iid in available_files.keys()
+                     if iid not in chosen_set]
+        remaining.sort(key=lambda iid: (-img_boxes.get(iid, 0), iid))
+        for iid in remaining:
+            chosen.append(iid)
+            chosen_set.add(iid)
+            if len(chosen) >= num:
+                break
+
+    chosen = chosen[:num]
+    # Stable ordering by image_id makes the output JSON reproducible.
+    chosen.sort()
+
+    # Coverage stats
+    covered_classes: set = set()
+    for iid in chosen:
+        for cid in img_classes.get(iid, set()):
+            if cid in cat_to_idx:
+                covered_classes.add(cat_to_idx[cid])
+    stats = {
+        "strategy": "coco_per_class_min+box_count_topup",
+        "annotation_json": str(annotation_json),
+        "n_total_jpgs": len(available_files),
+        "n_chosen": len(chosen),
+        "classes_covered": len(covered_classes),
+        "n_classes_total": n_classes,
+        "per_class_min": per_class_min,
+    }
+    print(f"[sampler] chose {len(chosen)} imgs, covering "
+          f"{len(covered_classes)}/{n_classes} classes")
+
+    imgs = [(iid, _load_image(available_files[iid])) for iid in chosen]
+    return imgs, stats
+
+
+def _fallback_sample(val_dir: Path, num: int) -> List[Tuple[int, np.ndarray]]:
+    """Plain sorted-glob fallback when annotations aren't usable."""
+    jpgs = sorted(val_dir.glob("*.jpg"))[:num]
+    return [(_parse_coco_id(p), _load_image(p)) for p in jpgs]
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +368,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                    help="number of images to sample (clamped to availability)")
     p.add_argument("--per-class-min", type=int, default=1,
                    help="(reserved) minimum per-COCO-class samples; needs annotation-json")
-    p.add_argument("--annotation-json", type=Path, default=None,
+    p.add_argument("--annotation-json", "--annotations", dest="annotation_json",
+                   type=Path, default=None,
                    help="optional COCO instances_val2017.json for per-class sampling")
     p.add_argument("--conf-threshold", type=float, default=0.25)
     p.add_argument("--nms-iou-threshold", type=float, default=0.45)
@@ -244,8 +388,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.num > 5 and not _explicit("--num", argv):
             args.num = 5
 
-    images, source = discover_images(val_dir, args.fixtures_dir,
-                                     args.num, args.seed)
+    sampler_stats: Dict = {}
+    if (val_dir is not None
+            and args.annotation_json is not None
+            and args.annotation_json.exists()):
+        images, sampler_stats = sample_with_coco_annotations(
+            val_dir, args.annotation_json,
+            num=args.num,
+            per_class_min=args.per_class_min,
+            seed=args.seed,
+        )
+        source = f"val_dir:{val_dir}+annotations:{args.annotation_json.name}"
+    else:
+        images, source = discover_images(val_dir, args.fixtures_dir,
+                                         args.num, args.seed)
     print(f"[gen_coco_val100] image source: {source}, n={len(images)}")
 
     if not args.weights.exists():
@@ -283,6 +439,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "conf_threshold": args.conf_threshold,
             "per_class_min": args.per_class_min,
             "decode": "placeholder_argmax_v0",
+            "sampler": sampler_stats,
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -17,8 +17,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-option(SA_APP_NO_V4L2 "Skip /dev/videoN paths (PC dev build)" OFF)
-option(SA_APP_NO_DRM  "Skip /dev/dri/cardN paths (PC dev build)" OFF)
+option(SA_APP_NO_V4L2  "Skip /dev/videoN paths (PC dev build)" OFF)
+option(SA_APP_NO_DRM   "Skip /dev/dri/cardN paths (PC dev build)" OFF)
+option(SA_APP_STUB_SDK "Define SA_STUB_BACKEND so the app's view of the SDK
+                        matches the host stub backend (mirrors sdk SA_BUILD_STUB)" OFF)
 
 add_executable(spike_accel_demo
     src/main.cpp
@@ -35,8 +37,9 @@ target_include_directories(spike_accel_demo
         ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include
 )
 
-if(SA_APP_NO_V4L2) target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_V4L2=1) endif()
-if(SA_APP_NO_DRM)  target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_DRM=1)  endif()
+if(SA_APP_NO_V4L2)  target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_V4L2=1) endif()
+if(SA_APP_NO_DRM)   target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_DRM=1)  endif()
+if(SA_APP_STUB_SDK) target_compile_definitions(spike_accel_demo PRIVATE SA_STUB_BACKEND=1) endif()
 
 # Link against libspike_accel built in ../sdk/. Honor a parent project
 # providing the imported target, otherwise look up via pkg-config.
@@ -72,3 +75,12 @@ install(PROGRAMS scripts/run_on_board.sh
 install(FILES configs/runtime.yaml
         DESTINATION /opt/configs
 )
+
+# -----------------------------------------------------------------------------
+# Tests (host-side smoke). The full ctest hook for board-side mAP regression
+# is staged in tests/regression/ at the repo root (D1's territory).
+# -----------------------------------------------------------------------------
+enable_testing()
+add_test(NAME app_main_smoke
+         COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_main_smoke.sh
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

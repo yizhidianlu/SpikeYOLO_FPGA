@@ -1,0 +1,291 @@
+{
+  "version": "1.1.0",
+  "source_header": "sw/sdk/include/spike_accel.h",
+  "sha256": "cfae6e5341f64113ae55551c4a4d0c00d36cea782ac01429fa4ac53c820d655e",
+  "macros": [
+    {
+      "name": "SA_API_VERSION_MAJOR",
+      "value": "1"
+    },
+    {
+      "name": "SA_API_VERSION_MINOR",
+      "value": "1"
+    },
+    {
+      "name": "SA_API_VERSION_PATCH",
+      "value": "0"
+    }
+  ],
+  "enums": [
+    {
+      "name": "sa_status_t",
+      "values": [
+        {
+          "name": "SA_OK",
+          "value": "0"
+        },
+        {
+          "name": "SA_ERR_OPEN",
+          "value": "-1"
+        },
+        {
+          "name": "SA_ERR_NO_DEVICE",
+          "value": "-2"
+        },
+        {
+          "name": "SA_ERR_WEIGHT_LOAD",
+          "value": "-3"
+        },
+        {
+          "name": "SA_ERR_DMA",
+          "value": "-4"
+        },
+        {
+          "name": "SA_ERR_TIMEOUT",
+          "value": "-5"
+        },
+        {
+          "name": "SA_ERR_INVALID_ARG",
+          "value": "-6"
+        },
+        {
+          "name": "SA_ERR_BUSY",
+          "value": "-7"
+        }
+      ]
+    }
+  ],
+  "structs": [
+    {
+      "name": "sa_model_info_t",
+      "fields": [
+        {
+          "type": "uint16_t",
+          "name": "input_h"
+        },
+        {
+          "type": "uint16_t",
+          "name": "input_w"
+        },
+        {
+          "type": "uint8_t",
+          "name": "input_c"
+        },
+        {
+          "type": "uint8_t",
+          "name": "num_classes"
+        },
+        {
+          "type": "uint16_t",
+          "name": "output_h"
+        },
+        {
+          "type": "uint16_t",
+          "name": "output_w"
+        },
+        {
+          "type": "uint8_t",
+          "name": "output_stride"
+        },
+        {
+          "type": "uint8_t[3]",
+          "name": "_pad"
+        }
+      ]
+    },
+    {
+      "name": "sa_perf_t",
+      "fields": [
+        {
+          "type": "uint64_t",
+          "name": "cycles_compute"
+        },
+        {
+          "type": "uint64_t",
+          "name": "cycles_dma_in"
+        },
+        {
+          "type": "uint64_t",
+          "name": "cycles_dma_out"
+        },
+        {
+          "type": "uint32_t",
+          "name": "frames_completed"
+        },
+        {
+          "type": "uint32_t",
+          "name": "frames_dropped"
+        },
+        {
+          "type": "int32_t",
+          "name": "last_layer_id"
+        },
+        {
+          "type": "uint32_t",
+          "name": "last_layer_mask"
+        }
+      ]
+    }
+  ],
+  "typedefs": [],
+  "functions": [
+    {
+      "name": "sa_open",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t*",
+          "name": "out_handle"
+        }
+      ],
+      "doc": "* Open the accelerator. Allocates CMA buffers and mmaps the AXI-Lite * register file. Must be matched by sa_close()."
+    },
+    {
+      "name": "sa_close",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        }
+      ],
+      "doc": ""
+    },
+    {
+      "name": "sa_load_weights",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "const char*",
+          "name": "bin_path"
+        }
+      ],
+      "doc": "* Load weights from a board-local path (.bin file written by * tools/quant/weight_packer.py to-bin). Streams to PL weight pool over DMA."
+    },
+    {
+      "name": "sa_get_model_info",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "sa_model_info_t*",
+          "name": "out_info"
+        }
+      ],
+      "doc": "* Query the static model info reported by the IP."
+    },
+    {
+      "name": "sa_infer",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "const int8_t*",
+          "name": "img_in"
+        },
+        {
+          "type": "int8_t*",
+          "name": "feat_out"
+        },
+        {
+          "type": "int",
+          "name": "timeout_ms"
+        }
+      ],
+      "doc": "* Single-frame inference. * * @param img_in INT8 RGB NCHW [-128, 127]; size must equal 3*256*256. * @param feat_out INT8 raw detect head output; size must equal (nc+4)*16*16. * @param timeout_ms 0 = non-blocking try; returns SA_ERR_BUSY immediately * if the engine cannot be claimed without waiting. * >0 = wait up to N milliseconds, otherwise SA_ERR_TIMEOUT. * -1 = wait forever (POSIX poll/select convention). * This is the contract-5 authoritative semantics."
+    },
+    {
+      "name": "sa_set_layer_id",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "int32_t",
+          "name": "layer_id"
+        }
+      ],
+      "doc": "* Select which network layer the next sa_infer() will execute. * * @param layer_id -1 = run the full 12-layer pipeline (default behaviour). * 0..11 = run a single layer (per-layer debug / bisection). * any other value returns SA_ERR_INVALID_ARG and the device * state is left untouched. * * Maps directly onto the v1.0.3 AXI-Lite register LAYER_ID @ 0x10. * In SA_STUB_BACKEND mode the value is cached and echoed via sa_get_perf()."
+    },
+    {
+      "name": "sa_set_layer_mask",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "uint32_t",
+          "name": "mask"
+        }
+      ],
+      "doc": "* Select a per-layer execution mask. Only honoured by the IP when the active * layer_id == -1 (full pipeline); a partial mask lets benchmarks run e.g. * layers 0..8 only without re-burning a bitstream. * * @param mask bit i set => layer i is scheduled. The mask MUST contain at * least one set bit; mask == 0 returns SA_ERR_INVALID_ARG to * avoid an accidentally idle accelerator. * * Maps directly onto the v1.0.3 AXI-Lite register LAYER_MASK @ 0x14. * Default after sa_open(): 0x0FFF (all 12 layers enabled)."
+    },
+    {
+      "name": "sa_infer_async",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "const int8_t*",
+          "name": "img_in"
+        },
+        {
+          "type": "int8_t*",
+          "name": "feat_out"
+        },
+        {
+          "type": "sa_callback_t",
+          "name": "callback"
+        },
+        {
+          "type": "void*",
+          "name": "user"
+        }
+      ],
+      "doc": "* Completion callback for sa_infer_async. * Called from the SDK worker thread; do not block inside."
+    },
+    {
+      "name": "sa_get_perf",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        },
+        {
+          "type": "sa_perf_t*",
+          "name": "out_perf"
+        }
+      ],
+      "doc": "* Single-frame inference. * * @param img_in INT8 RGB NCHW [-128, 127]; size must equal 3*256*256. * @param feat_out INT8 raw detect head output; size must equal (nc+4)*16*16. * @param timeout_ms 0 = non-blocking try; returns SA_ERR_BUSY immediately * if the engine cannot be claimed without waiting. * >0 = wait up to N milliseconds, otherwise SA_ERR_TIMEOUT. * -1 = wait forever (POSIX poll/select convention). * This is the contract-5 authoritative semantics."
+    },
+    {
+      "name": "sa_reset_perf",
+      "return": "sa_status_t",
+      "args": [
+        {
+          "type": "sa_handle_t",
+          "name": "handle"
+        }
+      ],
+      "doc": "* Completion callback for sa_infer_async. * Called from the SDK worker thread; do not block inside."
+    }
+  ]
+}

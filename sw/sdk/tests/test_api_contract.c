@@ -87,6 +87,47 @@ int main(int argc, char **argv)
     ASSERT_OK(sa_get_perf(h, &perf));
     ASSERT_EQ(perf.frames_completed, 0);
 
+    /* --- v1.0.3 layer dispatch round-trip ----------------------------- */
+    /* test_set_layer_id_roundtrip: write layer_id=5, expect it echoed in
+     * sa_perf_t.last_layer_id after the next sa_infer. */
+    ASSERT_OK(sa_set_layer_id(h, 5));
+    ASSERT_OK(sa_infer(h, img, out, 100));
+    ASSERT_OK(sa_get_perf(h, &perf));
+    ASSERT_EQ(perf.last_layer_id, 5);
+
+    /* Boundary values -1 (run all) and 11 (last layer) must be accepted. */
+    ASSERT_OK(sa_set_layer_id(h, -1));
+    ASSERT_OK(sa_set_layer_id(h, 11));
+    /* Anything outside {-1, 0..11} must be rejected. */
+    ASSERT_EQ(sa_set_layer_id(h, 12), SA_ERR_INVALID_ARG);
+    ASSERT_EQ(sa_set_layer_id(h, -2), SA_ERR_INVALID_ARG);
+    ASSERT_EQ(sa_set_layer_id(NULL, 0), SA_ERR_INVALID_ARG);
+
+    /* test_set_layer_mask_invalid: mask == 0 must be rejected (at least one
+     * layer must be scheduled). Valid masks must round-trip via sa_perf_t. */
+    ASSERT_EQ(sa_set_layer_mask(h, 0u),        SA_ERR_INVALID_ARG);
+    ASSERT_EQ(sa_set_layer_mask(NULL, 0x0FFFu), SA_ERR_INVALID_ARG);
+    ASSERT_OK(sa_set_layer_mask(h, 0x0007u));   /* first 3 layers */
+    ASSERT_OK(sa_set_layer_id(h, -1));          /* mask honoured only when -1 */
+    ASSERT_OK(sa_infer(h, img, out, 100));
+    ASSERT_OK(sa_get_perf(h, &perf));
+    ASSERT_EQ(perf.last_layer_mask, 0x0007u);
+    ASSERT_EQ(perf.last_layer_id,   -1);
+
+    /* test_infer_timeout_zero_busy: sa_infer(timeout_ms=0) is the
+     * non-blocking try path. On the stub backend the engine is always idle
+     * when nothing else holds the mutex, so this should return immediately
+     * with either SA_OK (engine claimed + simulated completion) or
+     * SA_ERR_BUSY (engine contended). Both are contract-legal; what must
+     * NOT happen is a long blocking wait. We assert a status in that set
+     * AND that no fatal error code surfaces. */
+    sa_status_t s0 = sa_infer(h, img, out, 0);
+    if (s0 != SA_OK && s0 != SA_ERR_BUSY) {
+        fprintf(stderr, "FAIL: timeout_ms=0 returned unexpected status %d\n",
+                (int)s0);
+        return 1;
+    }
+
     /* --- Close ------------------------------------------------------- */
     ASSERT_OK(sa_close(h));
     /* sa_close(NULL) must be a no-op */

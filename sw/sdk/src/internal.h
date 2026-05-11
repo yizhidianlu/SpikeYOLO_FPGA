@@ -20,22 +20,28 @@
 #define SA_INPUT_BUF_SIZE    (3 * 256 * 256)     /* 196 608 bytes  */
 #define SA_OUTPUT_BUF_SIZE   (84 * 16 * 16)      /* 21 504 bytes  */
 
-/* AXI-Lite register offsets — must agree with hw/hls/build/tiny_fpga_regmap.yaml */
+/* AXI-Lite register offsets — must agree with hw/hls/build/tiny_fpga_regmap.yaml
+ * Updated for B1 contract v1.0.3 (LAYER_MASK inserted @ 0x14; H/W/C_IN/...
+ * each slide up by 4 bytes). */
 #define SA_REG_CTRL        0x00
 #define SA_REG_GIE         0x04
 #define SA_REG_IER         0x08
 #define SA_REG_ISR         0x0C
 #define SA_REG_LAYER_ID    0x10
-#define SA_REG_H           0x14
-#define SA_REG_W           0x18
-#define SA_REG_C_IN        0x1C
-#define SA_REG_C_OUT       0x20
-#define SA_REG_IN_PTR_LO   0x24
-#define SA_REG_IN_PTR_HI   0x28
-#define SA_REG_OUT_PTR_LO  0x2C
-#define SA_REG_OUT_PTR_HI  0x30
-#define SA_REG_W_PTR_LO    0x34
-#define SA_REG_W_PTR_HI    0x38
+#define SA_REG_LAYER_MASK  0x14
+#define SA_REG_H           0x18
+#define SA_REG_W           0x1C
+#define SA_REG_C_IN        0x20
+#define SA_REG_C_OUT       0x24
+#define SA_REG_IN_PTR_LO   0x28
+#define SA_REG_IN_PTR_HI   0x2C
+#define SA_REG_OUT_PTR_LO  0x30
+#define SA_REG_OUT_PTR_HI  0x34
+#define SA_REG_W_PTR_LO    0x38
+#define SA_REG_W_PTR_HI    0x3C
+
+#define SA_LAYER_MASK_DEFAULT  0x00000FFFu   /* all 12 layers enabled */
+#define SA_LAYER_ID_DEFAULT    (-1)          /* run the full pipeline */
 
 struct sa_handle_s {
     /* Hardware-facing fields. NULL/zero in SA_STUB_BACKEND. */
@@ -64,6 +70,12 @@ struct sa_handle_s {
     /* In stub mode, an explicit "model loaded" flag so the test suite
      * exercises the same error paths the real backend would. */
     bool      weights_loaded;
+
+    /* v1.1.0: cached dispatch control. Echoed to sa_perf_t on next sa_infer
+     * so callers (and the stub backend) can prove the register reached the IP
+     * without snooping AXI directly. */
+    int32_t   layer_id;
+    uint32_t  layer_mask;
 };
 
 /* Logging — keep dependency-free. */

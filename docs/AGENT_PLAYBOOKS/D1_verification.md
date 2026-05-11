@@ -21,8 +21,8 @@ acceptance_tests:
   - "bash tests/regression/run_full.sh"
   - "python tools/perf/fps_bench.py --board zybo --duration 600 --min-fps 30"
   - "python tools/perf/ddr_bw_monitor.py --max-stall-pct 10"
-status: pending
-owner: ""
+status: in_progress
+owner: "D1-session-2026-05-11"
 ---
 
 # D1 System Verification Agent Playbook

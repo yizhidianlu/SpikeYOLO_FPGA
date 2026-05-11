@@ -51,6 +51,13 @@ foreach entry $TARGETS {
 
     csynth_design
 
+    # Hierarchical resource breakdown (D2 RISK_RULES R2 input).
+    catch { report_utilization -hierarchical \
+        -file "${REPORT_DIR}/${TOP}_utilization.rpt" }
+    # Setup-path timing report (D2 RISK_RULES R1 input).
+    catch { report_timing -setup -path 10 \
+        -file "${REPORT_DIR}/${TOP}_timing.csv" }
+
     # Reports — Vitis HLS writes them under <PROJ>/sol1/syn/report/.
     # Copy the headline ones into hw/hls/reports/<TOP>.* so D1's monthly
     # collector + D2's RISK_RULES gate can find them at a stable path.
@@ -77,12 +84,11 @@ foreach entry $TARGETS {
     }
 
     # Package the .xo — B2's IP integrator pulls these in.
-    if {[file exists "${PROJ}/sol1/impl/export.xo"]} {
-        file copy -force "${PROJ}/sol1/impl/export.xo" \
-            "${BUILD_DIR}/${TOP}.xo"
-    } else {
-        # export_design hasn't run yet; do it explicitly.
-        catch { export_design -format ip_catalog -rtl verilog }
+    # For sa_tiny_fpga_top we always export (headline IP for Contract 3).
+    # Leaf kernels get a best-effort export; B2 only needs the top .xo.
+    if {![file exists "${PROJ}/sol1/impl/export.xo"]} {
+        catch { export_design -format ip_catalog -rtl verilog \
+            -output "${BUILD_DIR}/${TOP}.xo" }
     }
     if {[file exists "${PROJ}/sol1/impl/export.xo"]} {
         file copy -force "${PROJ}/sol1/impl/export.xo" \

@@ -1,25 +1,60 @@
 # sw/app/configs/runtime.yaml — defaults for /opt/spike_accel_demo.
-# Mirror of the command-line flags; the binary will read this if present.
+#
+# Schema authored by C3 (M1 W4) against contract-5 (SDK API) + contract-6
+# (board-side mAP gate). The binary parses this with the inline tiny YAML
+# reader in src/main.cpp; explicit CLI flags override anything set here.
 
-capture:
-  device: "/dev/video0"
+runtime:
+  backend: stub                # stub | uio  (advisory; SDK picks at build time)
+  weights_bin: /lib/firmware/tiny_fpga_int8.bin
+  weights_sha256: d5385c05de1930d05d08202c96d4ae681db904c3d97ea19047f524ce8baa365a
+
+input:
+  source: /dev/video0          # v4l2 device path
   width: 640
   height: 480
-  pixel_format: "YUYV"
+  pixfmt: YUYV                 # or MJPEG (R5 fallback)
+  fps: 30
+
+preproc:
+  size: 256
+  pad_value: 114               # ultralytics letterbox fill
+  rgb_layout: NCHW
+  quant_zero: 0                # int8 zero-point: out = uint8 - 128 - quant_zero
+
+postproc:
+  iou_threshold: 0.45
+  conf_threshold: 0.25
+  num_classes: 80
+  stride: 16
 
 display:
-  device: "/dev/dri/card0"
+  device: /dev/dri/card0
   width: 1920
   height: 1080
-  background_grey: 32
-
-inference:
-  weights_bin: "/lib/firmware/tiny_fpga_int8.bin"
-  conf_threshold: 0.25
-  iou_threshold:  0.45
+  refresh_hz: 60
 
 overlay:
-  bbox_color:  [0, 255, 0]
-  label_color: [255, 255, 0]
-  osd_color:   [255, 255, 255]
-  osd_scale:   3
+  font_path: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+  font_size: 16
+  box_thickness: 2
+
+limits:
+  max_frames: 1000             # 0 = run forever
+  timeout_ms: 33               # per-frame sa_infer budget
+
+# Threading (M1 W5) — selects sequential vs three-stage producer/consumer.
+# CLI flag `--threads 1` or `--threads 3` overrides `mode`.
+threading:
+  mode: sequential             # sequential | three_stage
+  ringbuf_capacity: 4          # must be a power of two; ringbuf.h enforces it
+  capture_thread_affinity: 0   # PS Cortex-A9 core 0  (V4L2 grab + preproc)
+  infer_thread_affinity: 1     # PS Cortex-A9 core 1  (sa_infer wait)
+  display_thread_affinity: 0   # core 0 again (display + NMS, low priority)
+  log_interval_frames: 30      # stage-latency print cadence
+
+# Layer dispatch (M1 W5, contract-5 v1.1.0).
+# Default values match SDK defaults (full 12-layer pipeline).
+layer:
+  id: -1                       # -1 = all layers; 0..11 = single-layer debug
+  mask: 0x0FFF                 # 12-bit mask of layers to schedule

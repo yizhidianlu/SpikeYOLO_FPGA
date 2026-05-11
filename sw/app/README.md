@@ -48,6 +48,42 @@ ssh root@zybo "/opt/run_on_board.sh"           # 默认 30 FPS demo
 ssh root@zybo "/opt/run_on_board.sh --bench"   # 性能基准模式
 ```
 
+## Threading modes (M1 W5)
+
+The binary runs in one of two pipelines, selected via `--threads`
+or `runtime.yaml: threading.mode`:
+
+| Mode | Flag | Threads | Description |
+|---|---|---|---|
+| sequential | `--threads 1` | 1 | W4 baseline. cap → preproc → infer → post → disp in one loop. |
+| three_stage | `--threads 3` | 3 | T1 cap+preproc / T2 sa_infer / T3 NMS+overlay+disp. SPSC `Ringbuf<>` depth 4 + `std::condition_variable` for wake. |
+
+Under `three_stage` `effective_fps` reflects thread overlap — it can
+materially exceed `1 / sum(stage_*)` because stages run in parallel.
+
+```yaml
+# sw/app/configs/runtime.yaml
+threading:
+  mode: sequential              # or three_stage
+  ringbuf_capacity: 4           # power of two; ringbuf.h depth
+  capture_thread_affinity: 0
+  infer_thread_affinity:   1
+  display_thread_affinity: 0
+  log_interval_frames: 30
+
+layer:                          # contract-5 v1.1.0 dispatch
+  id: -1                        # -1 = all 12 layers
+  mask: 0x0FFF
+```
+
+Bench command:
+
+```bash
+./spike_accel_demo --frames 1000 --threads 3 --backend stub \
+                   --weights /lib/firmware/tiny_fpga_int8.bin \
+                   --config /opt/configs/runtime.yaml | grep effective_fps
+```
+
 ## Acceptance gates per milestone
 
 | Milestone | FPS | CPU | val100 IoU pass | Other |

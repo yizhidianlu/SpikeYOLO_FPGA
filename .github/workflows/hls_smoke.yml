@@ -65,6 +65,31 @@ jobs:
           # gate explicitly so a make-target rename does not silently green.
           grep -q "CSIM PASS" hw/hls/host_csim.log || (echo "CSIM PASS marker missing"; exit 1)
 
+      - name: host_csim individual layers (W3-W4 sweep)
+        # B1 added per-layer host_csim targets in W3-W4 (Makefile lists
+        # host_csim_layer_{00,01,03,08,11}). Run them sequentially so a
+        # regression in any single layer's testbench surfaces here, not
+        # only in the end-to-end top integration.
+        run: |
+          export CXX=g++
+          for tgt in host_csim_layer_00 host_csim_layer_01 host_csim_layer_03 \
+                     host_csim_layer_08 host_csim_layer_11; do
+            echo "::group::$tgt"
+            make -C hw/hls "$tgt" 2>&1 | tee -a hw/hls/host_csim_layers.log
+            grep -q "CSIM PASS" hw/hls/host_csim_layers.log || \
+              (echo "::error::CSIM PASS marker missing after $tgt"; exit 1)
+            echo "::endgroup::"
+          done
+
+      - name: host_csim end-to-end top (W4 milestone)
+        # B1 W4 closed the end-to-end host_csim_top integration. Treat
+        # this as the smoke-tier gate for the whole 12-layer pipeline.
+        run: |
+          export CXX=g++
+          make -C hw/hls host_csim_top 2>&1 | tee hw/hls/host_csim_top.log
+          grep -q "CSIM PASS" hw/hls/host_csim_top.log || \
+            (echo "::error::host_csim_top CSIM PASS marker missing"; exit 1)
+
       - name: Run native csim regression sweep (4 conv/lif/maxpool TBs)
         run: |
           export CXX=g++
@@ -78,6 +103,8 @@ jobs:
           path: |
             hw/hls/build/
             hw/hls/host_csim.log
+            hw/hls/host_csim_layers.log
+            hw/hls/host_csim_top.log
             hw/hls/csim_native.log
           retention-days: 7
 

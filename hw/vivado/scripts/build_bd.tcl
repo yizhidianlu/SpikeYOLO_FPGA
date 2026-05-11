@@ -12,15 +12,22 @@
 # The wrapped script:
 #   - creates project spike_zybo (xc7z020clg400-1, board zybo-z7-20)
 #   - instantiates ps_0, spike_accel_0 (B1 IP, placeholder if .xo missing),
-#     axi_dma_feat, vdma_disp, rgb2dvi_0, ic_ctrl, ic_data
-#   - applies AXI4 auto-connect for control plane
-#   - assigns spike_accel base to 0x43C00000 (pinned to address_map.yaml)
+#     axi_dma_feat, vdma_disp, rgb2dvi_0, ic_ctrl, ic_data_hp0, ic_data_hp1,
+#     irq_concat, rst_clk0, rst_clk1
+#   - wires control plane (M_AXI_GP0 -> ic_ctrl -> 3 AXI-Lite slaves)
+#   - wires data plane:
+#       - spike_accel gmem0..gmem4 -> ic_data_hp0 -> S_AXI_HP0
+#       - axi_dma_feat mm2s+s2mm + vdma_disp mm2s -> ic_data_hp1 -> S_AXI_HP1
+#   - wires VDMA M_AXIS_MM2S -> rgb2dvi.s_axis_video (pixel clock = FCLK_CLK1)
+#   - concatenates IRQ from accel + DMA + VDMA into PS IRQ_F2P
+#   - distributes FCLK_CLK0 (100 MHz) to data/control plane,
+#                  FCLK_CLK1 (148.5 MHz) to HDMI pixel domain
+#   - pins canonical addresses (0x43C0_0000 spike_accel,
+#                               0x4040_0000 dma, 0x4300_0000 vdma)
 #   - saves system.bd, makes wrapper, reads constraints/zybo_z7_20.xdc
 #
-# TODO M2-W1: tighten data-plane wiring (HP0/HP1 split, VDMA -> rgb2dvi
-#             AXI4-Stream, IRQ concat to ps_0/IRQ_F2P).
-# TODO M2-W1: replace the rgb2dvi catch with a hard requirement once the
-#             Digilent IP repo is checked in under hw/vivado/ip_repo/.
+# rgb2dvi VLNV `digilentinc.com:ip:rgb2dvi:1.4` is now a hard requirement —
+# run `bash hw/vivado/scripts/setup_ip_repo.sh` before sourcing this script.
 
 set SCRIPT_DIR [file normalize [file dirname [info script]]]
 set TOP_BD     [file normalize [file join $SCRIPT_DIR .. build_bd.tcl]]

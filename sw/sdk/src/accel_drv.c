@@ -71,6 +71,9 @@ sa_status_t sa_open(sa_handle_t *out_handle)
     if (!h) return SA_ERR_OPEN;
     h->uio_fd = -1;
     h->dma_fd = -1;
+    /* v1.0.3 dispatch defaults: full pipeline, all 12 layers on. */
+    h->layer_id   = SA_LAYER_ID_DEFAULT;
+    h->layer_mask = SA_LAYER_MASK_DEFAULT;
     pthread_mutex_init(&h->lock, NULL);
 
 #if defined(SA_STUB_BACKEND)
@@ -167,6 +170,37 @@ sa_status_t sa_get_model_info(sa_handle_t handle, sa_model_info_t *out_info)
     return SA_OK;
 }
 
+/* Poll the CTRL register for ap_done. Returns SA_OK / SA_ERR_BUSY /
+ * SA_ERR_TIMEOUT depending on the timeout mode. Only used by the real
+ * backend; SA_STUB_BACKEND short-circuits this entirely. */
+#ifndef SA_STUB_BACKEND
+static sa_status_t _wait_ap_done(struct sa_handle_s *h, int timeout_ms)
+{
+    /* Bit 1 of CTRL == ap_done (per Contract 3 regmap). */
+    const uint32_t AP_DONE_BIT = 0x2u;
+
+    if (timeout_ms == 0) {
+        /* Non-blocking try: one register read, no waiting. */
+        return (_reg_read(h, SA_REG_CTRL) & AP_DONE_BIT) ? SA_OK : SA_ERR_BUSY;
+    }
+
+    /* timeout_ms < 0: wait forever (POSIX poll/select convention).
+     * timeout_ms > 0: wait up to N ms, then SA_ERR_TIMEOUT. */
+    const uint64_t deadline_ns =
+        (timeout_ms > 0) ? _now_ns() + (uint64_t)timeout_ms * 1000000ULL : 0;
+
+    /* 100 us poll cadence — keeps host CPU off the AXI bus while still
+     * reacting to typical few-ms inference latency. UIO IRQ path lands in
+     * M5; until then poll is the contract-clean answer. */
+    const struct timespec slack = {0, 100 * 1000};
+    for (;;) {
+        if (_reg_read(h, SA_REG_CTRL) & AP_DONE_BIT) return SA_OK;
+        if (timeout_ms > 0 && _now_ns() >= deadline_ns) return SA_ERR_TIMEOUT;
+        nanosleep(&slack, NULL);
+    }
+}
+#endif
+
 SA_VISIBILITY
 sa_status_t sa_infer(sa_handle_t handle,
                      const int8_t *img_in,
@@ -177,8 +211,13 @@ sa_status_t sa_infer(sa_handle_t handle,
     struct sa_handle_s *h = (struct sa_handle_s *)handle;
     if (!h->weights_loaded) return SA_ERR_WEIGHT_LOAD;
 
-    if (pthread_mutex_trylock(&h->lock) != 0) {
-        if (timeout_ms == -1) return SA_ERR_BUSY;
+    /* Lock acquisition mirrors timeout_ms semantics so a "non-blocking try"
+     * doesn't accidentally block on a contended handle. */
+    if (timeout_ms == 0) {
+        if (pthread_mutex_trylock(&h->lock) != 0) return SA_ERR_BUSY;
+    } else {
+        /* Both -1 (wait forever) and >0 (bounded wait) acquire blockingly;
+         * the >0 budget is enforced inside _wait_ap_done below. */
         pthread_mutex_lock(&h->lock);
     }
 
@@ -188,22 +227,30 @@ sa_status_t sa_infer(sa_handle_t handle,
     memcpy(h->in_buf, img_in, SA_INPUT_BUF_SIZE);
     const uint64_t t1 = _now_ns();
 
-    /* Stage 2: configure registers + kick. */
+    /* Stage 2: configure registers + kick. v1.0.3 adds LAYER_MASK. */
     _reg_write(h, SA_REG_IN_PTR_LO,  (uint32_t)(h->in_pa  & 0xFFFFFFFFu));
     _reg_write(h, SA_REG_IN_PTR_HI,  (uint32_t)(h->in_pa  >> 32));
     _reg_write(h, SA_REG_OUT_PTR_LO, (uint32_t)(h->out_pa & 0xFFFFFFFFu));
     _reg_write(h, SA_REG_OUT_PTR_HI, (uint32_t)(h->out_pa >> 32));
-    _reg_write(h, SA_REG_LAYER_ID, 0xFFFFFFFFu);   /* -1 = run full network */
-    _reg_write(h, SA_REG_CTRL, 0x1);                /* ap_start              */
+    _reg_write(h, SA_REG_LAYER_ID,   (uint32_t)h->layer_id);   /* signed cast */
+    _reg_write(h, SA_REG_LAYER_MASK, h->layer_mask);
+    _reg_write(h, SA_REG_CTRL,       0x1u);                    /* ap_start    */
 
     sa_status_t status = SA_OK;
 
 #if defined(SA_STUB_BACKEND)
-    /* Stub: synthesise a deterministic output. Multiply the centre-of-image
-     * by per-class biases so different inputs produce different outputs. We
-     * intentionally do NOT call the real numpy_reference here — keeping the
-     * stub purely C lets unit tests run without Python in the build sandbox.
+    /* Stub backend timeout semantics (matches header):
+     *   timeout_ms == 0  -> immediate "success" (we already trylock'd the
+     *                       mutex above, so the engine is by definition idle).
+     *   timeout_ms != 0  -> sleep ~5 ms to mimic real-board inference latency.
      */
+    if (timeout_ms != 0) {
+        struct timespec ts = {0, 5 * 1000 * 1000};   /* 5 ms */
+        nanosleep(&ts, NULL);
+    }
+
+    /* Synthesise a deterministic output. Multiply the centre-of-image by
+     * per-class biases so different inputs produce different outputs. */
     int8_t *out = h->out_buf;
     const int OUT_C = 84, OUT_H = 16, OUT_W = 16;
     int32_t pixel_sum = 0;
@@ -216,27 +263,23 @@ sa_status_t sa_infer(sa_handle_t handle,
             }
         }
     }
-    /* fake some latency so timing counters look plausible in tests */
-    struct timespec ts = {0, 200 * 1000};   /* 200 us */
-    nanosleep(&ts, NULL);
 #else
-    /* Real path: wait for the UIO interrupt. */
-    uint32_t irq;
-    int n = read(h->uio_fd, &irq, 4);
-    if (n != 4) {
-        SA_LOG("uio read: %s", strerror(errno));
-        status = SA_ERR_TIMEOUT;
+    /* Real path: poll ap_done with the requested timeout policy. The legacy
+     * uio_fd read() interrupt path will be re-enabled in M5 once the kernel
+     * driver lands; until then we go through AXI-Lite directly. */
+    status = _wait_ap_done(h, timeout_ms);
+    if (status != SA_OK && status != SA_ERR_BUSY && status != SA_ERR_TIMEOUT) {
+        SA_LOG("sa_infer: unexpected wait status %d", (int)status);
     }
-    /* Re-enable interrupt for next round. */
-    uint32_t enable = 1;
-    (void)!write(h->uio_fd, &enable, 4);
-    (void)timeout_ms;    /* TODO: poll() with timeout in M5 */
 #endif
 
     const uint64_t t2 = _now_ns();
 
-    /* Stage 3: copy output out of CMA. */
-    memcpy(feat_out, h->out_buf, SA_OUTPUT_BUF_SIZE);
+    /* Stage 3: copy output out of CMA only when the engine actually
+     * produced one this round. */
+    if (status == SA_OK) {
+        memcpy(feat_out, h->out_buf, SA_OUTPUT_BUF_SIZE);
+    }
     const uint64_t t3 = _now_ns();
 
     /* Stash performance counters (cycles ≈ ns at 1 GHz; we report ns and let
@@ -247,8 +290,50 @@ sa_status_t sa_infer(sa_handle_t handle,
     if (status == SA_OK)        h->perf.frames_completed++;
     else                        h->perf.frames_dropped++;
 
+    /* v1.1.0 echo: surface the dispatch control that this sa_infer applied
+     * so callers can verify it round-tripped without snooping AXI. */
+    h->perf.last_layer_id   = h->layer_id;
+    h->perf.last_layer_mask = h->layer_mask;
+
     pthread_mutex_unlock(&h->lock);
     return status;
+}
+
+SA_VISIBILITY
+sa_status_t sa_set_layer_id(sa_handle_t handle, int32_t layer_id)
+{
+    if (!handle) return SA_ERR_INVALID_ARG;
+    /* Contract 3 v1.0.3: -1 = run all 12 layers, 0..11 = single-layer debug. */
+    if (layer_id != -1 && (layer_id < 0 || layer_id > 11))
+        return SA_ERR_INVALID_ARG;
+
+    struct sa_handle_s *h = (struct sa_handle_s *)handle;
+    pthread_mutex_lock(&h->lock);
+    h->layer_id = layer_id;
+#if !defined(SA_STUB_BACKEND)
+    /* Push to the IP eagerly so a follow-up sa_get_perf reflects the live
+     * register state even before the next sa_infer kick. */
+    _reg_write(h, SA_REG_LAYER_ID, (uint32_t)layer_id);
+#endif
+    pthread_mutex_unlock(&h->lock);
+    return SA_OK;
+}
+
+SA_VISIBILITY
+sa_status_t sa_set_layer_mask(sa_handle_t handle, uint32_t mask)
+{
+    if (!handle) return SA_ERR_INVALID_ARG;
+    /* mask == 0 would idle the accelerator silently; refuse it. */
+    if (mask == 0u) return SA_ERR_INVALID_ARG;
+
+    struct sa_handle_s *h = (struct sa_handle_s *)handle;
+    pthread_mutex_lock(&h->lock);
+    h->layer_mask = mask;
+#if !defined(SA_STUB_BACKEND)
+    _reg_write(h, SA_REG_LAYER_MASK, mask);
+#endif
+    pthread_mutex_unlock(&h->lock);
+    return SA_OK;
 }
 
 SA_VISIBILITY
@@ -260,8 +345,12 @@ sa_status_t sa_infer_async(sa_handle_t   handle,
 {
     /* M5 work: spin up a worker thread + epoll on h->uio_fd. For now we
      * fall back to the synchronous path and invoke the callback inline so
-     * C3 can wire it up unmodified. */
-    sa_status_t rc = sa_infer(handle, img_in, feat_out, /*timeout_ms=*/0);
+     * C3 can wire it up unmodified.
+     *
+     * timeout_ms=-1 == "wait forever" under the v1.0.3 semantics, which is
+     * the right policy for an async-style call: the callback is contractually
+     * the only way the caller learns completion, so we must not bail early. */
+    sa_status_t rc = sa_infer(handle, img_in, feat_out, /*timeout_ms=*/-1);
     if (callback) callback(handle, rc, user);
     return rc;
 }

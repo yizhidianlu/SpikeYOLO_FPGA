@@ -24,8 +24,8 @@ acceptance_tests:
   - "ssh root@zybo 'modprobe spike_accel && ls /dev/spike_accel'"
   - "ssh root@zybo '/opt/test_dma_loopback 100000'"   # 10w 次 DMA 无 leak
   - "abidiff sw/sdk/baseline/libspike_accel.so.1 sw/sdk/build/libspike_accel.so.1"
-status: pending
-owner: ""
+status: in_progress
+owner: "C2-session-2026-05-11-W6"
 ---
 
 # C2 Driver & SDK Agent Playbook

@@ -25,7 +25,7 @@ acceptance_tests:
   - "python tools/verify/numpy_vs_hls.py --all-layers"
   - "python tools/ci/check_resource_budget.py hw/hls/reports/utilization.rpt"
 status: in_progress
-owner: "B1-session-2026-05-11-W4"
+owner: "B1-session-2026-05-11-W5"
 ---
 
 # B1 HLS Kernel Agent Playbook

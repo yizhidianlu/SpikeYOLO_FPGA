@@ -19,8 +19,9 @@ acceptance_tests:
   - "verilator --lint-only hw/rtl/src/pe_array.sv"
   - "bash hw/rtl/scripts/run_verilator.sh"
   - "python tools/ci/check_timing.py hw/vivado/reports/timing_summary.rpt --wns-min 0.5"
-status: pending
-owner: ""
+status: prep_done
+owner: "B3-session-2026-05-11"
+m5_trigger_ref: "docs/decisions/0004_b3_m5_trigger.md"
 ---
 
 # B3 RTL Tuning Agent Playbook

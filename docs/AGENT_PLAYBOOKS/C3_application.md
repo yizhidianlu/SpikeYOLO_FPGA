@@ -22,8 +22,8 @@ acceptance_tests:
   - "cd sw/app/build && cmake --build . --target test"
   - "ssh root@zybo 'cd /opt/spike && ./run_on_board.sh --bench-fps --duration 600'"
   - "python tests/regression/coco_val_on_board.py --board zybo --pass-rate 0.95"
-status: pending
-owner: ""
+status: in_progress
+owner: "C3-session-2026-05-11-W5"
 ---
 
 # C3 Application Agent Playbook

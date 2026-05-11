@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 #define SA_API_VERSION_MAJOR 1
-#define SA_API_VERSION_MINOR 0
+#define SA_API_VERSION_MINOR 1
 #define SA_API_VERSION_PATCH 0
 
 /* Public, opaque handle. */
@@ -51,13 +51,23 @@ typedef struct sa_model_info_s {
     uint8_t  _pad[3];
 } sa_model_info_t;
 
-/* Runtime performance counters (cumulative since last sa_open). */
+/* Runtime performance counters (cumulative since last sa_open).
+ *
+ * DO NOT REORDER — contract 5 v1.0.x ABI lock. D1's regression harness greps
+ * positionally and C3's `summary:` line prints these by offset, so any field
+ * reorder breaks downstream callers silently. New telemetry MUST be appended
+ * to the tail and the SA_API_VERSION_MINOR bumped.
+ */
 typedef struct sa_perf_s {
     uint64_t cycles_compute;   /* PL fabric cycles spent in compute             */
     uint64_t cycles_dma_in;    /* feature/weight DMA-in cycles                  */
     uint64_t cycles_dma_out;   /* output DMA-out cycles                         */
     uint32_t frames_completed;
     uint32_t frames_dropped;
+    /* v1.1.0: last-known dispatch control echo (stub-backend visible; real
+     * backend mirrors what was last written to LAYER_ID/LAYER_MASK regs). */
+    int32_t  last_layer_id;    /* -1 = all layers, 0..11 = single layer         */
+    uint32_t last_layer_mask;  /* bit i set = layer i scheduled                 */
 } sa_perf_t;
 
 /* ---------- Core lifecycle ---------- */
@@ -88,18 +98,49 @@ sa_status_t sa_get_model_info(sa_handle_t handle, sa_model_info_t *out_info);
 /* ---------- Inference ---------- */
 
 /**
- * Blocking single-frame inference.
+ * Single-frame inference.
  *
  * @param img_in      INT8 RGB NCHW [-128, 127]; size must equal 3*256*256.
  * @param feat_out    INT8 raw detect head output; size must equal (nc+4)*16*16.
- * @param timeout_ms  0   = blocking forever
- *                    >0  = abort with SA_ERR_TIMEOUT after N milliseconds
- *                    -1  = non-blocking (returns SA_ERR_BUSY if engine busy)
+ * @param timeout_ms  0   = non-blocking try; returns SA_ERR_BUSY immediately
+ *                          if the engine cannot be claimed without waiting.
+ *                    >0  = wait up to N milliseconds, otherwise SA_ERR_TIMEOUT.
+ *                    -1  = wait forever (POSIX poll/select convention).
+ *                          This is the contract-5 authoritative semantics.
  */
 sa_status_t sa_infer(sa_handle_t handle,
                      const int8_t *img_in,
                      int8_t       *feat_out,
                      int           timeout_ms);
+
+/* ---------- Layer dispatch (v1.0.3+: consumes B1 regmap LAYER_ID/MASK) ---- */
+
+/**
+ * Select which network layer the next sa_infer() will execute.
+ *
+ * @param layer_id  -1     = run the full 12-layer pipeline (default behaviour).
+ *                  0..11  = run a single layer (per-layer debug / bisection).
+ *                  any other value returns SA_ERR_INVALID_ARG and the device
+ *                  state is left untouched.
+ *
+ * Maps directly onto the v1.0.3 AXI-Lite register LAYER_ID @ 0x10.
+ * In SA_STUB_BACKEND mode the value is cached and echoed via sa_get_perf().
+ */
+sa_status_t sa_set_layer_id(sa_handle_t handle, int32_t layer_id);
+
+/**
+ * Select a per-layer execution mask. Only honoured by the IP when the active
+ * layer_id == -1 (full pipeline); a partial mask lets benchmarks run e.g.
+ * layers 0..8 only without re-burning a bitstream.
+ *
+ * @param mask  bit i set => layer i is scheduled. The mask MUST contain at
+ *              least one set bit; mask == 0 returns SA_ERR_INVALID_ARG to
+ *              avoid an accidentally idle accelerator.
+ *
+ * Maps directly onto the v1.0.3 AXI-Lite register LAYER_MASK @ 0x14.
+ * Default after sa_open(): 0x0FFF (all 12 layers enabled).
+ */
+sa_status_t sa_set_layer_mask(sa_handle_t handle, uint32_t mask);
 
 /* ---------- Async API (M5+) ---------- */
 

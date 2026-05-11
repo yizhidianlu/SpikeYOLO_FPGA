@@ -1,0 +1,24 @@
+# v1.1.0 symbol baseline -- generated 2026-05-11 (C2 W6 sprint)
+# Source: objdump -t libspike_accel.a (SA_STUB_BACKEND=1 host build, MinGW gcc 5.3)
+#
+# Public API (header-exported) -- these are the ABI surface that must
+# remain present in libspike_accel.so.1 for every future v1.x.y release.
+# A breaking removal/rename forces a SOVERSION bump to 2.
+sa_close
+sa_get_model_info
+sa_get_perf
+sa_infer
+sa_infer_async
+sa_load_weights
+sa_open
+sa_reset_perf
+sa_set_layer_id
+sa_set_layer_mask
+sa_strerror
+sa_version
+
+# Internal-linkage helpers (must NOT be reachable from libspike_accel.so.1
+# via -fvisibility=hidden in CMakeLists.txt). Listed here for forensic
+# completeness only; presence in the shared object would be a regression.
+# - sa_dma_alloc
+# - sa_dma_free

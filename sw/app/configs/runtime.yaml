@@ -1,0 +1,25 @@
+# sw/app/configs/runtime.yaml — defaults for /opt/spike_accel_demo.
+# Mirror of the command-line flags; the binary will read this if present.
+
+capture:
+  device: "/dev/video0"
+  width: 640
+  height: 480
+  pixel_format: "YUYV"
+
+display:
+  device: "/dev/dri/card0"
+  width: 1920
+  height: 1080
+  background_grey: 32
+
+inference:
+  weights_bin: "/lib/firmware/tiny_fpga_int8.bin"
+  conf_threshold: 0.25
+  iou_threshold:  0.45
+
+overlay:
+  bbox_color:  [0, 255, 0]
+  label_color: [255, 255, 0]
+  osd_color:   [255, 255, 255]
+  osd_scale:   3

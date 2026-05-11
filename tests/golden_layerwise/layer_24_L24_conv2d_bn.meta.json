@@ -1,0 +1,24 @@
+{
+  "idx": 24,
+  "name": "L24_conv2d_bn",
+  "kind": "conv2d_bn",
+  "params_hash": "PTQ-layerbylayer",
+  "input": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      48,
+      13,
+      13
+    ]
+  },
+  "output": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      96,
+      13,
+      13
+    ]
+  }
+}

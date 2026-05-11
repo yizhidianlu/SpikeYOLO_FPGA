@@ -1,0 +1,74 @@
+# sw/app/CMakeLists.txt — spike_accel_demo binary.
+#
+# Cross-compile from PC for the board:
+#   cmake -B build \
+#       -DCMAKE_TOOLCHAIN_FILE=cmake/zynq_toolchain.cmake \
+#       -DCMAKE_BUILD_TYPE=RelWithDebInfo
+#   cmake --build build
+#
+# Native (developer-PC) smoke build for the algorithm modules:
+#   cmake -B build-host -DSA_APP_NO_V4L2=ON -DSA_APP_NO_DRM=ON
+#   cmake --build build-host
+
+cmake_minimum_required(VERSION 3.18)
+project(spike_accel_demo VERSION 1.0.0 LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+option(SA_APP_NO_V4L2 "Skip /dev/videoN paths (PC dev build)" OFF)
+option(SA_APP_NO_DRM  "Skip /dev/dri/cardN paths (PC dev build)" OFF)
+
+add_executable(spike_accel_demo
+    src/main.cpp
+    src/preproc.cpp
+    src/postproc_nms.cpp
+    src/v4l2_capture.cpp
+    src/drm_display.cpp
+    src/hdmi_overlay.cpp
+)
+
+target_include_directories(spike_accel_demo
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include
+)
+
+if(SA_APP_NO_V4L2) target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_V4L2=1) endif()
+if(SA_APP_NO_DRM)  target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_DRM=1)  endif()
+
+# Link against libspike_accel built in ../sdk/. Honor a parent project
+# providing the imported target, otherwise look up via pkg-config.
+if(TARGET spike_accel)
+    target_link_libraries(spike_accel_demo PRIVATE spike_accel)
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIKE_ACCEL REQUIRED spike_accel)
+    target_include_directories(spike_accel_demo PRIVATE ${SPIKE_ACCEL_INCLUDE_DIRS})
+    target_link_libraries(spike_accel_demo PRIVATE ${SPIKE_ACCEL_LIBRARIES})
+endif()
+
+# Optional libdrm — only required when SA_APP_NO_DRM is not set.
+if(NOT SA_APP_NO_DRM)
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(LIBDRM libdrm)
+        if(LIBDRM_FOUND)
+            target_include_directories(spike_accel_demo PRIVATE ${LIBDRM_INCLUDE_DIRS})
+            target_link_libraries(spike_accel_demo PRIVATE ${LIBDRM_LIBRARIES})
+        endif()
+    endif()
+endif()
+
+target_link_libraries(spike_accel_demo PRIVATE pthread)
+
+install(TARGETS spike_accel_demo
+        RUNTIME DESTINATION /opt
+)
+install(PROGRAMS scripts/run_on_board.sh
+        DESTINATION /opt
+)
+install(FILES configs/runtime.yaml
+        DESTINATION /opt/configs
+)

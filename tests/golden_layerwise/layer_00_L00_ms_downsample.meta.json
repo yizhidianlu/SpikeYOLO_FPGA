@@ -1,0 +1,24 @@
+{
+  "idx": 0,
+  "name": "L00_ms_downsample",
+  "kind": "ms_downsample",
+  "params_hash": "PTQ-layerbylayer",
+  "input": {
+    "dtype": "int8",
+    "shape": [
+      1,
+      3,
+      256,
+      256
+    ]
+  },
+  "output": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      24,
+      64,
+      64
+    ]
+  }
+}

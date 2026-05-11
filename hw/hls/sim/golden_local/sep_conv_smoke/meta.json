@@ -1,0 +1,39 @@
+{
+  "kind": "sep_conv",
+  "layer_source": "acb2a (yaml node 4, sub 0)",
+  "weights": [
+    "L08",
+    "L09",
+    "L10",
+    "L11"
+  ],
+  "input": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      48,
+      32,
+      32
+    ]
+  },
+  "output": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      48,
+      32,
+      32
+    ]
+  },
+  "geometry": {
+    "T": 1,
+    "C": 48,
+    "C_exp": 96,
+    "H": 32,
+    "W": 32,
+    "K_dw2": 7,
+    "pad_dw2": 3,
+    "K_dw4": 3,
+    "pad_dw4": 1
+  }
+}

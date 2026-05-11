@@ -1,0 +1,29 @@
+SUMMARY = "SpikeYOLO FPGA-accelerated end-to-end demo (C3)"
+DESCRIPTION = "Bundles libspike_accel.so + spike_accel_demo + runtime.yaml"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+# Sources are kept in this repo; the recipe copies them in via a sibling fetch
+# script (sw/petalinux/scripts/fetch_app_sources.sh) before building.
+SRC_URI = "file://CMakeLists.txt \
+           file://sdk/ \
+           file://app/ \
+           file://firmware/tiny_fpga_int8.bin \
+           file://run_on_board.sh"
+
+S = "${WORKDIR}"
+
+inherit cmake pkgconfig
+
+DEPENDS = "libdrm v4l-utils"
+
+EXTRA_OECMAKE = "-DSA_BUILD_TESTS=OFF -DSA_BUILD_STUB=OFF -DSA_APP_NO_V4L2=OFF -DSA_APP_NO_DRM=OFF"
+
+do_install:append() {
+    install -d ${D}/lib/firmware
+    install -m 0644 ${S}/firmware/tiny_fpga_int8.bin ${D}/lib/firmware/
+    install -d ${D}/opt
+    install -m 0755 ${S}/run_on_board.sh ${D}/opt/
+}
+
+FILES:${PN} += "/lib/firmware/tiny_fpga_int8.bin /opt/run_on_board.sh"

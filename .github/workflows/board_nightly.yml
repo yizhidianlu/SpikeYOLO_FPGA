@@ -1,0 +1,98 @@
+name: Board Nightly Regression
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 每天 UTC 03:00（北京 11:00）
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: "FPS bench duration in seconds"
+        type: number
+        default: 300
+
+jobs:
+  board_test:
+    name: ZYBO Z7-20 end-to-end
+    runs-on: [self-hosted, zybo]
+    timeout-minutes: 120
+    env:
+      BOARD_HOST: zybo
+      FPS_BENCH_DURATION: ${{ inputs.duration || 300 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Power on board
+        run: bash scripts/wake_board.sh
+
+      - name: Health check
+        run: |
+          ssh root@${BOARD_HOST} 'uname -a && uptime && ls /dev/video0 /dev/dri/card0 /dev/uio0'
+
+      - name: Sync artifacts to board
+        run: |
+          python tools/ci/scp_to_board.py \
+            --board ${BOARD_HOST} \
+            --include sw/sdk/build/libspike_accel.so \
+                      sw/app/build/spike_accel_demo \
+                      models/tiny_fpga_int8.bin \
+                      tests/golden/coco_val100.json
+
+      - name: Full regression suite
+        run: bash tests/regression/run_full.sh --full
+
+      - name: FPS bench
+        run: |
+          python tools/perf/fps_bench.py \
+            --board ${BOARD_HOST} \
+            --duration ${FPS_BENCH_DURATION} \
+            --min-fps 30 \
+            --output runs/fps_bench.json
+
+      - name: COCO val100 regression
+        run: |
+          python tests/regression/coco_val_on_board.py \
+            --board ${BOARD_HOST} \
+            --golden tests/golden/coco_val100.json \
+            --pass-rate 0.95 \
+            --output runs/coco_val100.json
+
+      - name: DDR3 bandwidth check
+        run: |
+          python tools/perf/ddr_bw_monitor.py \
+            --board ${BOARD_HOST} \
+            --max-stall-pct 10
+
+      - name: Generate milestone report
+        if: always()
+        run: |
+          python tools/ci/gen_milestone_report.py \
+            --regression-dir runs/ \
+            --milestone $(cat .current_milestone 2>/dev/null || echo "M0") \
+            --output docs/reports/nightly_$(date +%Y%m%d).md
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: board-nightly-${{ github.run_id }}
+          path: |
+            runs/
+            docs/reports/nightly_*.md
+          retention-days: 90
+
+      - name: Open issue on failure
+        if: failure()
+        run: |
+          gh issue create \
+            --title "[nightly] Board regression failed run #${{ github.run_id }} ($(date +%F))" \
+            --label "nightly-failure" \
+            --body-file runs/summary.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Power off board
+        if: always()
+        run: bash scripts/sleep_board.sh

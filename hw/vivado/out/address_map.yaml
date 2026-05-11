@@ -1,0 +1,43 @@
+# Contract 4: B2 System Architect -> C2 Driver/SDK
+# This is the M1 reference baseline. B2 will regenerate it from Vivado
+# once Block Design is closed (M2). C2's uio_config.dts MUST be derivable
+# from this file via tools/ci/gen_dts.py with zero diff.
+
+soc: zynq-7020
+board: zybo-z7-20
+vivado_version: "2023.2"
+bitstream: "out/system.bit (placeholder, not yet built)"
+hwh: "out/system.hwh (placeholder, not yet built)"
+hdmi_tx_ip: "digilentinc.com:ip:rgb2dvi:1.4"   # see docs/decisions/0001_hdmi_tx_selection.md
+
+peripherals:
+  spike_accel:
+    base: 0x43C00000
+    size: 0x10000
+    irq: 61
+    compat: "xlnx,spike-accel-1.0"
+    clocks: [ "pl_clk0" ]
+    bus: axi-lite
+
+  axi_dma_feat:
+    base: 0x40400000
+    size: 0x10000
+    irq: 62
+    compat: "xlnx,axi-dma-7.1"
+
+  vdma_disp:
+    base: 0x43000000
+    size: 0x10000
+    irq: 63
+    compat: "xlnx,axi-vdma-6.3"
+
+  hdmi_tx:
+    base: 0x43C10000
+    size: 0x10000
+    irq: 64
+    compat: "digilent,axi-hdmi"
+
+memory:
+  ddr3:
+    total_mb: 1024
+    reserved_for_cma: 256

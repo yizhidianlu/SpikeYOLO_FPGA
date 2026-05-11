@@ -1,0 +1,38 @@
+name: Risk Dispatcher
+
+on:
+  workflow_run:
+    workflows:
+      - "NumPy Bit-Exact Regression"
+      - "HLS Smoke"
+      - "Board Nightly Regression"
+    types: [completed]
+
+jobs:
+  classify:
+    name: Classify failure and route to risk
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      issues: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download failed workflow logs
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          path: ./incoming
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Classify and open risk issue
+        run: |
+          python tools/ci/dispatch_risk_issue.py \
+            --workflow-run-id ${{ github.event.workflow_run.id }} \
+            --workflow-name "${{ github.event.workflow_run.name }}" \
+            --logs-dir ./incoming \
+            --rule-set docs/RISK_RULES.yaml \
+            --create-issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

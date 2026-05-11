@@ -1,0 +1,26 @@
+# SpikeYOLO tiny variant for PYNQ-Z2 FPGA deployment.
+# Target: 256x256 input, single detection scale at stride 16, INT8 weights.
+# Call via:  YOLO("snn_yolov8_tiny_fpga.yaml")  -- scale 'tiny_fpga' is selected by default.
+
+nc: 80
+scales:
+  # [depth, width, max_channels]
+  tiny_fpga: [0.25, 0.1875, 256]   # width 0.1875, channels 24/48/96/192
+
+# Backbone: single path down to stride 16 (no P5 branch).
+# At 256x256 input: stem -> 64x64 -> 32x32 -> 16x16
+backbone:
+  -  [-1, 1, MS_GetT, [3,1]]                              # 0  [1,3,256,256] -> [1,1,3,256,256]
+  -  [-1, 1, MS_DownSampling, [128, 7, 4, 2, True]]       # 1  stem  stride 4 -> [1,1, 24,64,64]
+  -  [-1, 1, MS_AllConvBlock, [4,7]]                      # 2
+  -  [-1, 1, MS_DownSampling, [256, 3, 2, 1, False]]      # 3  stride 8  -> [1,1, 48,32,32]
+  -  [-1, 2, MS_AllConvBlock, [4,7]]                      # 4
+  -  [-1, 1, MS_DownSampling, [512, 3, 2, 1, False]]      # 5  stride 16 -> [1,1, 96,16,16]
+  -  [-1, 2, MS_AllConvBlock, [3,7]]                      # 6
+  -  [-1, 1, SpikeSPPF, [512, 5]]                         # 7  single k=5 MaxPool
+
+# Head: single scale P4 (stride 16).  Keep minimal reduction + detect.
+head:
+  -  [-1, 1, MS_StandardConv, [256, 1, 1]]                # 8  reduce channels
+  -  [-1, 1, MS_AllConvBlock, [3,7]]                      # 9  final refinement
+  -  [[9], 1, SpikeDetect, [nc]]                          # 10 single-scale Detect

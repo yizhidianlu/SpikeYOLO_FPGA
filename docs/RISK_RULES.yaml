@@ -1,0 +1,113 @@
+# Risk classifier for CI failures
+# Used by .github/workflows/risk_dispatcher.yml + tools/ci/dispatch_risk_issue.py
+# Maps regex patterns in CI logs to risk IDs from plan file (R1..R7)
+
+risks:
+  R1:
+    title: "HLS / Vivado timing cannot close"
+    plan_section: "5. R1"
+    patterns:
+      - "WNS.*-[0-9]+\\.[0-9]+\\s*ns"
+      - "timing_summary.*FAILED"
+      - "Timing constraints are not met"
+    assignees: [B1, B2, B3]
+    handlers:
+      - "Add #pragma HLS PIPELINE II=2 on critical inner loop"
+      - "Retime critical path"
+      - "Escalate to B3 RTL Tuning"
+
+  R2:
+    title: "PE array exceeds Z-7020 resource budget"
+    plan_section: "5. R2"
+    patterns:
+      - "Utilization.*([9][0-9]|[1-9][0-9][0-9])\\s*%"
+      - "Resource overflow"
+    assignees: [B1]
+    handlers:
+      - "Shrink PE array 16x8 -> 8x8"
+      - "Time-multiplex shared PE across layers"
+      - "DW conv to LUT-based shift-add"
+
+  R3:
+    title: "DDR3 bandwidth saturated (VDMA contention)"
+    plan_section: "5. R3"
+    patterns:
+      - "fps_std/fps_mean.*0\\.[2-9]"
+      - "stall_pct.*[2-9][0-9]"
+    assignees: [B2, C3]
+    handlers:
+      - "Downgrade HDMI to 720p"
+      - "framebuffer RGB888 -> RGB565"
+      - "Pin stem + first 2 layers weights in BRAM"
+
+  R4:
+    title: "Post-quant mAP degraded > 1.0%"
+    plan_section: "5. R4"
+    patterns:
+      - "mAP.*delta.*([1-9]\\.[0-9]|[1-9][0-9]+)"
+      - "eval_quant_map.*FAIL"
+    assignees: [A1, A2]
+    handlers:
+      - "Run QAT for 5-10 epochs"
+      - "Keep stem + detect-head at INT16"
+      - "Skip BN fold on detect head"
+
+  R5:
+    title: "USB UVC camera frame drops"
+    plan_section: "5. R5"
+    patterns:
+      - "dropped.*[5-9][0-9]?\\s*%"
+      - "v4l2.*VIDIOC_DQBUF.*EAGAIN"
+    assignees: [C1, C3]
+    handlers:
+      - "Switch YUYV to MJPEG"
+      - "Drop resolution to 320x240"
+      - "Use Pcam 5C MIPI as fallback"
+
+  R6:
+    title: "HLS C-sim ↔ Co-sim divergence"
+    plan_section: "5. R6"
+    patterns:
+      - "COSIM FAIL"
+      - "Cosim.*mismatch"
+    assignees: [B1, A2]
+    handlers:
+      - "Check ap_axiu side-band signals"
+      - "Change array_partition to cyclic"
+      - "Use ap_int<N> explicitly instead of int"
+
+  R7:
+    title: "Petalinux does not recognize UVC camera"
+    plan_section: "5. R7"
+    patterns:
+      - "/dev/video0.*No such file"
+      - "VIDIOC.*ENOTTY"
+    assignees: [C1]
+    handlers:
+      - "Rebuild kernel with CONFIG_USB_VIDEO_CLASS=y"
+      - "Verify usb0 dr_mode = host in device tree"
+      - "Switch to mainline Yocto"
+
+  R8:
+    title: "Distillation not converging (mAP < 18.0 after 30 epochs)"
+    plan_section: "5. R8"
+    # Triggered from board_nightly only — distill itself is too heavy for PR CI.
+    # A1's eval_quant_map.py emits a 'distill_map' field; below patterns match
+    # both the JSON line and the human summary line.
+    patterns:
+      - "distill_map.*:\\s*([0-9]|1[0-7])\\.[0-9]+"
+      - "distill mAP.*([0-9]|1[0-7])\\.[0-9].*after.*epoch"
+      - "KD.*not.*converg"
+    assignees: [A1]
+    handlers:
+      - "Increase KD temperature (4 -> 8) and rerun 5 epochs"
+      - "Re-balance feature alignment loss weights (per-layer)"
+      - "Confirm teacher_inference_mode == avgpool_from_640"
+      - "Escalate to D1 for cloud A100 budget if local cap reached"
+
+# Default fallback when no pattern matches
+default:
+  title: "Unclassified CI failure"
+  assignees: [D2]
+  handlers:
+    - "Manual triage by D2"

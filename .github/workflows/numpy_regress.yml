@@ -1,0 +1,89 @@
+name: NumPy Bit-Exact Regression
+
+on:
+  pull_request:
+    paths:
+      - "tools/fpga/**"
+      - "tools/quant/**"
+      - "tools/verify/**"
+      - "tests/test_bit_exact.py"
+      - "tests/test_extract_golden.py"
+      - "tests/test_weight_pack.py"
+      - "tests/test_address_map.py"
+      - "tests/test_fold_bn.py"
+      - "tests/golden/**"
+      - "models/**"
+      - "ultralytics/nn/modules/yolo_spikformer*.py"
+      - ".github/workflows/numpy_regress.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Bit-exact regression
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install minimal CI dependencies
+        # Skip the full requirements.txt (torch+ultralytics ~= 8-12 min cold) since
+        # all tests below + the --help shims lazy-import torch. CI installs only
+        # what is actually exercised, restoring < 30 s cold start. If a future
+        # test needs torch, add a separate job that runs `pip install -r
+        # requirements.txt -r requirements-fpga.txt`.
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pyyaml pytest pytest-xdist pytest-cov
+
+      - name: CLI --help smoke (lazy-import contract)
+        # Each tool must run --help on a torch-less interpreter (lazy import
+        # design from A1/A2 sprints). Failure here means a top-level torch
+        # import slipped back in.
+        run: |
+          python tools/quant/distill_from_teacher.py --help
+          python tools/verify/torch_vs_numpy.py --help
+          python tools/verify/extract_golden.py --help
+          python tools/verify/gen_coco_val100.py --help
+
+      - name: Golden index sanity (12 layers + real A1 weights)
+        run: |
+          python -c "import json; idx=json.load(open('tests/golden/golden_index.json')); assert idx['layer_count']==12, f'expected 12 layers, got {idx[\"layer_count\"]}'; assert idx['weights_source']!='synthetic', 'golden must use real A1 weights, not synthetic'; print('OK', idx['weights_source'], idx['weights_sha256'][:12])"
+
+      - name: Bit-exact PyTorch vs NumPy (37 cases)
+        run: pytest tests/test_bit_exact.py -v --tb=short --junit-xml=junit-bit-exact.xml
+
+      - name: Extract golden contract suite
+        run: pytest tests/test_extract_golden.py -v -m "contract" --tb=short --junit-xml=junit-extract-golden.xml
+
+      - name: Weight packing roundtrip
+        run: pytest tests/test_weight_pack.py -v --junit-xml=junit-weight-pack.xml
+
+      - name: Address map validity
+        run: pytest tests/test_address_map.py -v --junit-xml=junit-address-map.xml
+
+      - name: Quantized mAP delta gate (PR label-gated, needs torch)
+        if: contains(github.event.pull_request.labels.*.name, 'quant-change')
+        run: |
+          pip install -r requirements.txt -r requirements-fpga.txt
+          python tools/quant/eval_quant_map.py \
+            --weights models/tiny_fpga_int8.npz \
+            --target-degradation 1.0
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: numpy-regress-${{ github.run_id }}
+          path: junit-*.xml
+          retention-days: 14

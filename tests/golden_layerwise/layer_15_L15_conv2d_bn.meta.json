@@ -1,0 +1,24 @@
+{
+  "idx": 15,
+  "name": "L15_conv2d_bn",
+  "kind": "conv2d_bn",
+  "params_hash": "PTQ-layerbylayer",
+  "input": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      96,
+      15,
+      15
+    ]
+  },
+  "output": {
+    "dtype": "int32",
+    "shape": [
+      1,
+      192,
+      15,
+      15
+    ]
+  }
+}

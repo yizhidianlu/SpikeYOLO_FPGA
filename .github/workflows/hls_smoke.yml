@@ -1,0 +1,142 @@
+name: HLS Smoke
+
+# Two-tier strategy:
+# 1) host_csim (ubuntu-22.04, vanilla g++): cheap C-only testbench that B1's
+#    Makefile already drives. Compares DUT vs A2 golden tensors byte-by-byte.
+#    Runs on every PR touching hw/hls/ or tests/golden/.
+# 2) vitis_csim / cosim (self-hosted, vivado): full Vitis HLS flow, opt-in via
+#    PR label `cosim` or workflow_dispatch. Needs Vitis license.
+
+on:
+  pull_request:
+    paths:
+      - "hw/hls/**"
+      - "tools/quant/**"
+      - "tools/verify/**"
+      - "tools/ci/**"
+      - "tests/golden/**"
+      - "tests/test_cosim.py"
+      - "tests/test_hls_native.py"
+      - "models/tiny_fpga_int8.npz"
+      - ".github/workflows/hls_smoke.yml"
+  workflow_dispatch:
+    inputs:
+      cosim:
+        description: "Run Vitis HLS C-sim + RTL Co-simulation (slow, needs license)"
+        type: boolean
+        default: false
+
+jobs:
+  host_csim:
+    name: Host C-sim (g++ + B1 Makefile)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Python (for explode_npz + run_host_csim launchers)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install minimal Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+
+      - name: Install build toolchain (g++ + GNU make)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends g++ build-essential
+          g++ --version
+          make --version
+
+      - name: Build & run B1 host_csim_layer_00
+        # The Makefile defaults CXX to g++. Force it explicitly so a future
+        # Makefile change cannot silently swap compilers in CI.
+        run: |
+          export CXX=g++
+          make -C hw/hls host_csim_layer_00 2>&1 | tee hw/hls/host_csim.log
+          # B1's run_host_csim.py wrapper prints "CSIM PASS" on success;
+          # gate explicitly so a make-target rename does not silently green.
+          grep -q "CSIM PASS" hw/hls/host_csim.log || (echo "CSIM PASS marker missing"; exit 1)
+
+      - name: Run native csim regression sweep (4 conv/lif/maxpool TBs)
+        run: |
+          export CXX=g++
+          make -C hw/hls csim_native 2>&1 | tee hw/hls/csim_native.log
+
+      - name: Upload build artefacts (debug)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hls-host-csim-${{ github.run_id }}
+          path: |
+            hw/hls/build/
+            hw/hls/host_csim.log
+            hw/hls/csim_native.log
+          retention-days: 7
+
+  vitis_csim:
+    name: Vitis HLS C-sim (opt-in)
+    needs: host_csim
+    if: ${{ inputs.cosim == true || contains(github.event.pull_request.labels.*.name, 'cosim') }}
+    runs-on: [self-hosted, vivado]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: { lfs: true }
+
+      - name: Source Vitis HLS env
+        run: |
+          source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+          echo "XILINX_HLS=$XILINX_HLS" >> $GITHUB_ENV
+
+      - name: Run Vitis C-sim against golden
+        run: |
+          cd hw/hls
+          vitis_hls -f run_csim.tcl 2>&1 | tee csim.log
+          grep -q "CSIM PASS" csim.log
+
+      - name: Compare HLS output vs NumPy golden
+        run: python tools/verify/numpy_vs_hls.py --all-layers --report runs/csim_diff.json
+
+      - name: Resource budget check
+        run: python tools/ci/check_resource_budget.py hw/hls/reports/utilization.rpt --strict
+
+      - name: Upload Vitis reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hls-vitis-csim-${{ github.run_id }}
+          path: |
+            hw/hls/reports/
+            hw/hls/csim.log
+            runs/csim_diff.json
+          retention-days: 30
+
+  cosim:
+    name: Vitis HLS Co-simulation (very slow, opt-in)
+    needs: vitis_csim
+    if: ${{ inputs.cosim == true || contains(github.event.pull_request.labels.*.name, 'cosim') }}
+    runs-on: [self-hosted, vivado]
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with: { lfs: true }
+      - run: |
+          source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+          cd hw/hls && vitis_hls -f run_cosim.tcl 2>&1 | tee cosim.log
+          grep -q "COSIM PASS" cosim.log
+
+      - name: Upload cosim reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hls-cosim-${{ github.run_id }}
+          path: hw/hls/cosim.log
+          retention-days: 30

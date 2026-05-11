@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: spike_accel
+Description: SpikeYOLO FPGA accelerator user-space SDK
+Version: @PROJECT_VERSION@
+URL: https://github.com/BICLab/SpikeYOLO
+Libs: -L${libdir} -lspike_accel
+Cflags: -I${includedir}

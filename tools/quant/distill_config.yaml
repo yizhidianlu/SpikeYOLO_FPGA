@@ -1,0 +1,34 @@
+# A1 Phase 1.5 distillation recipe.
+# Owner: A1 Quantization. Consumed by tools/quant/distill_from_teacher.py.
+# Override any field via CLI flags (--epochs / --batch-size / --device).
+
+optimizer:    AdamW
+lr:           5.0e-4
+lr_schedule:  cosine
+weight_decay: 1.0e-4
+epochs:       30                  # ~50 GPU-hour @ A100 — see Risk R8
+batch_size:   64
+warmup_epochs: 3
+
+loss_weights:
+  det:        1.0                 # standard YOLO detection loss
+  kd_logits:  1.5                 # detect-head KD (cls KL + reg L1)
+  feat_align: 0.5                 # intermediate feature MSE
+  spike_rate: 0.3                 # SNN-specific spike-rate L1
+
+data:
+  train_set:  datasets/coco/train2017
+  val_set:    datasets/coco/val2017
+  val_every:  2                   # epochs
+  imgsz:      256
+
+freeze_teacher: true
+adapter_init:   "kaiming"         # 1x1 conv init mode for TeacherAdapter
+seed:           42
+
+# Phase 1.5 additions (sprint #2 acceptance)
+teacher_inference_mode: avgpool_from_640   # R10 default: teacher fwd at 640, P4 avgpool to 16x16
+device: cuda                                # 'cuda' | 'cpu' | 'auto'
+log_interval: 50                            # iterations between distill_log.csv rows
+ckpt_interval: 5                            # epochs between checkpoint saves
+distill_alignment_layers: [5, 7, 8]         # student layer IDs targeted by feat_align

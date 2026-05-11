@@ -1,0 +1,21 @@
+# FPGA deployment workflow extras
+# Install AFTER the base requirements.txt:
+#   pip install -r requirements.txt -r requirements-fpga.txt
+
+# Testing -------------------------------------------------------------
+pytest>=7.4.0
+pytest-xdist>=3.3.0      # parallel test execution
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Quantization & calibration ------------------------------------------
+# torch + torchvision come from requirements.txt
+pycocotools>=2.0.7       # COCO mAP eval (A1, A2)
+
+# CI helpers ----------------------------------------------------------
+PyYAML>=6.0
+click>=8.1.0             # CLI args for tools/quant + tools/ci
+rich>=13.0               # nice terminal output for tools/perf
+
+# ABI checking (C2 SDK) -----------------------------------------------
+# libabigail is installed at OS level (apt: abigail-tools); no pip package

@@ -48,11 +48,13 @@ monitor we will use).
 
 If `rgb2dvi` cannot meet timing in M5 (post 150 MHz retiming on the compute
 domain, OSERDESE2 placement may interact badly with PE-array routing), B2 will
-re-spin the BD with **Xilinx HDMI 1.4 TX Subsystem (free license tier)**. This
-is a separate redesign event tracked outside the canonical R1..R7 risk table —
-since R3 already covers the DDR3-bandwidth path that is the more likely 1080p
-failure mode, we treat HDMI IP swap as an isolated mitigation, not a numbered
-risk. Estimated cost: 3 engineer-days (BD re-route + re-XDC + re-license).
+re-spin the BD with **Xilinx HDMI 1.4 TX Subsystem (free license tier)**.
+
+This failure mode is tracked as **R11** in `docs/RISK_RULES.yaml` (added
+M1-W4 — distinct from R5 "USB UVC frame drops" to avoid CI label collision).
+Trigger patterns watch for `CRITICAL WARNING.*HDMI` and `rgb2dvi.*timing.*FAIL`
+in synth/impl logs; auto-assigned to B2 with a 3-day escalation. Estimated cost
+of the swap: 3 engineer-days (BD re-route + re-XDC + re-license).
 
 If both DVI and Xilinx HDMI fail, fall back to 720p output (already a
 documented R3 handler) before considering Option C, which would require a BoM

@@ -105,6 +105,27 @@ risks:
       - "Confirm teacher_inference_mode == avgpool_from_640"
       - "Escalate to D1 for cloud A100 budget if local cap reached"
 
+  R11:
+    title: "HDMI Tx (rgb2dvi) timing fail at 148.5 MHz pixel clock"
+    plan_section: "ADR-0001 fallback"
+    # Distinct from generic R1 (compute-domain WNS) — HDMI failures live in the
+    # OSERDESE2 / TMDS path and are routed to ADR-0001's fallback procedure
+    # (swap rgb2dvi for Xilinx HDMI 1.4 TX free-license subsystem). Numbered
+    # R11 to avoid collision with R5 (USB UVC) per B2_W3 report note.
+    patterns:
+      - "CRITICAL WARNING.*HDMI"
+      - "rgb2dvi.*timing.*FAIL"
+      - "WNS.*-[0-9]+\\.[0-9]+\\s*ns.*pixel_clk"
+    assignees: [B2]
+    on_fail_workflows: [hls_smoke, board_nightly]
+    label: "risk:R11"
+    escalate_after_days: 3
+    handlers:
+      - "Verify rgb2dvi placement near HDMI Tx pins (PBlock pin-cluster)"
+      - "Re-run synth at -directive PerformanceWithRetiming"
+      - "Fallback per docs/decisions/0001_hdmi_tx_selection.md: swap to Xilinx HDMI 1.4 TX (free-license)"
+      - "If still failing: drop to 720p per R3 handler chain"
+
 # Default fallback when no pattern matches
 default:
   title: "Unclassified CI failure"

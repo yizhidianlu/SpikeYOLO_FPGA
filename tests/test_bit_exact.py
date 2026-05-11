@@ -194,16 +194,22 @@ def test_golden_index_schema(golden_index):
         "Contract 2 cannot be fulfilled with synthetic weights — re-run "
         "extract_golden.py with --npz models/tiny_fpga_int8.npz."
     )
-    assert golden_index["weights_source"] in ("a1_int8_npz", "stub") or \
-        golden_index["weights_source"].endswith(".npz"), \
-        f"unexpected weights_source: {golden_index['weights_source']}"
+    # Accept a1_int8_npz, a1_int8_npz_vX.Y.Z (contract version suffix), stub,
+    # or any explicit .npz path. v1.0.2 added the suffix variant after the
+    # SepRepConv pad-bug fix; future contract bumps should keep this prefix.
+    src = golden_index["weights_source"]
+    assert (src == "stub"
+            or src == "a1_int8_npz"
+            or src.startswith("a1_int8_npz_v")
+            or src.endswith(".npz")), \
+        f"unexpected weights_source: {src}"
     assert golden_index["layer_count"] == 12, (
         f"expected 12 layers, got {golden_index['layer_count']}"
     )
 
     # weights_sha256 should be present and look like a SHA-256 hex digest
     sha = golden_index.get("weights_sha256")
-    if golden_index["weights_source"] == "a1_int8_npz":
+    if src == "a1_int8_npz" or src.startswith("a1_int8_npz_v"):
         assert sha is not None, "weights_sha256 missing for a1_int8_npz source"
         assert len(sha) == 64, f"weights_sha256 wrong length: {sha}"
         # Re-verify by hashing the file ourselves

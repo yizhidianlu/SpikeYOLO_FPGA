@@ -2,8 +2,9 @@
  * sw/sdk/src/dma_buf.c — CMA buffer allocator.
  *
  * Two backends:
- *   * Real (Linux):  open /dev/udmabuf*, mmap into user space, query the
- *                    physical address from sysfs (/sys/class/u-dma-buf/*/phys_addr).
+ *   * Real (Linux):  open /dev/udmabufN, mmap into user space, query the
+ *                    physical address from sysfs
+ *                    (/sys/class/u-dma-buf/udmabufN/phys_addr).
  *   * Stub (PC):     plain malloc(); physical address is set to the user-space
  *                    pointer so register-writes still receive deterministic values.
  *

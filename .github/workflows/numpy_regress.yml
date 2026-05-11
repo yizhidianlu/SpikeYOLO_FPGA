@@ -19,11 +19,17 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Cancel in-flight runs of this workflow on the same ref when a new commit
+# arrives — saves runner minutes during rebase / force-push storms.
+concurrency:
+  group: numpy-regress-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Bit-exact regression
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,6 +61,26 @@ jobs:
           python tools/verify/torch_vs_numpy.py --help
           python tools/verify/extract_golden.py --help
           python tools/verify/gen_coco_val100.py --help
+
+      - name: Regenerate golden tensors from A1 weights
+        # tests/golden/*.npz and *.json are gitignored (large + churny), so
+        # checkout leaves tests/golden/ effectively empty. models/tiny_fpga_int8.npz
+        # IS tracked (.gitignore excludes *.pt but not *.npz under models/),
+        # so CI can rebuild the 12-layer golden trace at runtime via A2's
+        # extract_golden.py. A1 W3 fixed the SepRepConv pad-bug at the
+        # source — DO NOT pass --no-autocorrect-pad (default behavior is
+        # correct against the new sha256 d5385c05...). This step is the
+        # gate for every test below; if it fails, tests/test_bit_exact.py
+        # would silently skip / error on missing fixtures.
+        run: |
+          python tools/verify/extract_golden.py \
+            --npz models/tiny_fpga_int8.npz \
+            --num-images 1 \
+            --layers 0,1,2,3,4,5,6,7,8,9,10,11 \
+            --output-dir tests/golden/
+        # weights_source defaults to "a1_int8_npz" when --npz is set, which
+        # matches tests/test_bit_exact.py::test_golden_index_schema. Do NOT
+        # pass --weights-source-label here unless A2 reworks that schema test.
 
       - name: Golden index sanity (12 layers + real A1 weights)
         run: |

@@ -23,8 +23,8 @@ acceptance_tests:
   - "bash sw/petalinux/build.sh"
   - "ls -lh sw/petalinux/images/linux/BOOT.BIN sw/petalinux/images/linux/image.ub"
   - "scripts/test_boot.sh"  # 启动 < 30s + USB cam + HDMI 检查
-status: pending
-owner: ""
+status: in_progress
+owner: "C1-session-2026-05-11"
 ---
 
 # C1 Petalinux Agent Playbook

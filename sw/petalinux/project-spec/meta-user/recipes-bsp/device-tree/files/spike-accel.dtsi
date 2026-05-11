@@ -1,0 +1,119 @@
+/* sw/petalinux/.../device-tree/files/spike-accel.dtsi
+ *
+ * PL-side device-tree fragment for the SpikeYOLO accelerator stack.
+ *
+ * Owner: C1 Petalinux (this file)
+ * Source of truth for addresses + IRQs: hw/vivado/out/address_map.yaml
+ *   (Contract 4, B2 owns).
+ * Co-included by system-user.dtsi alongside C2's auto-generated uio_config.dts:
+ *   - this file              -> nodes that bind to vendor drivers
+ *                               (axi-dma, axi-vdma, digilent-axi-hdmi)
+ *   - C2's uio_config.dts    -> spike_accel + any peripheral exposed to
+ *                               user-space via UIO
+ *
+ * IRQ encoding note (Cortex-A9 GIC):
+ *   PL IRQ N (0..15) maps to GIC SPI = 32 + (29 + N for IRQ_F2P[0..7])
+ *   Per address_map.yaml: spike_accel=61, axi_dma_feat=62, vdma_disp=63,
+ *   hdmi_tx=64. As GIC SPI numbers in DT we subtract 32 -> 29, 30, 31, 32.
+ *
+ * If any field below is a placeholder (B2 has not run synthesis yet on a
+ * real Vivado host), the comment "TODO B2 真综合后 sync" marks it.
+ */
+
+/ {
+    amba_pl: amba_pl@0 {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        compatible = "simple-bus";
+        ranges;
+
+        /* spike_accel — HLS IP from B1, AXI-Lite control + AXI-Stream data.
+         * Bound here as a reference node; the actual user-space access path
+         * goes through generic-uio in C2's uio_config.dts. */
+        spike_accel_0: spike-accel@43c00000 {
+            compatible = "xlnx,spike-accel-1.0";
+            reg = <0x43c00000 0x10000>;
+            interrupts = <0 29 4>;          /* PL IRQ 0 -> GIC SPI 29, level-high */
+            interrupt-parent = <&intc>;
+            clocks = <&clkc 15>;            /* pl_clk0, per address_map.yaml */
+            clock-names = "ap_clk";
+            status = "okay";
+            /* TODO B2 真综合后 sync: confirm pl_clk0 index is still <&clkc 15>
+             * after final BD; current value matches Digilent ZYBO Z7-20
+             * reference design. */
+        };
+
+        /* AXI DMA — feature path between PS DDR3 and spike_accel.
+         * Both s2mm + mm2s channels enabled; scatter-gather off (simple mode
+         * is sufficient for the 1.2 GB/s target and avoids SG descriptor BRAM). */
+        axi_dma_feat: dma@40400000 {
+            compatible = "xlnx,axi-dma-7.1", "xlnx,axi-dma-1.00.a";
+            reg = <0x40400000 0x10000>;
+            interrupts = <0 30 4>, <0 30 4>;
+            interrupt-parent = <&intc>;
+            interrupt-names = "mm2s_introut", "s2mm_introut";
+            clocks = <&clkc 15>, <&clkc 15>, <&clkc 15>, <&clkc 15>;
+            clock-names = "s_axi_lite_aclk", "m_axi_sg_aclk",
+                          "m_axi_mm2s_aclk", "m_axi_s2mm_aclk";
+            xlnx,include-sg = <0x0>;
+            xlnx,addrwidth = <0x20>;
+            status = "okay";
+
+            dma-channel@40400000 {
+                compatible = "xlnx,axi-dma-mm2s-channel";
+                interrupts = <0 30 4>;
+                xlnx,datawidth = <0x100>;     /* 256-bit AXI-Stream per Contract 3 */
+                xlnx,device-id = <0x0>;
+            };
+
+            dma-channel@40400030 {
+                compatible = "xlnx,axi-dma-s2mm-channel";
+                interrupts = <0 30 4>;
+                xlnx,datawidth = <0x80>;      /* 128-bit AXI-Stream per Contract 3 */
+                xlnx,device-id = <0x0>;
+            };
+        };
+
+        /* AXI VDMA — DDR3 framebuffer -> HDMI Tx, 1080p@60.
+         * Single mm2s channel (read-only towards display). */
+        axi_vdma_disp: vdma@43000000 {
+            compatible = "xlnx,axi-vdma-6.3", "xlnx,axi-vdma-1.00.a";
+            reg = <0x43000000 0x10000>;
+            interrupts = <0 31 4>;
+            interrupt-parent = <&intc>;
+            interrupt-names = "mm2s_introut";
+            clocks = <&clkc 15>, <&clkc 15>, <&clkc 15>;
+            clock-names = "s_axi_lite_aclk", "m_axi_mm2s_aclk", "m_axis_mm2s_aclk";
+            xlnx,num-fstores = <0x3>;
+            xlnx,flush-fsync = <0x1>;
+            xlnx,addrwidth = <0x20>;
+            status = "okay";
+
+            dma-channel@43000000 {
+                compatible = "xlnx,axi-vdma-mm2s-channel";
+                interrupts = <0 31 4>;
+                xlnx,datawidth = <0x40>;      /* 64-bit, one pixel/cycle @ 148.5 MHz */
+                xlnx,genlock-mode = <0x0>;
+                xlnx,include-dre = <0x0>;
+            };
+        };
+
+        /* HDMI Tx — Digilent rgb2dvi v1.4 (per ADR-0001).
+         * Driver: digilent-axi-hdmi (out-of-tree, ships in Digilent BSP). */
+        hdmi_tx: hdmi-tx@43c10000 {
+            compatible = "digilent,axi-hdmi";
+            reg = <0x43c10000 0x10000>;
+            /* No interrupt — TMDS is a free-running pixel pipe. */
+            dmas = <&axi_vdma_disp 0>;
+            dma-names = "video";
+            clocks = <&clkc 16>;              /* pl_clk1 = 148.5 MHz pixel clock */
+            clock-names = "pix_clk";
+            digilent,fmax = <148500000>;
+            digilent,hmax = <1920>;
+            digilent,vmax = <1080>;
+            status = "okay";
+            /* TODO B2 真综合后 sync: confirm pl_clk1 index <&clkc 16> matches
+             * the second clock domain wired in build_bd.tcl. */
+        };
+    };
+};

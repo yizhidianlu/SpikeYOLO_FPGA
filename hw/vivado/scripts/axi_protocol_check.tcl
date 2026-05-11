@@ -1,48 +1,86 @@
 # hw/vivado/scripts/axi_protocol_check.tcl — Vivado AXI VIP smoke test.
 #
-# Open the project, locate the spike_accel IP, attach AXI Verification IP to
-# the s_axi_control port, then run a quick simulation that fires a small
-# burst of register writes/reads. Fails the script if VIP detects a protocol
-# violation.
+# Open the project, attach AXI VIPs to the three protocol-relevant interfaces
+# in the BD, run a short behavioral simulation, and fail if any AXI assertion
+# trips. This is the M2 acceptance gate for Contract 3 (B1 -> B2 hand-off)
+# and the M2-W2 gate for Contract 4 (B2 -> C2/C3 data path).
 #
-# This is the M2 acceptance gate for Contract 3 (B1 -> B2 hand-off).
+# VIPs attached:
+#   1. spike_accel_0/s_axi_control  (AXI4-Lite master VIP)  — Contract 3
+#   2. spike_accel_0/m_axi_gmem     (AXI4 monitor)          — Contract 3
+#   3. axi_dma_feat/M_AXI_MM2S      (AXI4 monitor)          — Contract 4
+#
+# Output:
+#   hw/vivado/out/axi_protocol_check.rpt — summary (PASS/FAIL + violation list)
 
 set OUT_DIR [file normalize "[file dirname [info script]]/../out"]
-open_project [file join $OUT_DIR spike_zybo.xpr]
+set RPT     [file join $OUT_DIR axi_protocol_check.rpt]
+file mkdir $OUT_DIR
+set rfp [open $RPT w]
+proc rpt {fp s} {puts $fp $s; puts $s}
 
-# Add the VIP IP to the BD.
+rpt $rfp "[axi_protocol_check] opening project..."
+open_project [file join $OUT_DIR spike_zybo.xpr]
 open_bd_design [file join $OUT_DIR spike_zybo.gen sources_1 bd system system.bd]
 
 if {[llength [get_bd_cells spike_accel_0]] == 0} {
-    puts "ERROR: spike_accel_0 not found — was build_bd.tcl run?"
+    rpt $rfp "ERROR: spike_accel_0 not found — was build_bd.tcl run?"
+    close $rfp
     exit 1
 }
 
-# Create a VIP and connect it to spike_accel_0/s_axi_control.
+# 1. Master VIP on s_axi_control (drives register accesses).
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vip:1.1 vip_ctrl
 set_property -dict [list \
     CONFIG.INTERFACE_MODE {MASTER} \
     CONFIG.PROTOCOL       {AXI4LITE} \
 ] [get_bd_cells vip_ctrl]
-
 connect_bd_intf_net [get_bd_intf_pins vip_ctrl/M_AXI] \
                     [get_bd_intf_pins spike_accel_0/s_axi_control]
+
+# 2. Monitor VIP on spike_accel m_axi_gmem (Contract 3 AXI4-MM master).
+if {[llength [get_bd_intf_pins spike_accel_0/m_axi_gmem]] > 0} {
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vip:1.1 vip_gmem
+    set_property -dict [list \
+        CONFIG.INTERFACE_MODE {MONITOR} \
+        CONFIG.PROTOCOL       {AXI4} \
+    ] [get_bd_cells vip_gmem]
+    connect_bd_intf_net [get_bd_intf_pins vip_gmem/M_AXI] \
+                        [get_bd_intf_pins spike_accel_0/m_axi_gmem]
+} else {
+    rpt $rfp "WARN: spike_accel_0/m_axi_gmem absent — Contract 3 monitor skipped"
+}
+
+# 3. Monitor VIP on axi_dma_feat MM2S (Contract 4 data path).
+if {[llength [get_bd_intf_pins axi_dma_feat/M_AXI_MM2S]] > 0} {
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vip:1.1 vip_dma
+    set_property -dict [list \
+        CONFIG.INTERFACE_MODE {MONITOR} \
+        CONFIG.PROTOCOL       {AXI4} \
+    ] [get_bd_cells vip_dma]
+    connect_bd_intf_net [get_bd_intf_pins vip_dma/M_AXI] \
+                        [get_bd_intf_pins axi_dma_feat/M_AXI_MM2S]
+} else {
+    rpt $rfp "WARN: axi_dma_feat/M_AXI_MM2S absent — Contract 4 monitor skipped"
+}
+
 save_bd_design
 
-# Synthesize for simulation only (behavioral).
-launch_simulation
-catch {
-    add_files -fileset sim_1 [file join $OUT_DIR ../scripts vip_axi_check_tb.sv]
-}
+# Bring in the testbench (drives vip_ctrl with smoke writes/reads).
+catch {add_files -fileset sim_1 [file join $OUT_DIR ../scripts vip_axi_check_tb.sv]}
 
-# Run for 10 us; the testbench fires register accesses and AXI VIP enforces
-# protocol on every cycle.
+launch_simulation
 run 10us
 
-# Fail if any AXI4 protocol assertions tripped.
-if {[get_value -count [get_assertions -filter {STATUS == FAILED}]] > 0} {
-    puts "FAIL: AXI protocol violations detected"
+set fails [get_value -count [get_assertions -filter {STATUS == FAILED}]]
+if {$fails > 0} {
+    rpt $rfp "FAIL: $fails AXI protocol violations detected"
+    foreach a [get_assertions -filter {STATUS == FAILED}] {
+        rpt $rfp "  - [get_property NAME $a]"
+    }
+    close $rfp
     exit 1
 }
-puts "[OK] AXI protocol check passed"
+rpt $rfp "[OK] AXI protocol check passed (vip_ctrl + vip_gmem + vip_dma)"
+close $rfp
 exit 0

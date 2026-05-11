@@ -393,6 +393,29 @@ inline std::vector<int32_t> spike_sppf(
                             cv2.K, cv2.stride, cv2.pad, cv2.groups);
 }
 
+
+/* --------------------------------------------------------------------------
+ * detect_head — Layer 11 PL stub. NumPy `arr.astype(np.int8)` line-for-line.
+ *
+ * The real Detect head (cv2 reg / cv3 cls / DFL / sigmoid) lives on PS.
+ * The PL kernel just truncates int32 -> int8 (low byte, two's-complement
+ * wrap) and forwards the head_refine output to the PS DDR buffer.
+ *
+ * See `tools/verify/extract_golden.py` line 262:
+ *     dump(11, "detect", "detect", in_arr=x, out_arr=x.astype(np.int8))
+ * -------------------------------------------------------------------------- */
+inline std::vector<int8_t> detect_head(
+    const int32_t *x, int N, int C, int H, int W)
+{
+    const size_t n = (size_t)N * C * H * W;
+    std::vector<int8_t> y(n, 0);
+    for (size_t i = 0; i < n; i++) {
+        /* Match NumPy astype(int8): keep low 8 bits, sign-extend. */
+        y[i] = (int8_t)(x[i] & 0xFF);
+    }
+    return y;
+}
+
 }  /* namespace sa_ref */
 
 #endif

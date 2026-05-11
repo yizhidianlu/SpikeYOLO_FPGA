@@ -1,35 +1,55 @@
-# hw/hls/run_csim.tcl — Vitis HLS C-simulation entry for sa_conv2d_int.
+# hw/hls/run_csim.tcl — Vitis HLS C-simulation entry for the full tiny_fpga
+# kernel suite.
 #
 # Usage:
 #   source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
 #   vitis_hls -f run_csim.tcl
 #
-# Expands to:
-#   1. create / re-open project "sa_kernels"
-#   2. set top to sa_conv2d_int
-#   3. add design + testbench files
-#   4. csim_design
-#   5. exit on success / fail propagation
+# Iterates over every (top, testbench) pair so a single script invocation
+# covers all 12 csim targets the host_csim_layer_NN Make targets exercise
+# under g++.
+#
+# Exit code: 0 if every csim_design returns 0, non-zero on first failure
+# (Vitis HLS propagates the testbench main() exit code automatically).
 
-set PROJ      sa_kernels
-set SOLUTION  sol1
-set PART      xc7z020clg400-1
-set TOP       sa_conv2d_int
+set PART     xc7z020clg400-1
+set CLK_PERIOD 10                 ;# 100 MHz initial M4 target
 
-open_project -reset ${PROJ}
-set_top ${TOP}
+# Each entry: {top_kernel  source_files  testbench_files}
+# source_files / testbench_files are space-separated relative paths.
+set TARGETS [list \
+    [list sa_conv2d_int        "src/conv2d_int.cpp"                                                                           "sim/tb_conv2d_int.cpp sim/npz_reader.cpp"] \
+    [list sa_conv2d_bn         "src/conv2d_bn.cpp src/conv2d_int.cpp"                                                          "sim/tb_conv2d_bn.cpp"] \
+    [list sa_lif_expand        "src/lif_expand.cpp"                                                                            "sim/tb_lif_expand.cpp"] \
+    [list sa_maxpool_or        "src/maxpool_or.cpp"                                                                            "sim/tb_maxpool_or.cpp"] \
+    [list sa_ms_downsampling   "src/ms_downsampling.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp"               "sim/tb_ms_downsampling.cpp sim/npz_reader.cpp"] \
+    [list sa_sep_conv          "src/sep_conv.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp"                       "sim/tb_sep_conv.cpp sim/npz_reader.cpp"] \
+    [list sa_ms_all_conv_block "src/ms_all_conv_block.cpp src/sep_conv.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp" "sim/tb_ms_all_conv_block.cpp sim/npz_reader.cpp"] \
+    [list sa_spike_sppf        "src/spike_sppf.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp src/maxpool_or.cpp"  "sim/tb_spike_sppf.cpp sim/npz_reader.cpp"] \
+    [list sa_detect_head       "src/detect_head.cpp"                                                                           "sim/tb_detect_head.cpp sim/npz_reader.cpp"] \
+    [list sa_tiny_fpga_top     "src/tiny_fpga_top.cpp src/ms_downsampling.cpp src/ms_all_conv_block.cpp src/sep_conv.cpp src/spike_sppf.cpp src/detect_head.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp src/maxpool_or.cpp" "sim/tb_tiny_fpga_top.cpp sim/npz_reader.cpp"] \
+]
 
-add_files src/conv2d_int.cpp -cflags "-Iinclude -DSA_USE_HLS"
-add_files -tb sim/tb_conv2d_int.cpp -cflags "-Iinclude -Isim"
-add_files -tb sim/reference.hpp     -cflags "-Iinclude -Isim"
+foreach entry $TARGETS {
+    set TOP   [lindex $entry 0]
+    set SRCS  [lindex $entry 1]
+    set TBS   [lindex $entry 2]
+    set PROJ  "csim_${TOP}"
 
-open_solution -reset ${SOLUTION} -flow_target vivado
-set_part ${PART}
-create_clock -period 10 -name default       ;# 100 MHz target for M4
+    puts "== csim ${TOP} ============================================"
+    open_project -reset ${PROJ}
+    set_top ${TOP}
 
-# C-sim only (no synth here -- run_cosim.tcl handles RTL co-sim).
-csim_design -O -ldflags "-Wl,--as-needed"
+    foreach f $SRCS { add_files       $f -cflags "-Iinclude -DSA_USE_HLS" }
+    foreach f $TBS  { add_files -tb   $f -cflags "-Iinclude -Isim" }
 
-# Vitis HLS exits non-zero automatically if testbench main() returns non-zero
-puts "CSIM SCRIPT DONE"
+    open_solution -reset sol1 -flow_target vivado
+    set_part ${PART}
+    create_clock -period ${CLK_PERIOD} -name default
+
+    csim_design -O -ldflags "-Wl,--as-needed"
+    close_project
+}
+
+puts "CSIM SCRIPT DONE — all targets passed"
 exit 0

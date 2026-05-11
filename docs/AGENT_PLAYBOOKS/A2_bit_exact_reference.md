@@ -23,7 +23,7 @@ acceptance_tests:
   - "python tools/verify/torch_vs_numpy.py --tolerance 0"
   - "ls tests/golden/layer_*.npz | wc -l"          # 期望 ≥ 11
 status: in_progress
-owner: "A2-session-2026-05-11"
+owner: "A2-session-2026-05-11-W4"
 ---
 
 # A2 Bit-Exact Reference Agent Playbook

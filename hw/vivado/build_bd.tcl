@@ -17,6 +17,9 @@ set PROJECT     spike_zybo
 set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
 set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
 set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
+set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
+set DIGILENT_IP [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
 set PART        xc7z020clg400-1
 set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
 
@@ -33,8 +36,20 @@ file mkdir $OUT_DIR
 create_project -force $PROJECT $OUT_DIR -part $PART
 set_property board_part $BOARD_PART [current_project]
 
-if {$HAS_HLS_IP} {
-    set_property ip_repo_paths "${HLS_DIR}" [current_project]
+# Compose the ip_repo search path: HLS build dir (B1 dev workflow), the
+# checked-in spike_accel drop point (post B1 hand-off), and Digilent's
+# vivado-library (rgb2dvi etc., fetched by hw/vivado/scripts/setup_ip_repo.sh).
+set ip_paths [list]
+if {$HAS_HLS_IP}                  { lappend ip_paths $HLS_DIR }
+if {[file isdirectory $SPIKE_IP]} { lappend ip_paths $SPIKE_IP }
+if {[file isdirectory $DIGILENT_IP]} {
+    lappend ip_paths $DIGILENT_IP
+} else {
+    puts "WARN: Digilent vivado-library not found at $DIGILENT_IP"
+    puts "      run hw/vivado/scripts/setup_ip_repo.sh before re-trying."
+}
+if {[llength $ip_paths] > 0} {
+    set_property ip_repo_paths $ip_paths [current_project]
     update_ip_catalog
 }
 

@@ -1,0 +1,29 @@
+# Dependabot config — D2 (CI/CD)
+# Pip + GitHub Actions only. No docker/npm/cargo (project doesn't ship them).
+version: 2
+updates:
+  # Python dependencies — weekly, Monday 03:00 UTC (off-hours US/CN both).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    labels: ["deps", "python"]
+    commit-message:
+      prefix: "deps(pip)"
+
+  # GitHub Actions versions (uses: actions/checkout@v4 etc.) — monthly bump.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    labels: ["deps", "github-actions"]
+    commit-message:
+      prefix: "deps(actions)"

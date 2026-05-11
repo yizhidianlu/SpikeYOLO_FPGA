@@ -1,0 +1,3 @@
+# Digilent vivado-library is fetched as a submodule (see README.md) — do not
+# commit its contents into this repo.
+vivado-library/

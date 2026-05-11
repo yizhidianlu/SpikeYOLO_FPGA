@@ -20,6 +20,7 @@ GOLDEN_DIR_00  := $(ROOT)/tests/golden/exploded/layer_00_stem
 GOLDEN_DIR_01  := $(ROOT)/tests/golden/exploded/layer_01_acb1
 GOLDEN_DIR_03  := $(ROOT)/tests/golden/exploded/layer_03_acb2a
 GOLDEN_DIR_08  := $(ROOT)/tests/golden/exploded/layer_08_sppf
+GOLDEN_DIR_11  := $(ROOT)/tests/golden/exploded/layer_11_detect
 WEIGHT_DIR     := $(ROOT)/models/exploded
 SEP_SMOKE_DIR  := sim/golden_local/sep_conv_smoke
 
@@ -27,6 +28,9 @@ GOLDEN_TAG_00  := $(GOLDEN_DIR_00)/.exploded
 GOLDEN_TAG_01  := $(GOLDEN_DIR_01)/.exploded
 GOLDEN_TAG_03  := $(GOLDEN_DIR_03)/.exploded
 GOLDEN_TAG_08  := $(GOLDEN_DIR_08)/.exploded
+GOLDEN_TAG_11  := $(GOLDEN_DIR_11)/.exploded
+# tiny_fpga_top end-to-end uses the layer_00 image input + the layer_11 final
+# golden output; intermediate layers are produced layer-by-layer in PL memory.
 WEIGHT_TAG     := $(WEIGHT_DIR)/.exploded
 SEP_SMOKE_TAG  := $(SEP_SMOKE_DIR)/.generated
 
@@ -38,11 +42,14 @@ TB_MS_DOWNSAMPLING   := $(BUILD)/tb_ms_downsampling
 TB_SEP_CONV          := $(BUILD)/tb_sep_conv
 TB_MS_ALL_CONV_BLOCK := $(BUILD)/tb_ms_all_conv_block
 TB_SPIKE_SPPF        := $(BUILD)/tb_spike_sppf
+TB_DETECT_HEAD       := $(BUILD)/tb_detect_head
+TB_TINY_FPGA_TOP     := $(BUILD)/tb_tiny_fpga_top
 
 ALL_TB := $(TB_CONV2D_INT) $(TB_CONV2D_BN) $(TB_LIF_EXPAND) $(TB_MAXPOOL_OR)
 
 .PHONY: all clean csim_native explode_golden_all explode_weights gen_sep_smoke \
-        host_csim_layer_00 host_csim_layer_01 host_csim_layer_03 host_csim_layer_08
+        host_csim_layer_00 host_csim_layer_01 host_csim_layer_03 host_csim_layer_08 \
+        host_csim_layer_11 host_csim_top
 
 all: csim_native
 
@@ -103,6 +110,27 @@ $(TB_SPIKE_SPPF): sim/tb_spike_sppf.cpp src/spike_sppf.cpp \
 	    src/spike_sppf.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp \
 	    src/maxpool_or.cpp sim/npz_reader.cpp
 
+# ---- W4 detect_head testbench (Layer 11 PL stub: int32 -> int8 cast).
+$(TB_DETECT_HEAD): sim/tb_detect_head.cpp src/detect_head.cpp \
+                   sim/reference.hpp sim/npz_reader.cpp sim/npz_reader.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $< \
+	    src/detect_head.cpp sim/npz_reader.cpp
+
+# ---- W4 tiny_fpga_top end-to-end testbench. Pulls in EVERY leaf + block kernel
+# so the linker can resolve every sa_* symbol the top dispatcher invokes.
+$(TB_TINY_FPGA_TOP): sim/tb_tiny_fpga_top.cpp src/tiny_fpga_top.cpp \
+                     src/conv2d_int.cpp src/conv2d_bn.cpp src/lif_expand.cpp \
+                     src/maxpool_or.cpp src/ms_downsampling.cpp src/sep_conv.cpp \
+                     src/ms_all_conv_block.cpp src/spike_sppf.cpp src/detect_head.cpp \
+                     sim/reference.hpp sim/npz_reader.cpp sim/npz_reader.h \
+                     include/op_macros.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $< \
+	    src/tiny_fpga_top.cpp \
+	    src/conv2d_int.cpp src/conv2d_bn.cpp src/lif_expand.cpp src/maxpool_or.cpp \
+	    src/ms_downsampling.cpp src/sep_conv.cpp src/ms_all_conv_block.cpp \
+	    src/spike_sppf.cpp src/detect_head.cpp \
+	    sim/npz_reader.cpp
+
 # ---- Explode .npz -> .npy (rule fires whenever the source archive is newer
 # than the per-directory tag file). Done in separate rules per layer so each
 # host_csim_layer_NN target can refresh just what it needs.
@@ -137,6 +165,12 @@ $(GOLDEN_TAG_08): $(ROOT)/tests/golden/layer_08_sppf.npz | $(BUILD)
 	    --out-dir $(GOLDEN_DIR_08)
 	@$(call TOUCH,$@)
 
+$(GOLDEN_TAG_11): $(ROOT)/tests/golden/layer_11_detect.npz | $(BUILD)
+	$(PYTHON) $(ROOT)/tools/ci/explode_npz.py \
+	    $(ROOT)/tests/golden/layer_11_detect.npz \
+	    --out-dir $(GOLDEN_DIR_11)
+	@$(call TOUCH,$@)
+
 $(WEIGHT_TAG): $(ROOT)/models/tiny_fpga_int8.npz | $(BUILD)
 	$(PYTHON) $(ROOT)/tools/ci/explode_npz.py \
 	    $(ROOT)/models/tiny_fpga_int8.npz \
@@ -151,7 +185,7 @@ $(SEP_SMOKE_TAG): $(ROOT)/tools/ci/gen_sep_conv_smoke.py \
 	$(PYTHON) $(ROOT)/tools/ci/gen_sep_conv_smoke.py
 	@$(call TOUCH,$@)
 
-explode_golden_all: $(GOLDEN_TAG_00) $(GOLDEN_TAG_01) $(GOLDEN_TAG_03) $(GOLDEN_TAG_08)
+explode_golden_all: $(GOLDEN_TAG_00) $(GOLDEN_TAG_01) $(GOLDEN_TAG_03) $(GOLDEN_TAG_08) $(GOLDEN_TAG_11)
 explode_weights:   $(WEIGHT_TAG)
 gen_sep_smoke:     $(SEP_SMOKE_TAG)
 
@@ -192,6 +226,27 @@ host_csim_layer_08: $(TB_SPIKE_SPPF) $(GOLDEN_TAG_08) $(WEIGHT_TAG)
 	    --binary $(abspath $(TB_SPIKE_SPPF)) \
 	    --cwd $(abspath $(ROOT)) \
 	    --golden-dir tests/golden/exploded/layer_08_sppf \
+	    --weight-dir models/exploded
+
+host_csim_layer_11: $(TB_DETECT_HEAD) $(GOLDEN_TAG_11)
+	@echo "==> $(TB_DETECT_HEAD) [layer_11 detect cast]"
+	@$(PYTHON) $(ROOT)/tools/ci/run_host_csim.py \
+	    --binary $(abspath $(TB_DETECT_HEAD)) \
+	    --cwd $(abspath $(ROOT)) \
+	    --golden-dir tests/golden/exploded/layer_11_detect \
+	    --weight-dir models/exploded
+
+# tiny_fpga_top end-to-end: stem image -> 11 layers -> int8 detect output.
+# Driven by layer_00_stem (image input) + layer_11_detect (final golden output)
+# with weights from models/exploded. The testbench loads ALL exploded layer
+# .npz dirs through env vars so it can sanity-check intermediate buffers if a
+# divergence happens (B1 prints which layer index first mismatches).
+host_csim_top: $(TB_TINY_FPGA_TOP) explode_golden_all $(WEIGHT_TAG)
+	@echo "==> $(TB_TINY_FPGA_TOP) [tiny_fpga_top end-to-end]"
+	@$(PYTHON) $(ROOT)/tools/ci/run_host_csim.py \
+	    --binary $(abspath $(TB_TINY_FPGA_TOP)) \
+	    --cwd $(abspath $(ROOT)) \
+	    --golden-dir tests/golden/exploded/layer_00_stem \
 	    --weight-dir models/exploded
 
 csim_native: $(ALL_TB) $(GOLDEN_TAG_00) $(WEIGHT_TAG)

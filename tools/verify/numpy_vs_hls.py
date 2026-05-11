@@ -1,27 +1,66 @@
 """Bit-exact comparator: NumPy golden ↔ HLS C-sim output.
 
-This is the workhorse for B1's CI gate. The HLS testbench writes its layer
-outputs as raw little-endian binary blobs (so it can run without a NumPy
-runtime); this script loads the matching golden tensor and asserts every
-INT element matches.
+This is the workhorse for B1's CI gate. Two operating modes:
 
-Supports two HLS output formats:
+* **Single-layer file mode** (``--golden a.npz --hls-output b.bin``).
+  The HLS testbench writes its layer outputs as raw little-endian binary
+  blobs (so it can run without a NumPy runtime); this script loads the
+  matching golden tensor and asserts every INT element matches. Supports:
+  - ``.bin``  raw byte stream, dtype + shape provided via ``--dtype`` /
+              ``--shape`` flags (or sniffed from the golden tensor).
+  - ``.npy``  standard NumPy format.
 
-* ``.bin``  raw byte stream, dtype + shape provided via ``--dtype`` /
-            ``--shape`` flags (or sniffed from the golden tensor).
-* ``.npy``  standard NumPy format (used when the HLS testbench is
-            compiled natively and can ``np.save`` via cnpy or similar).
+* **Auto host_csim driver mode** (``--all-layers``). B1's actual
+  ``hw/hls/Makefile`` ships ``host_csim_layer_{00,01,03,08}`` targets that
+  do the DUT vs GOLDEN compare *inside* the testbench (no .bin written to
+  disk). This mode invokes those make targets, parses each binary's stdout
+  for the ``[layer_NN] DUT vs GOLDEN ...`` lines and the
+  ``CSIM PASS / FAIL_GOLDEN`` sentinel, and aggregates everything into
+  ``runs/numpy_vs_hls_diff.json``. Mismatch indices reported by the
+  testbench (``[layer_NN][DUT vs GOLD] idx=N dut=X gold=Y diff=Z``) are
+  captured up to the first 5.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
+import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+# host_csim_layer_NN targets B1 has wired in hw/hls/Makefile (W3 status).
+# Update this list as B1 turns on more layers.
+_HOST_CSIM_LAYERS: List[Tuple[int, str]] = [
+    (0,  "stem"),
+    (1,  "acb1"),
+    (3,  "acb2a"),    # sep_conv smoke driven by gen_sep_conv_smoke
+    (8,  "sppf"),
+]
+
+
+# Regex to pull "idx=N dut=X gold=Y diff=Z" from testbench stderr.
+# B1 testbenches use either ``[layer_NN]`` (ms_downsampling, ms_all_conv_block,
+# spike_sppf) or a kernel-name prefix like ``[sep_conv]``, so we accept any
+# bracketed prefix.
+_MISMATCH_RE = re.compile(
+    r"\[\w+\]\[DUT vs GOLD\]\s+idx=(\d+)\s+dut=(-?\d+)\s+gold=(-?\d+)\s+diff=(-?\d+)"
+)
+# Regex to pull DUT-vs-REF mismatch nature for context.
+_DUT_REF_RE = re.compile(r"\[\w+\] DUT vs REF FAILED:\s+(\d+)\s+mismatches")
+_DUT_GOLD_FAIL_RE = re.compile(
+    r"\[\w+\] DUT vs GOLDEN FAILED:\s+(\d+)\s+/\s+(\d+)"
+)
+_DUT_REF_OK_RE = re.compile(r"\[\w+\] DUT vs REF OK\s+\((\d+)\s+elems\)")
 
 
 _DTYPE_MAP = {
@@ -112,10 +151,10 @@ def compare(golden: np.ndarray, hls: np.ndarray, max_mismatches: int = 10) -> Di
 
 def main(argv: list | None = None) -> int:
     p = argparse.ArgumentParser()
-    p.add_argument("--golden", required=True, type=Path,
-                   help="NumPy golden tensor (.npz or .npy)")
-    p.add_argument("--hls-output", required=True, type=Path,
-                   help="HLS C-sim output (.bin / .raw / .npy)")
+    p.add_argument("--golden", type=Path, default=None,
+                   help="NumPy golden tensor (.npz or .npy). Required unless --all-layers.")
+    p.add_argument("--hls-output", type=Path, default=None,
+                   help="HLS C-sim output (.bin / .raw / .npy). Required unless --all-layers.")
     p.add_argument("--key", default="output", help="key inside golden .npz")
     p.add_argument("--dtype", default=None, help="dtype for raw .bin (e.g. int32)")
     p.add_argument("--shape", default=None,
@@ -123,11 +162,14 @@ def main(argv: list | None = None) -> int:
     p.add_argument("--report", type=Path, default=None,
                    help="write JSON diff report here")
     p.add_argument("--all-layers", action="store_true",
-                   help="treat --golden as a directory of layer_*.npz")
+                   help="drive hw/hls/Makefile host_csim_layer_NN targets for "
+                        "all wired-up layers, parse stdout for PASS/FAIL")
     args = p.parse_args(argv)
 
     if args.all_layers:
         return _all_layers_mode(args)
+    if args.golden is None or args.hls_output is None:
+        p.error("--golden and --hls-output are required unless --all-layers is set")
 
     golden = load_golden(args.golden, key=args.key)
     if args.dtype:
@@ -152,44 +194,186 @@ def main(argv: list | None = None) -> int:
     return 0 if result["ok"] else 1
 
 
-def _all_layers_mode(args: argparse.Namespace) -> int:
-    """Iterate every layer_*.npz under args.golden and look for the matching
-    HLS output in args.hls_output (treated as a directory)."""
-    golden_dir = args.golden
-    hls_dir = args.hls_output
-    if not golden_dir.is_dir() or not hls_dir.is_dir():
-        print("--all-layers requires both --golden and --hls-output be directories",
-              file=sys.stderr)
-        return 2
-    all_ok = True
-    summary = {}
-    for npz in sorted(golden_dir.glob("layer_*.npz")):
-        stem = npz.stem  # layer_00_stem
-        hls_candidate = next(iter(hls_dir.glob(f"{stem}*.bin")
-                                  or hls_dir.glob(f"{stem}*.npy")), None)
-        if hls_candidate is None:
-            print(f"[{stem}] no HLS output found in {hls_dir}", file=sys.stderr)
-            summary[stem] = {"ok": False, "reason": "missing hls output"}
-            all_ok = False
-            continue
-        golden = load_golden(npz)
-        hls = load_hls_output(
-            hls_candidate,
-            dtype=golden.dtype if hls_candidate.suffix in (".bin", ".raw") else None,
-            shape=tuple(golden.shape) if hls_candidate.suffix in (".bin", ".raw") else None,
-        )
-        result = compare(golden, hls)
-        summary[stem] = result
-        flag = "OK " if result["ok"] else "FAIL"
-        n_total = result.get("n_elements", 0)
-        n_bad = result.get("n_mismatches", 0)
-        print(f"[{stem}] {flag}  total={n_total}  mismatches={n_bad}")
-        if not result["ok"]:
-            all_ok = False
+def _parse_csim_output(stdout: str, stderr: str) -> Dict:
+    """Parse a B1 host_csim binary's combined stdout/stderr.
 
-    if args.report:
-        args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(json.dumps(summary, indent=2))
+    Returns a dict with at least:
+      - ok:             bool   (True iff CSIM PASS line is present)
+      - sentinel:       str    (PASS / FAIL_GOLDEN / FAIL / UNKNOWN)
+      - n_elements:     int    (from "DUT vs REF OK (N elems)" if seen)
+      - n_mismatches:   int    (from "DUT vs GOLDEN FAILED: N / M" if seen)
+      - first_mismatches: list of {index, golden, hls, diff} (up to 5)
+    """
+    combined = stdout + "\n" + stderr
+    sentinel = "UNKNOWN"
+    if "CSIM PASS" in stdout or "CSIM PASS" in stderr:
+        sentinel = "PASS"
+    elif "CSIM FAIL_GOLDEN" in combined:
+        sentinel = "FAIL_GOLDEN"
+    elif "CSIM FAIL" in combined:
+        sentinel = "FAIL"
+
+    n_elements = 0
+    m = _DUT_REF_OK_RE.search(combined)
+    if m:
+        n_elements = int(m.group(1))
+
+    n_mismatches = 0
+    m = _DUT_GOLD_FAIL_RE.search(combined)
+    if m:
+        n_mismatches = int(m.group(1))
+        if n_elements == 0:
+            n_elements = int(m.group(2))
+
+    examples: List[Dict] = []
+    for hit in _MISMATCH_RE.finditer(combined):
+        examples.append({
+            "index": [int(hit.group(1))],
+            "golden": int(hit.group(3)),
+            "hls":    int(hit.group(2)),
+            "diff":   int(hit.group(4)),
+        })
+        if len(examples) >= 5:
+            break
+
+    return {
+        "ok": sentinel == "PASS",
+        "sentinel": sentinel,
+        "n_elements": n_elements,
+        "n_mismatches": n_mismatches,
+        "first_mismatches": examples,
+    }
+
+
+def _run_make_target(target: str, hw_hls_dir: Path) -> Tuple[int, str, str]:
+    """Invoke ``make <target>`` inside hw/hls/. Returns (rc, stdout, stderr).
+
+    On Windows, GNU make typically ships as ``mingw32-make.exe`` from
+    msys2/conda. We probe both the bare name and the ``.exe`` suffix because
+    Python's subprocess on Windows does not always honour PATHEXT (it does
+    via shutil.which, so we route through that explicitly).
+    """
+    import shutil
+    candidates = ["mingw32-make", "make", "mingw32-make.exe", "make.exe"]
+    resolved = None
+    for tool in candidates:
+        path = shutil.which(tool)
+        if path is not None:
+            resolved = path
+            break
+    if resolved is None:
+        return 127, "", f"no make tool found on PATH (tried: {', '.join(candidates)})"
+    # If caller hasn't already set PYTHON, leave the env alone so the
+    # Makefile's default `PYTHON ?= python` resolves via PATH. We used to
+    # inject PYTHON=sys.executable, but on Windows that path contains
+    # backslashes which mingw32-make hands to /usr/bin/sh which then strips
+    # them ("D:\Application\..." -> "D:Application..."). The python on PATH
+    # is always the same conda env in practice, and forward-slashing the
+    # path breaks DOS-style shells. Easiest: don't override.
+    env = dict(os.environ)
+    if "PYTHON" not in env:
+        # Best-effort: only set when sys.executable contains no backslash
+        # (i.e. POSIX) — otherwise rely on `python` being on PATH.
+        if "\\" not in sys.executable:
+            env["PYTHON"] = sys.executable
+    try:
+        proc = subprocess.run(
+            [resolved, target],
+            cwd=str(hw_hls_dir),
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        return proc.returncode, proc.stdout, proc.stderr
+    except OSError as exc:
+        return 127, "", f"failed to invoke {resolved}: {exc}"
+
+
+def _all_layers_mode(args: argparse.Namespace) -> int:
+    """Drive B1's host_csim_layer_NN make targets and aggregate results.
+
+    For each layer in ``_HOST_CSIM_LAYERS`` we invoke the corresponding
+    ``host_csim_layer_NN`` target (which already does DUT vs GOLDEN compare
+    against ``tests/golden/exploded/layer_NN_*/output.npy``), parse the
+    binary's stdout/stderr for the CSIM sentinel + mismatch details, and
+    emit one consolidated record per layer to
+    ``runs/numpy_vs_hls_diff.json`` (or ``--report`` override).
+
+    Backwards compatible: if ``--hls-output`` is a directory of pre-written
+    .bin files, we fall back to the file-based comparator path used by
+    earlier sprints.
+    """
+    summary: Dict[str, Dict] = {}
+    all_ok = True
+
+    # Backwards-compat: directory-of-bins mode (legacy, kept for whoever wires
+    # vitis_hls cosim later — Vitis can dump tensors to .bin via the testbench).
+    if args.hls_output is not None and Path(args.hls_output).is_dir():
+        hls_dir = Path(args.hls_output)
+        golden_dir = Path(args.golden) if args.golden is not None else (
+            _REPO_ROOT / "tests" / "golden")
+        for npz in sorted(golden_dir.glob("layer_*.npz")):
+            stem = npz.stem
+            cands = list(hls_dir.glob(f"{stem}*.bin")) + list(hls_dir.glob(f"{stem}*.npy"))
+            if not cands:
+                summary[stem] = {"ok": False, "reason": "missing hls output"}
+                all_ok = False
+                continue
+            hls_candidate = cands[0]
+            golden = load_golden(npz)
+            hls = load_hls_output(
+                hls_candidate,
+                dtype=golden.dtype if hls_candidate.suffix in (".bin", ".raw") else None,
+                shape=tuple(golden.shape) if hls_candidate.suffix in (".bin", ".raw") else None,
+            )
+            result = compare(golden, hls)
+            summary[stem] = result
+            if not result["ok"]:
+                all_ok = False
+            flag = "OK " if result["ok"] else "FAIL"
+            print(f"[{stem}] {flag}  total={result.get('n_elements',0)}  "
+                  f"mismatches={result.get('n_mismatches',0)}")
+    else:
+        # Default: drive the make targets B1 ships in hw/hls/Makefile.
+        hw_hls = _REPO_ROOT / "hw" / "hls"
+        if not (hw_hls / "Makefile").exists():
+            print(f"[--all-layers] no Makefile at {hw_hls}/Makefile",
+                  file=sys.stderr)
+            return 2
+        for layer_idx, name in _HOST_CSIM_LAYERS:
+            tag = f"layer_{layer_idx:02d}_{name}"
+            target = f"host_csim_layer_{layer_idx:02d}"
+            print(f"[{tag}] -> make {target}")
+            rc, out, err = _run_make_target(target, hw_hls)
+            parsed = _parse_csim_output(out, err)
+            parsed["layer_idx"] = layer_idx
+            parsed["layer_name"] = name
+            parsed["make_target"] = target
+            parsed["make_rc"] = rc
+            # Make may exit non-zero even on PASS if a sub-rule prints to
+            # stderr; trust the sentinel first, fall back to rc.
+            if parsed["sentinel"] == "PASS":
+                parsed["ok"] = True
+            elif parsed["sentinel"] in ("FAIL", "FAIL_GOLDEN"):
+                parsed["ok"] = False
+            else:
+                parsed["ok"] = (rc == 0)
+            if not parsed["ok"]:
+                all_ok = False
+            flag = "PASS" if parsed["ok"] else "FAIL"
+            print(f"[{tag}] {flag}  rc={rc}  sentinel={parsed['sentinel']}  "
+                  f"elems={parsed['n_elements']}  "
+                  f"mismatches={parsed['n_mismatches']}")
+            summary[tag] = parsed
+
+    out_path = args.report or (_REPO_ROOT / "runs" / "numpy_vs_hls_diff.json")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps({
+        "all_ok": all_ok,
+        "n_layers": len(summary),
+        "layers": summary,
+    }, indent=2))
+    print(f"[numpy_vs_hls] wrote diff report -> {out_path}")
     return 0 if all_ok else 1
 
 

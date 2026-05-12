@@ -1,10 +1,10 @@
-=== Step 5 Vivado BD+bit RE-RUN 4 (CWD fixed) at 2026-05-12T21:47:41+08:00 ===
+=== Step 5 Vivado BD+bit RE-RUN 5 (Option ? - HDMI dropped) at 2026-05-12T22:23:04+08:00 ===
 
 ****** Vivado v2024.1 (64-bit)
   **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Tue May 12 21:47:50 2026
+  **** Start of session at: Tue May 12 22:23:11 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
@@ -23,11 +23,10 @@ INFO:   BOARD_PART :1.0 -> :1.2
 # puts "INFO:   [file dirname [info script]] pinned to $HW_VIVADO_DIR"
 INFO:   C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machine pinned to C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado
 # eval $content
-WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/.
-      Generating BD with a placeholder IP. Re-run after .xo is built.
 INFO: board.repoPaths = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-boards/new/board_files
-create_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:10 . Memory (MB): peak = 706.961 ; gain = 277.340
+create_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 704.375 ; gain = 274.293
 INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
@@ -38,17 +37,25 @@ CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has ne
 CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
 INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
 INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
-WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins rgb2dvi_0/s_axis_video'
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins spike_accel_0/m_axi_gmem0'
 ERROR: [BD 5-106] Arguments to the connect_bd_intf_net command cannot be empty.
 ERROR: [Common 17-39] 'connect_bd_intf_net' failed due to earlier errors.
 
     while executing
-"connect_bd_intf_net -intf_net vdma_to_rgb2dvi \
-    [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
-    [get_bd_intf_pins rgb2dvi_0/s_axis_video]"
-    ("eval" body line 230)
+"connect_bd_intf_net -intf_net "spike_to_hp0_$i"  [get_bd_intf_pins spike_accel_0/m_axi_gmem$i]  [get_bd_intf_pins ic_data_hp0/$s]"
+    ("for" body line 3)
+    invoked from within
+"for {set i 0} {$i < 5} {incr i} {
+        set s [format "S%02d_AXI" $i]
+        connect_bd_intf_net -intf_net "spike_to_hp0_$i"  [get_bd_intf_pins spi..."
+    invoked from within
+"if {$HAS_HLS_IP} {
+    # 5 master ports gmem0..gmem4 mapped onto S00..S04 of ic_data_hp0.
+    for {set i 0} {$i < 5} {incr i} {
+        set s [format ..."
+    ("eval" body line 188)
     invoked from within
 "eval $content"
     (file "C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_step5_bd_patched.tcl" line 31)
-INFO: [Common 17-206] Exiting Vivado at Tue May 12 21:48:15 2026...
+INFO: [Common 17-206] Exiting Vivado at Tue May 12 22:23:33 2026...
 VIVADO_TCL_EXIT_FAIL 

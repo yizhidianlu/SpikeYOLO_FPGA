@@ -49,8 +49,24 @@ if [ -z "${OPENXLAB_AK:-}" ] || [ -z "${OPENXLAB_SK:-}" ]; then
 fi
 
 if [ -n "${OPENXLAB_AK:-}" ] && [ -n "${OPENXLAB_SK:-}" ]; then
-    echo "[coco-odl] openxlab login"
-    openxlab login --ak "$OPENXLAB_AK" --sk "$OPENXLAB_SK"
+    # NOTE: openxlab CLI ≥ 0.0.40 dropped --ak/--sk flags; `openxlab login`
+    # is interactive-only. Workaround: write the credentials file directly,
+    # bypassing the CLI prompt entirely. Format reverse-engineered from
+    # openxlab-python source (~/.openxlab/openxlab.yaml).
+    echo "[coco-odl] writing ~/.openxlab/openxlab.yaml (bypass interactive login)"
+    mkdir -p ~/.openxlab
+    cat > ~/.openxlab/openxlab.yaml <<EOF
+ak: $OPENXLAB_AK
+sk: $OPENXLAB_SK
+EOF
+    chmod 600 ~/.openxlab/openxlab.yaml
+
+    # Belt-and-suspenders: also try piped stdin to `openxlab login` in case
+    # this CLI version reads from yaml at a different path.
+    printf "%s\n%s\n" "$OPENXLAB_AK" "$OPENXLAB_SK" | openxlab login 2>&1 | head -5 || true
+
+    # Final fallback: export env vars so dataset get can pick them up directly.
+    export OPENXLAB_AK OPENXLAB_SK
 fi
 
 # ---- Download COCO 2017 ----

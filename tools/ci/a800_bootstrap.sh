@@ -103,7 +103,13 @@ if [ -d $PUB ]; then
         [ -d $PUB/labels ] && ln -sfn $PUB/labels $COCO_ROOT/labels
         echo "[bootstrap] symlinked layout B (train2017/, val2017/ top-level)"
     else
-        echo "[bootstrap] WARN: unrecognized autodl-pub layout; fallback to download path"
+        echo "[bootstrap] WARN: unrecognized autodl-pub layout. Dumping tree (depth=2):"
+        find $PUB -maxdepth 2 -type d 2>&1 | head -30
+        echo "[bootstrap] WARN: also checking zip layout..."
+        find $PUB -maxdepth 3 -name "*.zip" 2>&1 | head -10
+        echo "[bootstrap] WARN: if you see *.zip files, run:"
+        echo "  cd $COCO_ROOT && unzip -qn $PUB/train2017.zip -d images/ && unzip -qn $PUB/val2017.zip -d images/ && unzip -qn $PUB/annotations_trainval2017.zip -d ."
+        echo "[bootstrap] fallback to download path"
     fi
 fi
 

@@ -13,7 +13,7 @@
 #   scp -P 50535 models/SpikeYOLO_23.1M_T1D4.pt models/tiny_fpga_fp32.pt root@<host>:/root/
 
 set -e
-echo "[bootstrap] === A800 v2.2 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
+echo "[bootstrap] === A800 v2.3 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
 
 # ---- 0. AutoDL 学术加速 (opt-in)
 # 默认 aria2 -x16 -s16 直连 cocodataset.org (主开发机实测 5-7 MB/s OK).
@@ -73,12 +73,48 @@ $PIP_TUNA -r requirements.txt        || pip install -q -r requirements.txt
 $PIP_TUNA -r requirements-fpga.txt   || pip install -q -r requirements-fpga.txt
 echo "[bootstrap] torch: $(python -c 'import torch;print(torch.__version__, "cuda="+str(torch.cuda.is_available()), torch.cuda.get_device_name(0) if torch.cuda.is_available() else "")')"
 
-# ---- 4. COCO on /root/autodl-fs (200G, 168G free); symlink into repo ----
-mkdir -p $COCO_ROOT/_downloads $COCO_ROOT/images $COCO_ROOT/annotations
+# ---- 4. COCO setup ----
+# Priority chain:
+#   (a) AutoDL public dataset /root/autodl-pub/COCO2017 (符号链接, 零下载, 最快)
+#   (b) 已下载到 /root/autodl-fs/coco_dataset (resume)
+#   (c) aria2 -x16 直连 cocodataset.org (最后 fallback)
 mkdir -p $REPO/datasets
 rm -rf $REPO/datasets/coco
+
+PUB=/root/autodl-pub/COCO2017
+if [ -d $PUB ]; then
+    echo "[bootstrap] Found AutoDL public dataset: $PUB (zero-download path)"
+    # Detect layout
+    if [ -d $PUB/images/train2017 ] && [ -d $PUB/images/val2017 ]; then
+        # Layout A: images/train2017, images/val2017, annotations
+        rm -rf $COCO_ROOT/images $COCO_ROOT/annotations $COCO_ROOT/labels
+        mkdir -p $COCO_ROOT
+        ln -sfn $PUB/images       $COCO_ROOT/images
+        ln -sfn $PUB/annotations  $COCO_ROOT/annotations
+        [ -d $PUB/labels ] && ln -sfn $PUB/labels $COCO_ROOT/labels
+        echo "[bootstrap] symlinked layout A (images/, annotations/, labels/)"
+    elif [ -d $PUB/train2017 ] && [ -d $PUB/val2017 ]; then
+        # Layout B: train2017, val2017, annotations top-level
+        rm -rf $COCO_ROOT/images $COCO_ROOT/annotations $COCO_ROOT/labels
+        mkdir -p $COCO_ROOT/images
+        ln -sfn $PUB/train2017     $COCO_ROOT/images/train2017
+        ln -sfn $PUB/val2017       $COCO_ROOT/images/val2017
+        ln -sfn $PUB/annotations   $COCO_ROOT/annotations
+        [ -d $PUB/labels ] && ln -sfn $PUB/labels $COCO_ROOT/labels
+        echo "[bootstrap] symlinked layout B (train2017/, val2017/ top-level)"
+    else
+        echo "[bootstrap] WARN: unrecognized autodl-pub layout; fallback to download path"
+    fi
+fi
+
+mkdir -p $COCO_ROOT/_downloads $COCO_ROOT/images $COCO_ROOT/annotations
 ln -sfn $COCO_ROOT $REPO/datasets/coco
 echo "[bootstrap] symlink: $REPO/datasets/coco -> $COCO_ROOT"
+
+# YOLO labels: even if autodl-pub didn't include labels, derive from labels zip
+if [ ! -d $COCO_ROOT/labels/train2017 ]; then
+    echo "[bootstrap] YOLO labels missing — will download just coco2017labels.zip (small, 70 MB)"
+fi
 
 TRAIN_IMGS=$(ls $COCO_ROOT/images/train2017 2>/dev/null | wc -l)
 if [ "$TRAIN_IMGS" -lt 118000 ]; then

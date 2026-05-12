@@ -1,0 +1,35 @@
+=== Step 5 Vivado BD + bitstream started at 2026-05-12T17:38:26+08:00 ===
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 17:38:32 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source build_bd.tcl
+# set PROJECT     spike_zybo
+# set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
+# set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
+# set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
+# set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
+# set DIGILENT_IP [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+# set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
+# set PART        xc7z020clg400-1
+# set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
+# if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
+#     ![file exists "${SPIKE_IP}/sa_tiny_fpga_top.xo"]} {
+#     puts "WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/."
+#     puts "      Generating BD with a placeholder IP. Re-run after .xo is built."
+#     set HAS_HLS_IP 0
+# } else {
+#     set HAS_HLS_IP 1
+# }
+# file mkdir $OUT_DIR
+# create_project -force $PROJECT $OUT_DIR -part $PART
+create_project: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 628.477 ; gain = 200.750
+# set_property board_part $BOARD_PART [current_project]
+ERROR: [Board 49-71] The board_part definition was not found for digilentinc.com:zybo-z7-20:part0:1.0. The project's board_part property was not set, but the project's part property was set to xc7z020clg400-1. Valid board_part values can be retrieved with the 'get_board_parts' Tcl command. Check if board.repoPaths parameter is set and the board_part is installed from the tcl app store.
+INFO: [Common 17-206] Exiting Vivado at Tue May 12 17:38:42 2026...
+VIVADO_TCL_EXIT_FAIL 

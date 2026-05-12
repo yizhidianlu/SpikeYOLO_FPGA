@@ -1,0 +1,252 @@
+=== Step 3 synth started at 2026-05-12T15:50:17+08:00 ===
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:50:29 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:50:30 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'run_synth.tcl'
+== synth sa_tiny_fpga_top =============================================
+INFO: [HLS 200-1510] Running: open_project -reset synth_sa_tiny_fpga_top 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top'.
+INFO: [HLS 200-1510] Running: set_top sa_tiny_fpga_top 
+INFO: [HLS 200-1510] Running: add_files src/tiny_fpga_top.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/tiny_fpga_top.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/ms_downsampling.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_downsampling.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/ms_all_conv_block.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_all_conv_block.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/sep_conv.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/sep_conv.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/spike_sppf.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/spike_sppf.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/detect_head.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/detect_head.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/maxpool_or.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/maxpool_or.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csynth_design 
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.118 seconds; current allocated memory: 227.336 MB.
+INFO: [HLS 200-10] Analyzing design file 'src/maxpool_or.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/maxpool_or.cpp:26:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y_out' (src/maxpool_or.cpp:27:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T' (src/maxpool_or.cpp:28:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C' (src/maxpool_or.cpp:28:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/maxpool_or.cpp:28:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/maxpool_or.cpp:28:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K' (src/maxpool_or.cpp:29:33)
+INFO: [HLS 200-10] Analyzing design file 'src/lif_expand.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/lif_expand.cpp:29:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spike_out' (src/lif_expand.cpp:30:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T' (src/lif_expand.cpp:31:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C' (src/lif_expand.cpp:31:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/lif_expand.cpp:31:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/lif_expand.cpp:31:33)
+INFO: [HLS 200-10] Analyzing design file 'src/conv2d_int.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x' (src/conv2d_int.cpp:44:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y' (src/conv2d_int.cpp:45:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w' (src/conv2d_int.cpp:46:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'N' (src/conv2d_int.cpp:47:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_in' (src/conv2d_int.cpp:48:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_out' (src/conv2d_int.cpp:49:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/conv2d_int.cpp:50:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/conv2d_int.cpp:51:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K' (src/conv2d_int.cpp:52:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'stride' (src/conv2d_int.cpp:53:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad' (src/conv2d_int.cpp:54:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'groups' (src/conv2d_int.cpp:55:33)
+INFO: [HLS 200-10] Analyzing design file 'src/conv2d_bn.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x' (src/conv2d_bn.cpp:55:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y' (src/conv2d_bn.cpp:56:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w' (src/conv2d_bn.cpp:57:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias' (src/conv2d_bn.cpp:58:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'out_shift' (src/conv2d_bn.cpp:59:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'tmp_acc' (src/conv2d_bn.cpp:60:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T_in' (src/conv2d_bn.cpp:61:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_in' (src/conv2d_bn.cpp:61:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_out' (src/conv2d_bn.cpp:62:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/conv2d_bn.cpp:62:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/conv2d_bn.cpp:63:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K' (src/conv2d_bn.cpp:63:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'stride' (src/conv2d_bn.cpp:64:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad' (src/conv2d_bn.cpp:64:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'groups' (src/conv2d_bn.cpp:65:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'first_layer' (src/conv2d_bn.cpp:65:33)
+INFO: [HLS 200-10] Analyzing design file 'src/detect_head.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/detect_head.cpp:51:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y_out' (src/detect_head.cpp:52:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'N' (src/detect_head.cpp:53:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C' (src/detect_head.cpp:53:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/detect_head.cpp:53:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/detect_head.cpp:53:33)
+INFO: [HLS 200-10] Analyzing design file 'src/spike_sppf.cpp' ... 
+WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/spike_sppf.cpp:77:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y_out' (src/spike_sppf.cpp:78:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv1_w' (src/spike_sppf.cpp:79:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv1_b' (src/spike_sppf.cpp:79:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv1_s' (src/spike_sppf.cpp:79:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv2_w' (src/spike_sppf.cpp:80:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv2_b' (src/spike_sppf.cpp:80:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cv2_s' (src/spike_sppf.cpp:80:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'ping_buf' (src/spike_sppf.cpp:81:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spk_buf' (src/spike_sppf.cpp:82:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pool_buf1' (src/spike_sppf.cpp:83:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pool_buf2' (src/spike_sppf.cpp:84:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pool_buf3' (src/spike_sppf.cpp:85:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'concat_buf' (src/spike_sppf.cpp:86:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'cat_i32_buf' (src/spike_sppf.cpp:87:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spike_buf' (src/spike_sppf.cpp:88:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'tmp_acc' (src/spike_sppf.cpp:89:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T' (src/spike_sppf.cpp:90:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_in' (src/spike_sppf.cpp:90:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_mid' (src/spike_sppf.cpp:91:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_out' (src/spike_sppf.cpp:91:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/spike_sppf.cpp:92:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/spike_sppf.cpp:92:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'k' (src/spike_sppf.cpp:93:33)
+INFO: [HLS 200-10] Analyzing design file 'src/sep_conv.cpp' ... 
+WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x' (src/sep_conv.cpp:88:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y' (src/sep_conv.cpp:89:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w0' (src/sep_conv.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias0' (src/sep_conv.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift0' (src/sep_conv.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w1' (src/sep_conv.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias1' (src/sep_conv.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift1' (src/sep_conv.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w2' (src/sep_conv.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias2' (src/sep_conv.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift2' (src/sep_conv.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w3' (src/sep_conv.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias3' (src/sep_conv.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift3' (src/sep_conv.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'ping_buf' (src/sep_conv.cpp:94:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pong_buf' (src/sep_conv.cpp:95:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spike_buf' (src/sep_conv.cpp:96:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'tmp_acc' (src/sep_conv.cpp:97:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T' (src/sep_conv.cpp:98:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C' (src/sep_conv.cpp:98:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_exp' (src/sep_conv.cpp:98:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/sep_conv.cpp:99:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/sep_conv.cpp:99:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_dw2' (src/sep_conv.cpp:100:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_dw4' (src/sep_conv.cpp:100:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_dw2' (src/sep_conv.cpp:101:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_dw4' (src/sep_conv.cpp:101:33)
+INFO: [HLS 200-10] Analyzing design file 'src/ms_all_conv_block.cpp' ... 
+WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/ms_all_conv_block.cpp:86:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y' (src/ms_all_conv_block.cpp:87:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_w0' (src/ms_all_conv_block.cpp:88:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_b0' (src/ms_all_conv_block.cpp:88:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_s0' (src/ms_all_conv_block.cpp:88:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_w1' (src/ms_all_conv_block.cpp:89:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_b1' (src/ms_all_conv_block.cpp:89:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_s1' (src/ms_all_conv_block.cpp:89:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_w2' (src/ms_all_conv_block.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_b2' (src/ms_all_conv_block.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_s2' (src/ms_all_conv_block.cpp:90:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_w3' (src/ms_all_conv_block.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_b3' (src/ms_all_conv_block.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_s3' (src/ms_all_conv_block.cpp:91:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c1_w' (src/ms_all_conv_block.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c1_b' (src/ms_all_conv_block.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c1_s' (src/ms_all_conv_block.cpp:92:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c2_w' (src/ms_all_conv_block.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c2_b' (src/ms_all_conv_block.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'c2_s' (src/ms_all_conv_block.cpp:93:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'r_buf' (src/ms_all_conv_block.cpp:94:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'sep_y_buf' (src/ms_all_conv_block.cpp:94:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'ping_buf' (src/ms_all_conv_block.cpp:95:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pong_buf' (src/ms_all_conv_block.cpp:95:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spike_buf' (src/ms_all_conv_block.cpp:96:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'tmp_acc' (src/ms_all_conv_block.cpp:96:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T' (src/ms_all_conv_block.cpp:97:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C' (src/ms_all_conv_block.cpp:97:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_exp' (src/ms_all_conv_block.cpp:97:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_mid' (src/ms_all_conv_block.cpp:97:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/ms_all_conv_block.cpp:98:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/ms_all_conv_block.cpp:98:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_dw2' (src/ms_all_conv_block.cpp:99:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_dw4' (src/ms_all_conv_block.cpp:99:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_dw2' (src/ms_all_conv_block.cpp:100:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_dw4' (src/ms_all_conv_block.cpp:100:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_c1' (src/ms_all_conv_block.cpp:101:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_c1' (src/ms_all_conv_block.cpp:101:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K_c2' (src/ms_all_conv_block.cpp:102:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad_c2' (src/ms_all_conv_block.cpp:102:33)
+INFO: [HLS 200-10] Analyzing design file 'src/ms_downsampling.cpp' ... 
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_i8' (src/ms_downsampling.cpp:70:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'x_i32' (src/ms_downsampling.cpp:71:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'y' (src/ms_downsampling.cpp:72:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w' (src/ms_downsampling.cpp:73:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias' (src/ms_downsampling.cpp:74:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'out_shift' (src/ms_downsampling.cpp:75:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'spike_buf' (src/ms_downsampling.cpp:76:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'tmp_acc' (src/ms_downsampling.cpp:77:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'T_in' (src/ms_downsampling.cpp:78:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_in' (src/ms_downsampling.cpp:78:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'C_out' (src/ms_downsampling.cpp:79:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'H' (src/ms_downsampling.cpp:79:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'W' (src/ms_downsampling.cpp:80:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'K' (src/ms_downsampling.cpp:80:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'stride' (src/ms_downsampling.cpp:81:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'pad' (src/ms_downsampling.cpp:81:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'groups' (src/ms_downsampling.cpp:82:33)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'first_layer' (src/ms_downsampling.cpp:82:33)
+INFO: [HLS 200-10] Analyzing design file 'src/tiny_fpga_top.cpp' ... 
+WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'img_in' (src/tiny_fpga_top.cpp:149:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'feat_out' (src/tiny_fpga_top.cpp:150:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'L' (src/tiny_fpga_top.cpp:151:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_a' (src/tiny_fpga_top.cpp:152:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_b' (src/tiny_fpga_top.cpp:153:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_c' (src/tiny_fpga_top.cpp:154:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_d' (src/tiny_fpga_top.cpp:155:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_e' (src/tiny_fpga_top.cpp:156:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_f' (src/tiny_fpga_top.cpp:157:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spike' (src/tiny_fpga_top.cpp:158:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_acc' (src/tiny_fpga_top.cpp:159:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_a' (src/tiny_fpga_top.cpp:160:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_b' (src/tiny_fpga_top.cpp:161:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_c' (src/tiny_fpga_top.cpp:162:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_d' (src/tiny_fpga_top.cpp:163:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_e' (src/tiny_fpga_top.cpp:164:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'layer_id' (src/tiny_fpga_top.cpp:165:33)
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 1 seconds. CPU system time: 2 seconds. Elapsed time: 45.054 seconds; current allocated memory: 239.270 MB.
+INFO: [HLS 200-777] Using interface defaults for 'Vivado' flow target.
+INFO: [HLS 200-1995] There were 49,754 instructions in the design after the 'Compile/Link' phase of compilation. See the Design Size Report for more details: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1/syn/report/csynth_design_size.rpt
+ERROR: [HLS 214-298] Struct type with pointer type inside on top function argument is not supported, please disaggregate argument 'L' manually (src/tiny_fpga_top.cpp:148:0)
+ERROR: [HLS 200-1715] Encountered problem during source synthesis
+INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:55; Allocated memory: 13.402 MB.
+Pre-synthesis failed.
+    while executing
+"source run_synth.tcl"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel \#0 [list source $tclfile] "
+
+INFO: [HLS 200-112] Total CPU user time: 4 seconds. Total CPU system time: 4 seconds. Total elapsed time: 58.481 seconds; peak allocated memory: 240.676 MB.
+SYNTH_TCL_EXIT_FAIL 

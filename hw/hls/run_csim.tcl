@@ -18,8 +18,13 @@ set CLK_PERIOD 10                 ;# 100 MHz initial M4 target
 # --- CWD-resilient path setup (Vitis HLS launches csim binary from
 # csim_<top>/sol1/csim/build/, i.e. 5 levels below repo root). Testbenches
 # that read tests/golden/exploded/... and models/exploded/... need
-# absolute paths via env vars. See Remote Claude URGENT_ASK 2026-05-12.
-set REPO_ROOT  [file normalize ..]
+# absolute paths via env vars.
+#
+# NOTE: Script is invoked via `cd hw/hls && vitis_hls -f run_csim.tcl`,
+# so TCL CWD = hw/hls/, hence ../.. is the repo root.
+# (v1 used [file normalize ..] which resolved to <repo>/hw — fixed per
+# Remote Claude REPLIES_FROM_REMOTE.md 2026-05-12T15:48.)
+set REPO_ROOT  [file normalize ../..]
 set WEIGHT_DIR [file join $REPO_ROOT models exploded]
 set GOLDEN_ROOT [file join $REPO_ROOT tests golden exploded]
 

@@ -136,6 +136,12 @@ dmypy.json
 .pyre/
 
 runs/
+# Whitelist Claude<->Claude message-bus dirs so cross-machine reports are
+# tracked. Per docs/CLAUDE_COLLABORATION_PROTOCOL.md.
+!runs/remote_machine/
+!runs/remote_machine/**
+!runs/main_machine/
+!runs/main_machine/**
 wandb/
 .DS_Store
 

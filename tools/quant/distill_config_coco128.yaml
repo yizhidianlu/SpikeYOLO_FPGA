@@ -1,0 +1,51 @@
+# A1 W10-prep coco128 local distillation (resumable, ~30-60 min, RTX 5060 Laptop).
+# Bridge sprint while A800 COCO download is in flight — verifies the 4-loss
+# distillation pipeline on a mini set that overfits fast (sanity for loss curves
+# + feat_align activity + spike_rate convergence). Final mAP signal must come
+# from A800 train2017 30-ep run, not this.
+#
+# Resume: ckpt every epoch under runs/distill_coco128/resumable/.
+# Reboot-safe: start_coco128_training.bat double-click after reboot picks up
+# latest.pt automatically.
+#
+# 128 imgs / batch 16 = 8 iter/epoch. 100 epoch * 8 step * ~2s/it ≈ 27 min.
+
+optimizer:    AdamW
+lr:           5.0e-4
+lr_schedule:  cosine
+weight_decay: 1.0e-4
+epochs:       100
+batch_size:   16
+warmup_epochs: 3
+
+loss_weights:
+  det:        1.0                 # standard YOLO detection loss
+  kd_logits:  1.5                 # detect-head KD (cls KL@T + reg L1)  — ACTIVE
+  feat_align: 0.5                 # intermediate feature MSE             — active
+  spike_rate: 0.3                 # SNN spike-rate L1 (binary proxy)     — ACTIVE
+
+kd_temperature: 4.0
+
+data:
+  dataset_yaml: ultralytics/cfg/datasets/coco128_local.yaml
+  val_every:    0                 # skip val (ultralytics 8.0.197 val-path Half/float bug)
+  imgsz:        256
+
+freeze_teacher: true
+adapter_init:   "kaiming"
+seed:           42
+
+teacher_inference_mode: avgpool_from_640
+device:        cuda
+log_interval:  4                   # iterations between distill_log.csv rows (coco128 = 8 iter/ep, log twice per epoch)
+ckpt_interval: 1                   # epochs between resumable + state_dict snapshot
+distill_alignment_layers: [5, 7, 8]
+amp:               false           # FP16 autocast triggers conv bias dtype mismatch in SNN val path
+gradient_clip_norm: 1.0
+data_loader_workers: 2
+prefetch_factor:    2
+
+# Resumable ckpt directory. start_coco128_training.bat auto-detects
+# resume_dir/latest.pt and adds --resume-auto. Survives reboot via atomic
+# os.replace + graceful SIGINT/SIGTERM save in distill_from_teacher.py.
+resume_dir: runs/distill_coco128/resumable/

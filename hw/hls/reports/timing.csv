@@ -1,0 +1,6 @@
+kernel,target_period_ns,achieved_period_ns,wns_ns
+sa_tiny_fpga_top,10,-1.0,-1.0
+sa_ms_downsampling,10,-1.0,-1.0
+sa_ms_all_conv_block,10,-1.0,-1.0
+sa_spike_sppf,10,-1.0,-1.0
+sa_detect_head,10,-1.0,-1.0

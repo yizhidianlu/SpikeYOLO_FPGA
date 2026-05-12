@@ -1,0 +1,196 @@
+
+
+================================================================
+== Vitis HLS Report for 'sa_ms_downsampling'
+================================================================
+* Date:           Tue May 12 17:31:39 2026
+
+* Version:        2024.1 (Build 5069499 on May 21 2024)
+* Project:        synth_sa_ms_downsampling
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  8.667 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        +------------------------------------------------------------------------+-------------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+        |                                                                        |                                                             |  Latency (cycles) |  Latency (absolute) |  Interval |                    Pipeline                   |
+        |                                Instance                                |                            Module                           |   min   |   max   |    min   |    max   | min | max |                      Type                     |
+        +------------------------------------------------------------------------+-------------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+        |grp_sa_conv2d_bn_fu_170                                                 |sa_conv2d_bn                                                 |        ?|        ?|         ?|         ?|    ?|    ?|                                             no|
+        |grp_sa_ms_downsampling_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_208  |sa_ms_downsampling_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2  |        ?|        ?|         ?|         ?|    0|    0|  loop auto-rewind stp(delay=0 clock cycles(s))|
+        +------------------------------------------------------------------------+-------------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|    150|    -|
+|FIFO             |        -|    -|       -|      -|    -|
+|Instance         |        0|   26|    6619|   6450|    -|
+|Memory           |        -|    -|       -|      -|    -|
+|Multiplexer      |        -|    -|       0|    140|    -|
+|Register         |        -|    -|     201|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        0|   26|    6820|   6740|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |        0|   11|       6|     12|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +------------------------------------------------------------------------+-------------------------------------------------------------+---------+----+------+------+-----+
+    |                                Instance                                |                            Module                           | BRAM_18K| DSP|  FF  |  LUT | URAM|
+    +------------------------------------------------------------------------+-------------------------------------------------------------+---------+----+------+------+-----+
+    |control_s_axi_U                                                         |control_s_axi                                                |        0|   0|    36|    40|    0|
+    |mul_32ns_32ns_64_2_1_U58                                                |mul_32ns_32ns_64_2_1                                         |        0|   4|   165|    50|    0|
+    |mul_32s_32s_32_2_1_U59                                                  |mul_32s_32s_32_2_1                                           |        0|   3|   165|    50|    0|
+    |grp_sa_conv2d_bn_fu_170                                                 |sa_conv2d_bn                                                 |        0|  16|  5924|  5887|    0|
+    |grp_sa_ms_downsampling_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_208  |sa_ms_downsampling_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2  |        0|   3|   329|   423|    0|
+    +------------------------------------------------------------------------+-------------------------------------------------------------+---------+----+------+------+-----+
+    |Total                                                                   |                                                             |        0|  26|  6619|  6450|    0|
+    +------------------------------------------------------------------------+-------------------------------------------------------------+---------+----+------+------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |          Variable Name          | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |ap_block_state9_on_subcall_done  |       and|   0|  0|   2|           1|           1|
+    |cmp26_i_fu_248_p2                |      icmp|   0|  0|  39|          32|           1|
+    |empty_fu_253_p2                  |      icmp|   0|  0|  39|          32|           1|
+    |icmp_ln85_fu_234_p2              |      icmp|   0|  0|  39|          32|           1|
+    |empty_22_fu_258_p3               |    select|   0|  0|  31|           1|          31|
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |Total                            |          |   0|  0| 150|          98|          35|
+    +---------------------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +-------------------------------------+----+-----------+-----+-----------+
+    |                 Name                | LUT| Input Size| Bits| Total Bits|
+    +-------------------------------------+----+-----------+-----+-----------+
+    |ap_NS_fsm                            |  53|         10|    1|         10|
+    |grp_sa_conv2d_bn_fu_170_T_in         |  14|          3|   32|         96|
+    |grp_sa_conv2d_bn_fu_170_first_layer  |  14|          3|    1|          3|
+    |grp_sa_conv2d_bn_fu_170_x_read       |  14|          3|    8|         24|
+    |spike_buf_o                          |   9|          2|    8|         16|
+    |spike_buf_o_ap_vld                   |   9|          2|    1|          2|
+    |tmp_acc_o                            |   9|          2|   32|         64|
+    |tmp_acc_o_ap_vld                     |   9|          2|    1|          2|
+    |y_ap_vld                             |   9|          2|    1|          2|
+    +-------------------------------------+----+-----------+-----+-----------+
+    |Total                                | 140|         29|   85|        219|
+    +-------------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +-------------------------------------------------------------------------------------+----+----+-----+-----------+
+    |                                         Name                                        | FF | LUT| Bits| Const Bits|
+    +-------------------------------------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                                                            |   9|   0|    9|          0|
+    |cmp26_i_reg_368                                                                      |   1|   0|    1|          0|
+    |empty_22_reg_378                                                                     |  31|   0|   31|          0|
+    |grp_sa_conv2d_bn_fu_170_ap_start_reg                                                 |   1|   0|    1|          0|
+    |grp_sa_ms_downsampling_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_208_ap_start_reg  |   1|   0|    1|          0|
+    |icmp_ln85_reg_327                                                                    |   1|   0|    1|          0|
+    |mul_ln22_reg_373                                                                     |  64|   0|   64|          0|
+    |shl_ln96_reg_388                                                                     |  30|   0|   32|          2|
+    |spatial_reg_351                                                                      |  32|   0|   32|          0|
+    |trunc_ln50_reg_322                                                                   |  31|   0|   31|          0|
+    +-------------------------------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                                                | 201|   0|  203|          2|
+    +-------------------------------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+------------+--------------------+--------------+
+|       RTL Ports       | Dir | Bits|  Protocol  |    Source Object   |    C Type    |
++-----------------------+-----+-----+------------+--------------------+--------------+
+|s_axi_control_AWVALID  |   in|    1|       s_axi|             control|   return void|
+|s_axi_control_AWREADY  |  out|    1|       s_axi|             control|   return void|
+|s_axi_control_AWADDR   |   in|    4|       s_axi|             control|   return void|
+|s_axi_control_WVALID   |   in|    1|       s_axi|             control|   return void|
+|s_axi_control_WREADY   |  out|    1|       s_axi|             control|   return void|
+|s_axi_control_WDATA    |   in|   32|       s_axi|             control|   return void|
+|s_axi_control_WSTRB    |   in|    4|       s_axi|             control|   return void|
+|s_axi_control_ARVALID  |   in|    1|       s_axi|             control|   return void|
+|s_axi_control_ARREADY  |  out|    1|       s_axi|             control|   return void|
+|s_axi_control_ARADDR   |   in|    4|       s_axi|             control|   return void|
+|s_axi_control_RVALID   |  out|    1|       s_axi|             control|   return void|
+|s_axi_control_RREADY   |   in|    1|       s_axi|             control|   return void|
+|s_axi_control_RDATA    |  out|   32|       s_axi|             control|   return void|
+|s_axi_control_RRESP    |  out|    2|       s_axi|             control|   return void|
+|s_axi_control_BVALID   |  out|    1|       s_axi|             control|   return void|
+|s_axi_control_BREADY   |   in|    1|       s_axi|             control|   return void|
+|s_axi_control_BRESP    |  out|    2|       s_axi|             control|   return void|
+|ap_clk                 |   in|    1|  ap_ctrl_hs|  sa_ms_downsampling|  return value|
+|ap_rst_n               |   in|    1|  ap_ctrl_hs|  sa_ms_downsampling|  return value|
+|interrupt              |  out|    1|  ap_ctrl_hs|  sa_ms_downsampling|  return value|
+|x_i8                   |   in|    8|     ap_none|                x_i8|       pointer|
+|x_i32                  |   in|   32|     ap_none|               x_i32|       pointer|
+|y                      |  out|   32|      ap_vld|                   y|       pointer|
+|y_ap_vld               |  out|    1|      ap_vld|                   y|       pointer|
+|w                      |   in|    8|     ap_none|                   w|       pointer|
+|bias                   |   in|   32|     ap_none|                bias|       pointer|
+|out_shift              |   in|    8|     ap_none|           out_shift|       pointer|
+|spike_buf_i            |   in|    8|     ap_ovld|           spike_buf|       pointer|
+|spike_buf_o            |  out|    8|     ap_ovld|           spike_buf|       pointer|
+|spike_buf_o_ap_vld     |  out|    1|     ap_ovld|           spike_buf|       pointer|
+|tmp_acc_i              |   in|   32|     ap_ovld|             tmp_acc|       pointer|
+|tmp_acc_o              |  out|   32|     ap_ovld|             tmp_acc|       pointer|
+|tmp_acc_o_ap_vld       |  out|    1|     ap_ovld|             tmp_acc|       pointer|
+|T_in                   |   in|   32|     ap_none|                T_in|        scalar|
+|C_in                   |   in|   32|     ap_none|                C_in|        scalar|
+|C_out                  |   in|   32|     ap_none|               C_out|        scalar|
+|H                      |   in|   32|     ap_none|                   H|        scalar|
+|W_r_r                  |   in|   32|     ap_none|               W_r_r|        scalar|
+|K                      |   in|   32|     ap_none|                   K|        scalar|
+|stride                 |   in|   32|     ap_none|              stride|        scalar|
+|pad                    |   in|   32|     ap_none|                 pad|        scalar|
+|groups                 |   in|   32|     ap_none|              groups|        scalar|
+|first_layer            |   in|   32|     ap_none|         first_layer|        scalar|
++-----------------------+-----+-----+------------+--------------------+--------------+
+

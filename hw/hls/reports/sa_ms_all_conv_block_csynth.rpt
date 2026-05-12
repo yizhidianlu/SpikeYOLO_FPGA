@@ -1,0 +1,258 @@
+
+
+================================================================
+== Vitis HLS Report for 'sa_ms_all_conv_block'
+================================================================
+* Date:           Tue May 12 17:32:32 2026
+
+* Version:        2024.1 (Build 5069499 on May 21 2024)
+* Project:        synth_sa_ms_all_conv_block
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  8.667 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        +------------------------------------------+-------------------------------+---------+---------+----------+----------+-----+-----+---------+
+        |                                          |                               |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+        |                 Instance                 |             Module            |   min   |   max   |    min   |    max   | min | max |   Type  |
+        +------------------------------------------+-------------------------------+---------+---------+----------+----------+-----+-----+---------+
+        |grp_sa_ms_standard_conv_inplace_1_fu_411  |sa_ms_standard_conv_inplace_1  |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+        |grp_sa_ms_standard_conv_inplace_fu_461    |sa_ms_standard_conv_inplace    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+        +------------------------------------------+-------------------------------+---------+---------+----------+----------+-----+-----+---------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|    148|    -|
+|FIFO             |        -|    -|       -|      -|    -|
+|Instance         |        0|   64|    9430|  10178|    -|
+|Memory           |        -|    -|       -|      -|    -|
+|Multiplexer      |        -|    -|       0|    566|    -|
+|Register         |        -|    -|     353|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        0|   64|    9783|  10892|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |        0|   29|       9|     20|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +------------------------------------------+-------------------------------+---------+----+------+------+-----+
+    |                 Instance                 |             Module            | BRAM_18K| DSP|  FF  |  LUT | URAM|
+    +------------------------------------------+-------------------------------+---------+----+------+------+-----+
+    |control_s_axi_U                           |control_s_axi                  |        0|   0|    36|    40|    0|
+    |mul_32s_31ns_32_2_1_U88                   |mul_32s_31ns_32_2_1            |        0|   3|   165|    50|    0|
+    |mul_32s_32s_32_2_1_U89                    |mul_32s_32s_32_2_1             |        0|   3|   165|    50|    0|
+    |mul_32s_32s_32_2_1_U90                    |mul_32s_32s_32_2_1             |        0|   3|   165|    50|    0|
+    |mul_32s_32s_32_2_1_U91                    |mul_32s_32s_32_2_1             |        0|   3|   165|    50|    0|
+    |grp_sa_ms_standard_conv_inplace_fu_461    |sa_ms_standard_conv_inplace    |        0|  26|  4367|  4969|    0|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411  |sa_ms_standard_conv_inplace_1  |        0|  26|  4367|  4969|    0|
+    +------------------------------------------+-------------------------------+---------+----+------+------+-----+
+    |Total                                     |                               |        0|  64|  9430| 10178|    0|
+    +------------------------------------------+-------------------------------+---------+----+------+------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------+----------+----+---+----+------------+------------+
+    |     Variable Name    | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------+----------+----+---+----+------------+------------+
+    |add_ln85_1_fu_572_p2  |         +|   0|  0|  39|          32|          32|
+    |add_ln85_fu_543_p2    |         +|   0|  0|  39|          32|          32|
+    |icmp_ln85_fu_537_p2   |      icmp|   0|  0|  39|          32|           1|
+    |empty_fu_558_p3       |    select|   0|  0|  31|           1|          31|
+    +----------------------+----------+----+---+----+------------+------------+
+    |Total                 |          |   0|  0| 148|          97|          96|
+    +----------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +--------------------------------------------------+----+-----------+-----+-----------+
+    |                       Name                       | LUT| Input Size| Bits| Total Bits|
+    +--------------------------------------------------+----+-----------+-----+-----------+
+    |ap_NS_fsm                                         |  81|         17|    1|         17|
+    |ap_phi_mux_y_new_0_phi_fu_404_p4                  |  14|          3|   32|         96|
+    |grp_fu_499_p0                                     |  14|          3|   32|         96|
+    |grp_fu_499_p1                                     |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_C_in     |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_C_out    |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_K        |  20|          4|   32|        128|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_groups   |  20|          4|   32|        128|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_p_read   |  20|          4|   32|        128|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_p_read1  |  25|          5|    8|         40|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_p_read2  |  25|          5|   32|        160|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_p_read3  |  25|          5|    8|         40|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_p_read4  |  14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_pad      |  20|          4|   32|        128|
+    |grp_sa_ms_standard_conv_inplace_fu_461_C_in       |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_461_C_out      |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_461_K          |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_461_p_read     |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_461_p_read1    |  14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_461_p_read2    |  14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_461_p_read3    |  14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_461_p_read4    |  14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_461_pad        |  14|          3|   32|         96|
+    |ping_buf_o                                        |  14|          3|   32|         96|
+    |ping_buf_o_ap_vld                                 |  14|          3|    1|          3|
+    |pong_buf_o                                        |   9|          2|   32|         64|
+    |pong_buf_o_ap_vld                                 |   9|          2|    1|          2|
+    |r_buf_o                                           |   9|          2|   32|         64|
+    |sep_y_buf6_reg_390                                |   9|          2|   32|         64|
+    |sep_y_buf_loc_fu_124                              |  14|          3|   32|         96|
+    |tmp_acc_o                                         |  14|          3|   32|         96|
+    |tmp_acc_o_ap_vld                                  |  14|          3|    1|          3|
+    |y_loc_fu_120                                      |  14|          3|   32|         96|
+    +--------------------------------------------------+----+-----------+-----+-----------+
+    |Total                                             | 566|        119|  788|       2505|
+    +--------------------------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +-------------------------------------------------------+----+----+-----+-----------+
+    |                          Name                         | FF | LUT| Bits| Const Bits|
+    +-------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                              |  16|   0|   16|          0|
+    |call_ret4_reg_804                                      |   8|   0|    8|          0|
+    |empty_reg_809                                          |  31|   0|   31|          0|
+    |grp_sa_ms_standard_conv_inplace_1_fu_411_ap_start_reg  |   1|   0|    1|          0|
+    |grp_sa_ms_standard_conv_inplace_fu_461_ap_start_reg    |   1|   0|    1|          0|
+    |icmp_ln85_reg_774                                      |   1|   0|    1|          0|
+    |mul_ln105_1_reg_708                                    |  32|   0|   32|          0|
+    |mul_ln85_1_reg_839                                     |  32|   0|   32|          0|
+    |mul_ln85_reg_779                                       |  32|   0|   32|          0|
+    |reg_507                                                |   8|   0|    8|          0|
+    |reg_513                                                |  32|   0|   32|          0|
+    |reg_519                                                |  32|   0|   32|          0|
+    |sep_y_buf6_reg_390                                     |  32|   0|   32|          0|
+    |sep_y_buf_loc_fu_124                                   |  32|   0|   32|          0|
+    |trunc_ln105_reg_738                                    |  31|   0|   31|          0|
+    |y_loc_fu_120                                           |  32|   0|   32|          0|
+    +-------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                  | 353|   0|  353|          0|
+    +-------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+------------+----------------------+--------------+
+|       RTL Ports       | Dir | Bits|  Protocol  |     Source Object    |    C Type    |
++-----------------------+-----+-----+------------+----------------------+--------------+
+|s_axi_control_AWVALID  |   in|    1|       s_axi|               control|   return void|
+|s_axi_control_AWREADY  |  out|    1|       s_axi|               control|   return void|
+|s_axi_control_AWADDR   |   in|    4|       s_axi|               control|   return void|
+|s_axi_control_WVALID   |   in|    1|       s_axi|               control|   return void|
+|s_axi_control_WREADY   |  out|    1|       s_axi|               control|   return void|
+|s_axi_control_WDATA    |   in|   32|       s_axi|               control|   return void|
+|s_axi_control_WSTRB    |   in|    4|       s_axi|               control|   return void|
+|s_axi_control_ARVALID  |   in|    1|       s_axi|               control|   return void|
+|s_axi_control_ARREADY  |  out|    1|       s_axi|               control|   return void|
+|s_axi_control_ARADDR   |   in|    4|       s_axi|               control|   return void|
+|s_axi_control_RVALID   |  out|    1|       s_axi|               control|   return void|
+|s_axi_control_RREADY   |   in|    1|       s_axi|               control|   return void|
+|s_axi_control_RDATA    |  out|   32|       s_axi|               control|   return void|
+|s_axi_control_RRESP    |  out|    2|       s_axi|               control|   return void|
+|s_axi_control_BVALID   |  out|    1|       s_axi|               control|   return void|
+|s_axi_control_BREADY   |   in|    1|       s_axi|               control|   return void|
+|s_axi_control_BRESP    |  out|    2|       s_axi|               control|   return void|
+|ap_clk                 |   in|    1|  ap_ctrl_hs|  sa_ms_all_conv_block|  return value|
+|ap_rst_n               |   in|    1|  ap_ctrl_hs|  sa_ms_all_conv_block|  return value|
+|interrupt              |  out|    1|  ap_ctrl_hs|  sa_ms_all_conv_block|  return value|
+|x_in                   |   in|   32|     ap_none|                  x_in|       pointer|
+|y_i                    |   in|   32|     ap_ovld|                     y|       pointer|
+|y_o                    |  out|   32|     ap_ovld|                     y|       pointer|
+|y_o_ap_vld             |  out|    1|     ap_ovld|                     y|       pointer|
+|sep_w0                 |   in|    8|     ap_none|                sep_w0|       pointer|
+|sep_b0                 |   in|   32|     ap_none|                sep_b0|       pointer|
+|sep_s0                 |   in|    8|     ap_none|                sep_s0|       pointer|
+|sep_w1                 |   in|    8|     ap_none|                sep_w1|       pointer|
+|sep_b1                 |   in|   32|     ap_none|                sep_b1|       pointer|
+|sep_s1                 |   in|    8|     ap_none|                sep_s1|       pointer|
+|sep_w2                 |   in|    8|     ap_none|                sep_w2|       pointer|
+|sep_b2                 |   in|   32|     ap_none|                sep_b2|       pointer|
+|sep_s2                 |   in|    8|     ap_none|                sep_s2|       pointer|
+|sep_w3                 |   in|    8|     ap_none|                sep_w3|       pointer|
+|sep_b3                 |   in|   32|     ap_none|                sep_b3|       pointer|
+|sep_s3                 |   in|    8|     ap_none|                sep_s3|       pointer|
+|c1_w                   |   in|    8|     ap_none|                  c1_w|       pointer|
+|c1_b                   |   in|   32|     ap_none|                  c1_b|       pointer|
+|c1_s                   |   in|    8|     ap_none|                  c1_s|       pointer|
+|c2_w                   |   in|    8|     ap_none|                  c2_w|       pointer|
+|c2_b                   |   in|   32|     ap_none|                  c2_b|       pointer|
+|c2_s                   |   in|    8|     ap_none|                  c2_s|       pointer|
+|r_buf_i                |   in|   32|     ap_ovld|                 r_buf|       pointer|
+|r_buf_o                |  out|   32|     ap_ovld|                 r_buf|       pointer|
+|r_buf_o_ap_vld         |  out|    1|     ap_ovld|                 r_buf|       pointer|
+|sep_y_buf_i            |   in|   32|     ap_ovld|             sep_y_buf|       pointer|
+|sep_y_buf_o            |  out|   32|     ap_ovld|             sep_y_buf|       pointer|
+|sep_y_buf_o_ap_vld     |  out|    1|     ap_ovld|             sep_y_buf|       pointer|
+|ping_buf_i             |   in|   32|     ap_ovld|              ping_buf|       pointer|
+|ping_buf_o             |  out|   32|     ap_ovld|              ping_buf|       pointer|
+|ping_buf_o_ap_vld      |  out|    1|     ap_ovld|              ping_buf|       pointer|
+|pong_buf_i             |   in|   32|     ap_ovld|              pong_buf|       pointer|
+|pong_buf_o             |  out|   32|     ap_ovld|              pong_buf|       pointer|
+|pong_buf_o_ap_vld      |  out|    1|     ap_ovld|              pong_buf|       pointer|
+|spike_buf_i            |   in|    8|     ap_ovld|             spike_buf|       pointer|
+|spike_buf_o            |  out|    8|     ap_ovld|             spike_buf|       pointer|
+|spike_buf_o_ap_vld     |  out|    1|     ap_ovld|             spike_buf|       pointer|
+|tmp_acc_i              |   in|   32|     ap_ovld|               tmp_acc|       pointer|
+|tmp_acc_o              |  out|   32|     ap_ovld|               tmp_acc|       pointer|
+|tmp_acc_o_ap_vld       |  out|    1|     ap_ovld|               tmp_acc|       pointer|
+|T                      |   in|   32|     ap_none|                     T|        scalar|
+|C                      |   in|   32|     ap_none|                     C|        scalar|
+|C_exp                  |   in|   32|     ap_none|                 C_exp|        scalar|
+|C_mid                  |   in|   32|     ap_none|                 C_mid|        scalar|
+|H                      |   in|   32|     ap_none|                     H|        scalar|
+|W                      |   in|   32|     ap_none|                     W|        scalar|
+|K_dw2                  |   in|   32|     ap_none|                 K_dw2|        scalar|
+|K_dw4                  |   in|   32|     ap_none|                 K_dw4|        scalar|
+|pad_dw2                |   in|   32|     ap_none|               pad_dw2|        scalar|
+|pad_dw4                |   in|   32|     ap_none|               pad_dw4|        scalar|
+|K_c1                   |   in|   32|     ap_none|                  K_c1|        scalar|
+|pad_c1                 |   in|   32|     ap_none|                pad_c1|        scalar|
+|K_c2                   |   in|   32|     ap_none|                  K_c2|        scalar|
+|pad_c2                 |   in|   32|     ap_none|                pad_c2|        scalar|
++-----------------------+-----+-----+------------+----------------------+--------------+
+

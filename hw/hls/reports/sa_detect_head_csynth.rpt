@@ -1,0 +1,155 @@
+
+
+================================================================
+== Vitis HLS Report for 'sa_detect_head'
+================================================================
+* Date:           Tue May 12 17:34:09 2026
+
+* Version:        2024.1 (Build 5069499 on May 21 2024)
+* Project:        synth_sa_detect_head
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  6.912 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+-----------+-----------+-----+-----+---------+
+    |  Latency (cycles) |   Latency (absolute)  |  Interval | Pipeline|
+    |   min   |   max   |    min    |    max    | min | max |   Type  |
+    +---------+---------+-----------+-----------+-----+-----+---------+
+    |        4|        4|  40.000 ns|  40.000 ns|    5|    5|       no|
+    +---------+---------+-----------+-----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|     39|    -|
+|FIFO             |        -|    -|       -|      -|    -|
+|Instance         |        0|    9|     531|    190|    -|
+|Memory           |        -|    -|       -|      -|    -|
+|Multiplexer      |        -|    -|       0|     31|    -|
+|Register         |        -|    -|     101|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        0|    9|     632|    260|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |        0|    4|      ~0|     ~0|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +-----------------------+--------------------+---------+----+-----+----+-----+
+    |        Instance       |       Module       | BRAM_18K| DSP|  FF | LUT| URAM|
+    +-----------------------+--------------------+---------+----+-----+----+-----+
+    |control_s_axi_U        |control_s_axi       |        0|   0|   36|  40|    0|
+    |mul_32s_32s_32_2_1_U1  |mul_32s_32s_32_2_1  |        0|   3|  165|  50|    0|
+    |mul_32s_32s_32_2_1_U2  |mul_32s_32s_32_2_1  |        0|   3|  165|  50|    0|
+    |mul_32s_32s_32_2_1_U3  |mul_32s_32s_32_2_1  |        0|   3|  165|  50|    0|
+    +-----------------------+--------------------+---------+----+-----+----+-----+
+    |Total                  |                    |        0|   9|  531| 190|    0|
+    +-----------------------+--------------------+---------+----+-----+----+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +--------------------+----------+----+---+----+------------+------------+
+    |    Variable Name   | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +--------------------+----------+----+---+----+------------+------------+
+    |icmp_ln57_fu_91_p2  |      icmp|   0|  0|  39|          32|           1|
+    +--------------------+----------+----+---+----+------------+------------+
+    |Total               |          |   0|  0|  39|          32|           1|
+    +--------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +-----------+----+-----------+-----+-----------+
+    |    Name   | LUT| Input Size| Bits| Total Bits|
+    +-----------+----+-----------+-----+-----------+
+    |ap_NS_fsm  |  31|          6|    1|          6|
+    +-----------+----+-----------+-----+-----------+
+    |Total      |  31|          6|    1|          6|
+    +-----------+----+-----------+-----+-----------+
+
+    * Register: 
+    +--------------------+----+----+-----+-----------+
+    |        Name        | FF | LUT| Bits| Const Bits|
+    +--------------------+----+----+-----+-----------+
+    |ap_CS_fsm           |   5|   0|    5|          0|
+    |mul_ln56_1_reg_126  |  32|   0|   32|          0|
+    |mul_ln56_reg_121    |  32|   0|   32|          0|
+    |n_total_reg_131     |  32|   0|   32|          0|
+    +--------------------+----+----+-----+-----------+
+    |Total               | 101|   0|  101|          0|
+    +--------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+------------+----------------+--------------+
+|       RTL Ports       | Dir | Bits|  Protocol  |  Source Object |    C Type    |
++-----------------------+-----+-----+------------+----------------+--------------+
+|s_axi_control_AWVALID  |   in|    1|       s_axi|         control|   return void|
+|s_axi_control_AWREADY  |  out|    1|       s_axi|         control|   return void|
+|s_axi_control_AWADDR   |   in|    4|       s_axi|         control|   return void|
+|s_axi_control_WVALID   |   in|    1|       s_axi|         control|   return void|
+|s_axi_control_WREADY   |  out|    1|       s_axi|         control|   return void|
+|s_axi_control_WDATA    |   in|   32|       s_axi|         control|   return void|
+|s_axi_control_WSTRB    |   in|    4|       s_axi|         control|   return void|
+|s_axi_control_ARVALID  |   in|    1|       s_axi|         control|   return void|
+|s_axi_control_ARREADY  |  out|    1|       s_axi|         control|   return void|
+|s_axi_control_ARADDR   |   in|    4|       s_axi|         control|   return void|
+|s_axi_control_RVALID   |  out|    1|       s_axi|         control|   return void|
+|s_axi_control_RREADY   |   in|    1|       s_axi|         control|   return void|
+|s_axi_control_RDATA    |  out|   32|       s_axi|         control|   return void|
+|s_axi_control_RRESP    |  out|    2|       s_axi|         control|   return void|
+|s_axi_control_BVALID   |  out|    1|       s_axi|         control|   return void|
+|s_axi_control_BREADY   |   in|    1|       s_axi|         control|   return void|
+|s_axi_control_BRESP    |  out|    2|       s_axi|         control|   return void|
+|ap_clk                 |   in|    1|  ap_ctrl_hs|  sa_detect_head|  return value|
+|ap_rst_n               |   in|    1|  ap_ctrl_hs|  sa_detect_head|  return value|
+|interrupt              |  out|    1|  ap_ctrl_hs|  sa_detect_head|  return value|
+|x_in                   |   in|   32|     ap_none|            x_in|       pointer|
+|y_out                  |  out|    8|      ap_vld|           y_out|       pointer|
+|y_out_ap_vld           |  out|    1|      ap_vld|           y_out|       pointer|
+|N                      |   in|   32|     ap_none|               N|        scalar|
+|C                      |   in|   32|     ap_none|               C|        scalar|
+|H                      |   in|   32|     ap_none|               H|        scalar|
+|W                      |   in|   32|     ap_none|               W|        scalar|
++-----------------------+-----+-----+------------+----------------+--------------+
+

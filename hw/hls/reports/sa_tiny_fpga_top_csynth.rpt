@@ -1,0 +1,301 @@
+
+
+================================================================
+== Vitis HLS Report for 'sa_tiny_fpga_top'
+================================================================
+* Date:           Tue May 12 17:30:40 2026
+
+* Version:        2024.1 (Build 5069499 on May 21 2024)
+* Project:        synth_sa_tiny_fpga_top
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  7.341 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        +-------------------------------------------------+--------------------------------------+---------+---------+----------+----------+-------+-------+---------+
+        |                                                 |                                      |  Latency (cycles) |  Latency (absolute) |    Interval   | Pipeline|
+        |                     Instance                    |                Module                |   min   |   max   |    min   |    max   |  min  |  max  |   Type  |
+        +-------------------------------------------------+--------------------------------------+---------+---------+----------+----------+-------+-------+---------+
+        |grp_sa_conv2d_int_27_61_392_fu_617               |sa_conv2d_int_27_61_392               |    98316|    98316|  0.983 ms|  0.983 ms|  98316|  98316|       no|
+        |grp_sa_ms_all_conv_block_172_1_fu_626            |sa_ms_all_conv_block_172_1            |        ?|        ?|         ?|         ?|      ?|      ?|       no|
+        |grp_sa_conv2d_bn_24_58_105_218_303_389_1_fu_701  |sa_conv2d_bn_24_58_105_218_303_389_1  |        ?|        ?|         ?|         ?|      ?|      ?|       no|
+        |grp_sa_ms_downsampling_186_1_fu_731              |sa_ms_downsampling_186_1              |        ?|        ?|         ?|         ?|      ?|      ?|       no|
+        |grp_sa_spike_sppf_1_fu_761                       |sa_spike_sppf_1                       |        ?|        ?|         ?|         ?|      ?|      ?|       no|
+        +-------------------------------------------------+--------------------------------------+---------+---------+----------+----------+-------+-------+---------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|    402|    -|
+|FIFO             |        -|    -|       -|      -|    -|
+|Instance         |        0|   16|    8950|  14167|    -|
+|Memory           |        -|    -|       -|      -|    -|
+|Multiplexer      |        -|    -|       0|   1085|    -|
+|Register         |        -|    -|     673|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        0|   16|    9623|  15654|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |        0|    7|       9|     29|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +-------------------------------------------------+--------------------------------------+---------+----+------+------+-----+
+    |                     Instance                    |                Module                | BRAM_18K| DSP|  FF  |  LUT | URAM|
+    +-------------------------------------------------+--------------------------------------+---------+----+------+------+-----+
+    |control_s_axi_U                                  |control_s_axi                         |        0|   0|    36|    40|    0|
+    |grp_sa_conv2d_bn_24_58_105_218_303_389_1_fu_701  |sa_conv2d_bn_24_58_105_218_303_389_1  |        0|   2|  1467|  2172|    0|
+    |grp_sa_conv2d_int_27_61_392_fu_617               |sa_conv2d_int_27_61_392               |        0|   1|   229|   894|    0|
+    |grp_sa_ms_all_conv_block_172_1_fu_626            |sa_ms_all_conv_block_172_1            |        0|   9|  3631|  5228|    0|
+    |grp_sa_ms_downsampling_186_1_fu_731              |sa_ms_downsampling_186_1              |        0|   2|  1512|  2289|    0|
+    |grp_sa_spike_sppf_1_fu_761                       |sa_spike_sppf_1                       |        0|   2|  2075|  3544|    0|
+    +-------------------------------------------------+--------------------------------------+---------+----+------+------+-----+
+    |Total                                            |                                      |        0|  16|  8950| 14167|    0|
+    +-------------------------------------------------+--------------------------------------+---------+----+------+------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------------------+----------+----+---+-----+------------+------------+
+    |           Variable Name          | Operation| DSP| FF| LUT | Bitwidth P0| Bitwidth P1|
+    +----------------------------------+----------+----+---+-----+------------+------------+
+    |add_i_i_fu_876_p2                 |         +|   0|  0|   39|          32|          32|
+    |sub_i_i_fu_866_p2                 |         -|   0|  0|   14|           1|           9|
+    |ap_block_state36_on_subcall_done  |       and|   0|  0|    2|           1|           1|
+    |ap_predicate_op259_call_state36   |       and|   0|  0|    2|           1|           1|
+    |shr_i_i_fu_887_p2                 |      ashr|   0|  0|  100|          32|          32|
+    |icmp8_fu_966_p2                   |      icmp|   0|  0|   37|          30|           1|
+    |icmp_fu_850_p2                    |      icmp|   0|  0|   37|          30|           1|
+    |icmp_ln198_fu_825_p2              |      icmp|   0|  0|   39|          32|           1|
+    |scratch_a_0_i_fu_900_p3           |    select|   0|  0|   32|           1|          32|
+    |shl_i_i_fu_881_p2                 |       shl|   0|  0|  100|          32|          32|
+    +----------------------------------+----------+----+---+-----+------------+------------+
+    |Total                             |          |   0|  0|  402|         192|         142|
+    +----------------------------------+----------+----+---+-----+------------+------------+
+
+    * Multiplexer: 
+    +--------------------------------------------------------+-----+-----------+-----+-----------+
+    |                          Name                          | LUT | Input Size| Bits| Total Bits|
+    +--------------------------------------------------------+-----+-----------+-----+-----------+
+    |ap_NS_fsm                                               |  164|         37|    1|         37|
+    |ap_phi_mux_scratch_a_flag_4_phi_fu_434_p4               |    9|          2|    1|          2|
+    |ap_phi_mux_scratch_a_flag_6_phi_fu_458_p26              |    9|          2|    1|          2|
+    |ap_phi_mux_scratch_a_load_2_phi_fu_424_p4               |    9|          2|   32|         64|
+    |ap_phi_mux_scratch_a_new_6_phi_fu_503_p26               |    9|          2|   32|         64|
+    |ap_phi_mux_scratch_spike_flag_2_phi_fu_540_p26          |    9|          2|    1|          2|
+    |ap_phi_mux_scratch_spike_new_0_phi_fu_446_p4            |    9|          2|    8|         16|
+    |ap_phi_mux_scratch_spike_new_2_phi_fu_585_p26           |    9|          2|    8|         16|
+    |grp_sa_conv2d_bn_24_58_105_218_303_389_1_fu_701_p_read  |   14|          3|    8|         24|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_C                 |   20|          4|    7|         28|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_C_exp             |   20|          4|    8|         32|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_C_mid             |   25|          5|    9|         45|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_H                 |   20|          4|    7|         28|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_W                 |   20|          4|    7|         28|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_c1_b              |   25|          5|   14|         70|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_c2_b              |   25|          5|   14|         70|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_p_read            |   31|          6|   32|        192|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_p_read4           |   14|          3|   32|         96|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_p_read5           |   37|          7|    8|         56|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_scratch_b_read    |   31|          6|   32|        192|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_sep_b0            |   25|          5|   14|         70|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_sep_b1            |   25|          5|   14|         70|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_sep_b2            |   25|          5|   14|         70|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_sep_b3            |   25|          5|   14|         70|
+    |grp_sa_ms_downsampling_186_1_fu_731_C_in                |   14|          3|    6|         18|
+    |grp_sa_ms_downsampling_186_1_fu_731_C_out               |   14|          3|    7|         21|
+    |grp_sa_ms_downsampling_186_1_fu_731_H                   |   14|          3|    7|         21|
+    |grp_sa_ms_downsampling_186_1_fu_731_W                   |   14|          3|    7|         21|
+    |grp_sa_ms_downsampling_186_1_fu_731_bias                |   14|          3|   12|         36|
+    |grp_sa_ms_downsampling_186_1_fu_731_p_read              |   20|          4|   32|        128|
+    |grp_sa_ms_downsampling_186_1_fu_731_p_read4             |   20|          4|    8|         32|
+    |scratch_a_flag_6_reg_453                                |   14|          3|    1|          3|
+    |scratch_a_load_2_reg_421                                |    9|          2|   32|         64|
+    |scratch_a_loc_fu_222                                    |   25|          5|   32|        160|
+    |scratch_a_loc_load_1_reg_381                            |    9|          2|   32|         64|
+    |scratch_a_loc_load_2_reg_401                            |    9|          2|   32|         64|
+    |scratch_a_new_6_reg_499                                 |   25|          5|   32|        160|
+    |scratch_a_o                                             |    9|          2|   32|         64|
+    |scratch_acc_o                                           |   31|          6|   32|        192|
+    |scratch_acc_o_ap_vld                                    |   31|          6|    1|          6|
+    |scratch_b_o                                             |   20|          4|   32|        128|
+    |scratch_b_o_ap_vld                                      |   20|          4|    1|          4|
+    |scratch_c_o                                             |   14|          3|   32|         96|
+    |scratch_c_o_ap_vld                                      |   14|          3|    1|          3|
+    |scratch_d_o                                             |    9|          2|   32|         64|
+    |scratch_e_o                                             |   14|          3|   32|         96|
+    |scratch_e_o_ap_vld                                      |   14|          3|    1|          3|
+    |scratch_f_o                                             |    9|          2|   32|         64|
+    |scratch_f_o_ap_vld                                      |    9|          2|    1|          2|
+    |scratch_spike_flag_2_reg_535                            |   14|          3|    1|          3|
+    |scratch_spike_loc_0_reg_371                             |    9|          2|    8|         16|
+    |scratch_spike_loc_2_reg_391                             |    9|          2|    8|         16|
+    |scratch_spike_loc_4_reg_411                             |    9|          2|    8|         16|
+    |scratch_spike_new_2_reg_581                             |   31|          6|    8|         48|
+    |scratch_spike_o                                         |    9|          2|    8|         16|
+    +--------------------------------------------------------+-----+-----------+-----+-----------+
+    |Total                                                   | 1085|        226|  828|       2973|
+    +--------------------------------------------------------+-----+-----------+-----+-----------+
+
+    * Register: 
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |                             Name                             | FF | LUT| Bits| Const Bits|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                                     |  36|   0|   36|          0|
+    |call_ret2_reg_1131                                            |   8|   0|    8|          0|
+    |empty_reg_986                                                 |  31|   0|   31|          0|
+    |grp_sa_conv2d_bn_24_58_105_218_303_389_1_fu_701_ap_start_reg  |   1|   0|    1|          0|
+    |grp_sa_conv2d_int_27_61_392_fu_617_ap_start_reg               |   1|   0|    1|          0|
+    |grp_sa_ms_all_conv_block_172_1_fu_626_ap_start_reg            |   1|   0|    1|          0|
+    |grp_sa_ms_downsampling_186_1_fu_731_ap_start_reg              |   1|   0|    1|          0|
+    |grp_sa_spike_sppf_1_fu_761_ap_start_reg                       |   1|   0|    1|          0|
+    |icmp8_reg_1195                                                |   1|   0|    1|          0|
+    |icmp_ln198_reg_1007                                           |   1|   0|    1|          0|
+    |icmp_reg_1079                                                 |   1|   0|    1|          0|
+    |ref_tmp24_0_3_i_i_c_reg_1200                                  |   1|   0|    8|          7|
+    |ref_tmp24_0_3_i_i_reg_1084                                    |   1|   0|    8|          7|
+    |reg_800                                                       |  32|   0|   32|          0|
+    |reg_808                                                       |  32|   0|   32|          0|
+    |run_all_reg_1003                                              |   1|   0|    1|          0|
+    |scratch_a_0_i_reg_1120                                        |  32|   0|   32|          0|
+    |scratch_a_flag_4_reg_430                                      |   1|   0|    1|          0|
+    |scratch_a_flag_6_reg_453                                      |   1|   0|    1|          0|
+    |scratch_a_load_2_reg_421                                      |  32|   0|   32|          0|
+    |scratch_a_loc_fu_222                                          |  32|   0|   32|          0|
+    |scratch_a_loc_load_1_reg_381                                  |  32|   0|   32|          0|
+    |scratch_a_loc_load_2_reg_401                                  |  32|   0|   32|          0|
+    |scratch_a_loc_load_3_reg_1189                                 |  32|   0|   32|          0|
+    |scratch_a_loc_load_reg_1137                                   |  32|   0|   32|          0|
+    |scratch_a_loc_ret3_reg_1178                                   |  32|   0|   32|          0|
+    |scratch_a_loc_ret_reg_1155                                    |  32|   0|   32|          0|
+    |scratch_a_new_6_reg_499                                       |  32|   0|   32|          0|
+    |scratch_a_read_reg_1040                                       |  32|   0|   32|          0|
+    |scratch_d_ret8_reg_1167                                       |  32|   0|   32|          0|
+    |scratch_spike_flag_2_reg_535                                  |   1|   0|    1|          0|
+    |scratch_spike_loc_0_reg_371                                   |   8|   0|    8|          0|
+    |scratch_spike_loc_2_reg_391                                   |   8|   0|    8|          0|
+    |scratch_spike_loc_4_reg_411                                   |   8|   0|    8|          0|
+    |scratch_spike_new_0_reg_442                                   |   8|   0|    8|          0|
+    |scratch_spike_new_2_reg_581                                   |   8|   0|    8|          0|
+    |scratch_spike_read_reg_1055                                   |   8|   0|    8|          0|
+    |scratch_spike_ret6_reg_1149                                   |   8|   0|    8|          0|
+    |scratch_spike_ret8_reg_1172                                   |   8|   0|    8|          0|
+    |scratch_spike_ret9_reg_1184                                   |   8|   0|    8|          0|
+    |shl_i_i_reg_1110                                              |  32|   0|   32|          0|
+    |shr_i_i_reg_1115                                              |  32|   0|   32|          0|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                         | 673|   0|  687|         14|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++------------------------+-----+-----+------------+------------------+--------------+
+|        RTL Ports       | Dir | Bits|  Protocol  |   Source Object  |    C Type    |
++------------------------+-----+-----+------------+------------------+--------------+
+|s_axi_control_AWVALID   |   in|    1|       s_axi|           control|   return void|
+|s_axi_control_AWREADY   |  out|    1|       s_axi|           control|   return void|
+|s_axi_control_AWADDR    |   in|    4|       s_axi|           control|   return void|
+|s_axi_control_WVALID    |   in|    1|       s_axi|           control|   return void|
+|s_axi_control_WREADY    |  out|    1|       s_axi|           control|   return void|
+|s_axi_control_WDATA     |   in|   32|       s_axi|           control|   return void|
+|s_axi_control_WSTRB     |   in|    4|       s_axi|           control|   return void|
+|s_axi_control_ARVALID   |   in|    1|       s_axi|           control|   return void|
+|s_axi_control_ARREADY   |  out|    1|       s_axi|           control|   return void|
+|s_axi_control_ARADDR    |   in|    4|       s_axi|           control|   return void|
+|s_axi_control_RVALID    |  out|    1|       s_axi|           control|   return void|
+|s_axi_control_RREADY    |   in|    1|       s_axi|           control|   return void|
+|s_axi_control_RDATA     |  out|   32|       s_axi|           control|   return void|
+|s_axi_control_RRESP     |  out|    2|       s_axi|           control|   return void|
+|s_axi_control_BVALID    |  out|    1|       s_axi|           control|   return void|
+|s_axi_control_BREADY    |   in|    1|       s_axi|           control|   return void|
+|s_axi_control_BRESP     |  out|    2|       s_axi|           control|   return void|
+|ap_clk                  |   in|    1|  ap_ctrl_hs|  sa_tiny_fpga_top|  return value|
+|ap_rst_n                |   in|    1|  ap_ctrl_hs|  sa_tiny_fpga_top|  return value|
+|interrupt               |  out|    1|  ap_ctrl_hs|  sa_tiny_fpga_top|  return value|
+|img_in                  |   in|    8|     ap_none|            img_in|       pointer|
+|feat_out                |  out|    8|      ap_vld|          feat_out|       pointer|
+|feat_out_ap_vld         |  out|    1|      ap_vld|          feat_out|       pointer|
+|layer_id                |   in|   32|     ap_none|          layer_id|        scalar|
+|w_pool                  |   in|    8|     ap_none|            w_pool|       pointer|
+|bias_pool               |   in|   32|     ap_none|         bias_pool|       pointer|
+|shift_pool              |   in|    8|     ap_none|        shift_pool|       pointer|
+|scratch_a_i             |   in|   32|     ap_ovld|         scratch_a|       pointer|
+|scratch_a_o             |  out|   32|     ap_ovld|         scratch_a|       pointer|
+|scratch_a_o_ap_vld      |  out|    1|     ap_ovld|         scratch_a|       pointer|
+|scratch_b_i             |   in|   32|     ap_ovld|         scratch_b|       pointer|
+|scratch_b_o             |  out|   32|     ap_ovld|         scratch_b|       pointer|
+|scratch_b_o_ap_vld      |  out|    1|     ap_ovld|         scratch_b|       pointer|
+|scratch_c_i             |   in|   32|     ap_ovld|         scratch_c|       pointer|
+|scratch_c_o             |  out|   32|     ap_ovld|         scratch_c|       pointer|
+|scratch_c_o_ap_vld      |  out|    1|     ap_ovld|         scratch_c|       pointer|
+|scratch_d_i             |   in|   32|     ap_ovld|         scratch_d|       pointer|
+|scratch_d_o             |  out|   32|     ap_ovld|         scratch_d|       pointer|
+|scratch_d_o_ap_vld      |  out|    1|     ap_ovld|         scratch_d|       pointer|
+|scratch_e_i             |   in|   32|     ap_ovld|         scratch_e|       pointer|
+|scratch_e_o             |  out|   32|     ap_ovld|         scratch_e|       pointer|
+|scratch_e_o_ap_vld      |  out|    1|     ap_ovld|         scratch_e|       pointer|
+|scratch_f_i             |   in|   32|     ap_ovld|         scratch_f|       pointer|
+|scratch_f_o             |  out|   32|     ap_ovld|         scratch_f|       pointer|
+|scratch_f_o_ap_vld      |  out|    1|     ap_ovld|         scratch_f|       pointer|
+|scratch_spike_i         |   in|    8|     ap_ovld|     scratch_spike|       pointer|
+|scratch_spike_o         |  out|    8|     ap_ovld|     scratch_spike|       pointer|
+|scratch_spike_o_ap_vld  |  out|    1|     ap_ovld|     scratch_spike|       pointer|
+|scratch_acc_i           |   in|   32|     ap_ovld|       scratch_acc|       pointer|
+|scratch_acc_o           |  out|   32|     ap_ovld|       scratch_acc|       pointer|
+|scratch_acc_o_ap_vld    |  out|    1|     ap_ovld|       scratch_acc|       pointer|
+|scratch_spk_a           |  out|    8|      ap_vld|     scratch_spk_a|       pointer|
+|scratch_spk_a_ap_vld    |  out|    1|      ap_vld|     scratch_spk_a|       pointer|
+|scratch_spk_b           |  out|    8|      ap_vld|     scratch_spk_b|       pointer|
+|scratch_spk_b_ap_vld    |  out|    1|      ap_vld|     scratch_spk_b|       pointer|
+|scratch_spk_c           |  out|    8|      ap_vld|     scratch_spk_c|       pointer|
+|scratch_spk_c_ap_vld    |  out|    1|      ap_vld|     scratch_spk_c|       pointer|
+|scratch_spk_d           |  out|    8|      ap_vld|     scratch_spk_d|       pointer|
+|scratch_spk_d_ap_vld    |  out|    1|      ap_vld|     scratch_spk_d|       pointer|
+|scratch_spk_e           |  out|    8|      ap_vld|     scratch_spk_e|       pointer|
+|scratch_spk_e_ap_vld    |  out|    1|      ap_vld|     scratch_spk_e|       pointer|
++------------------------+-----+-----+------------+------------------+--------------+
+

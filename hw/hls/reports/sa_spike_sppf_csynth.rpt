@@ -1,0 +1,271 @@
+
+
+================================================================
+== Vitis HLS Report for 'sa_spike_sppf'
+================================================================
+* Date:           Tue May 12 17:33:31 2026
+
+* Version:        2024.1 (Build 5069499 on May 21 2024)
+* Project:        synth_sa_spike_sppf
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  7.033 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        +---------------------------------------------------------------------+----------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+        |                                                                     |                                                          |  Latency (cycles) |  Latency (absolute) |  Interval |                    Pipeline                   |
+        |                               Instance                              |                          Module                          |   min   |   max   |    min   |    max   | min | max |                      Type                     |
+        +---------------------------------------------------------------------+----------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+        |grp_sa_ms_standard_conv_inplace_fu_315                               |sa_ms_standard_conv_inplace                               |        ?|        ?|         ?|         ?|    ?|    ?|                                             no|
+        |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_346    |sa_spike_sppf_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2    |        ?|        ?|         ?|         ?|    0|    0|  loop auto-rewind stp(delay=0 clock cycles(s))|
+        |grp_sa_maxpool_or_fu_358                                             |sa_maxpool_or                                             |        ?|        ?|         ?|         ?|    ?|    ?|                                             no|
+        |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_133_3_VITIS_LOOP_134_4_fu_376  |sa_spike_sppf_Pipeline_VITIS_LOOP_133_3_VITIS_LOOP_134_4  |        ?|        ?|         ?|         ?|    0|    0|  loop auto-rewind stp(delay=0 clock cycles(s))|
+        +---------------------------------------------------------------------+----------------------------------------------------------+---------+---------+----------+----------+-----+-----+-----------------------------------------------+
+
+        * Loop: 
+        +---------------------+---------+---------+----------+-----------+-----------+------+----------+
+        |                     |  Latency (cycles) | Iteration|  Initiation Interval  | Trip |          |
+        |      Loop Name      |   min   |   max   |  Latency |  achieved |   target  | Count| Pipelined|
+        +---------------------+---------+---------+----------+-----------+-----------+------+----------+
+        |- VITIS_LOOP_123_1   |        ?|        ?|         ?|          -|          -|     ?|        no|
+        | + VITIS_LOOP_124_2  |        ?|        ?|         ?|          -|          -|     4|        no|
+        |- VITIS_LOOP_149_5   |        ?|        ?|         ?|          -|          -|     ?|        no|
+        | + VITIS_LOOP_150_6  |        ?|        ?|         1|          -|          -|     ?|        no|
+        +---------------------+---------+---------+----------+-----------+-----------+------+----------+
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|    364|    -|
+|FIFO             |        -|    -|       -|      -|    -|
+|Instance         |        0|   50|    5206|   5236|    -|
+|Memory           |        -|    -|       -|      -|    -|
+|Multiplexer      |        -|    -|       0|    400|    -|
+|Register         |        -|    -|     508|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        0|   50|    5714|   6000|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |        0|   22|       5|     11|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +---------------------------------------------------------------------+----------------------------------------------------------+---------+----+------+------+-----+
+    |                               Instance                              |                          Module                          | BRAM_18K| DSP|  FF  |  LUT | URAM|
+    +---------------------------------------------------------------------+----------------------------------------------------------+---------+----+------+------+-----+
+    |control_s_axi_U                                                      |control_s_axi                                             |        0|   0|    36|    40|    0|
+    |mul_32ns_32ns_64_2_1_U82                                             |mul_32ns_32ns_64_2_1                                      |        0|   4|   165|    50|    0|
+    |mul_32s_32s_32_2_1_U83                                               |mul_32s_32s_32_2_1                                        |        0|   3|   165|    50|    0|
+    |grp_sa_maxpool_or_fu_358                                             |sa_maxpool_or                                             |        0|   0|   609|  1017|    0|
+    |grp_sa_ms_standard_conv_inplace_fu_315                               |sa_ms_standard_conv_inplace                               |        0|  40|  3764|  3292|    0|
+    |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_133_3_VITIS_LOOP_134_4_fu_376  |sa_spike_sppf_Pipeline_VITIS_LOOP_133_3_VITIS_LOOP_134_4  |        0|   0|   138|   350|    0|
+    |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_346    |sa_spike_sppf_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2    |        0|   3|   329|   423|    0|
+    |sparsemux_7_2_2_1_1_U84                                              |sparsemux_7_2_2_1_1                                       |        0|   0|     0|    14|    0|
+    +---------------------------------------------------------------------+----------------------------------------------------------+---------+----+------+------+-----+
+    |Total                                                                |                                                          |        0|  50|  5206|  5236|    0|
+    +---------------------------------------------------------------------+----------------------------------------------------------+---------+----+------+------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------+----------+----+---+----+------------+------------+
+    |     Variable Name    | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------+----------+----+---+----+------------+------------+
+    |add_ln123_fu_488_p2   |         +|   0|  0|  38|          31|           1|
+    |add_ln149_fu_564_p2   |         +|   0|  0|  38|          31|           1|
+    |add_ln150_fu_579_p2   |         +|   0|  0|  38|          31|           1|
+    |branch_1_fu_517_p2    |         +|   0|  0|  11|           3|           1|
+    |cmp26_i_fu_446_p2     |      icmp|   0|  0|  39|          32|           1|
+    |empty_fu_452_p2       |      icmp|   0|  0|  39|          32|           1|
+    |icmp_ln123_fu_483_p2  |      icmp|   0|  0|  39|          32|          32|
+    |icmp_ln124_fu_511_p2  |      icmp|   0|  0|  13|           3|           4|
+    |icmp_ln149_fu_559_p2  |      icmp|   0|  0|  39|          32|          32|
+    |icmp_ln150_fu_574_p2  |      icmp|   0|  0|  39|          32|          32|
+    |empty_24_fu_457_p3    |    select|   0|  0|  31|           1|          31|
+    +----------------------+----------+----+---+----+------------+------------+
+    |Total                 |          |   0|  0| 364|         260|         137|
+    +----------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +-----------------------------------------------------+-----+-----------+-----+-----------+
+    |                         Name                        | LUT | Input Size| Bits| Total Bits|
+    +-----------------------------------------------------+-----+-----------+-----+-----------+
+    |ap_NS_fsm                                            |  106|         21|    1|         21|
+    |branch_reg_293                                       |    9|          2|    3|          6|
+    |c_1_reg_304                                          |    9|          2|   31|         62|
+    |cat_i32_buf_o                                        |    9|          2|   32|         64|
+    |concat_buf_o                                         |    9|          2|    8|         16|
+    |concat_buf_o_ap_vld                                  |    9|          2|    1|          2|
+    |grp_sa_maxpool_or_fu_358_p_read                      |   20|          4|    8|         32|
+    |grp_sa_ms_standard_conv_inplace_fu_315_C_in          |   14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_315_C_out         |   14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_315_p_read        |   14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_315_p_read1       |   14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_315_p_read2       |   14|          3|   32|         96|
+    |grp_sa_ms_standard_conv_inplace_fu_315_p_read3       |   14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_315_p_read4       |   14|          3|    8|         24|
+    |grp_sa_ms_standard_conv_inplace_fu_315_tmp_acc_read  |   14|          3|   32|         96|
+    |ping_buf_o                                           |    9|          2|   32|         64|
+    |ping_buf_o_ap_vld                                    |    9|          2|    1|          2|
+    |pool_buf1_o                                          |    9|          2|    8|         16|
+    |pool_buf1_o_ap_vld                                   |    9|          2|    1|          2|
+    |pool_buf2_o                                          |    9|          2|    8|         16|
+    |pool_buf2_o_ap_vld                                   |    9|          2|    1|          2|
+    |pool_buf3_o                                          |    9|          2|    8|         16|
+    |pool_buf3_o_ap_vld                                   |    9|          2|    1|          2|
+    |spk_buf_o                                            |    9|          2|    8|         16|
+    |spk_buf_o_ap_vld                                     |    9|          2|    1|          2|
+    |t_2_fu_130                                           |    9|          2|   31|         62|
+    |t_fu_126                                             |    9|          2|   31|         62|
+    |y_out_ap_vld                                         |    9|          2|    1|          2|
+    +-----------------------------------------------------+-----+-----------+-----+-----------+
+    |Total                                                |  400|         85|  400|       1019|
+    +-----------------------------------------------------+-----+-----------+-----+-----------+
+
+    * Register: 
+    +----------------------------------------------------------------------------------+----+----+-----+-----------+
+    |                                       Name                                       | FF | LUT| Bits| Const Bits|
+    +----------------------------------------------------------------------------------+----+----+-----+-----------+
+    |C_cat_reg_731                                                                     |  30|   0|   32|          2|
+    |T_spk_reg_720                                                                     |  30|   0|   32|          2|
+    |add_ln123_reg_745                                                                 |  31|   0|   31|          0|
+    |add_ln149_reg_778                                                                 |  31|   0|   31|          0|
+    |ap_CS_fsm                                                                         |  20|   0|   20|          0|
+    |branch_1_reg_765                                                                  |   3|   0|    3|          0|
+    |branch_reg_293                                                                    |   3|   0|    3|          0|
+    |c_1_reg_304                                                                       |  31|   0|   31|          0|
+    |call_ret_reg_683                                                                  |   8|   0|    8|          0|
+    |cmp26_i_reg_699                                                                   |   1|   0|    1|          0|
+    |empty_24_reg_705                                                                  |  31|   0|   31|          0|
+    |grp_sa_maxpool_or_fu_358_ap_start_reg                                             |   1|   0|    1|          0|
+    |grp_sa_ms_standard_conv_inplace_fu_315_ap_start_reg                               |   1|   0|    1|          0|
+    |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_133_3_VITIS_LOOP_134_4_fu_376_ap_start_reg  |   1|   0|    1|          0|
+    |grp_sa_spike_sppf_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2_fu_346_ap_start_reg    |   1|   0|    1|          0|
+    |mul_ln55_reg_693                                                                  |  64|   0|   64|          0|
+    |pool_buf3_read_reg_737                                                            |   8|   0|    8|          0|
+    |reg_410                                                                           |   8|   0|    8|          0|
+    |reg_416                                                                           |   8|   0|    8|          0|
+    |reg_422                                                                           |   8|   0|    8|          0|
+    |sext_ln149_reg_757                                                                |  30|   0|   32|          2|
+    |spatial_reg_610                                                                   |  32|   0|   32|          0|
+    |src_s_reg_770                                                                     |   2|   0|    2|          0|
+    |t_2_fu_130                                                                        |  31|   0|   31|          0|
+    |t_fu_126                                                                          |  31|   0|   31|          0|
+    |tmp_acc_ret_reg_688                                                               |  32|   0|   32|          0|
+    |trunc_ln55_reg_638                                                                |  31|   0|   31|          0|
+    +----------------------------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                                             | 508|   0|  514|          6|
+    +----------------------------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+------------+---------------+--------------+
+|       RTL Ports       | Dir | Bits|  Protocol  | Source Object |    C Type    |
++-----------------------+-----+-----+------------+---------------+--------------+
+|s_axi_control_AWVALID  |   in|    1|       s_axi|        control|   return void|
+|s_axi_control_AWREADY  |  out|    1|       s_axi|        control|   return void|
+|s_axi_control_AWADDR   |   in|    4|       s_axi|        control|   return void|
+|s_axi_control_WVALID   |   in|    1|       s_axi|        control|   return void|
+|s_axi_control_WREADY   |  out|    1|       s_axi|        control|   return void|
+|s_axi_control_WDATA    |   in|   32|       s_axi|        control|   return void|
+|s_axi_control_WSTRB    |   in|    4|       s_axi|        control|   return void|
+|s_axi_control_ARVALID  |   in|    1|       s_axi|        control|   return void|
+|s_axi_control_ARREADY  |  out|    1|       s_axi|        control|   return void|
+|s_axi_control_ARADDR   |   in|    4|       s_axi|        control|   return void|
+|s_axi_control_RVALID   |  out|    1|       s_axi|        control|   return void|
+|s_axi_control_RREADY   |   in|    1|       s_axi|        control|   return void|
+|s_axi_control_RDATA    |  out|   32|       s_axi|        control|   return void|
+|s_axi_control_RRESP    |  out|    2|       s_axi|        control|   return void|
+|s_axi_control_BVALID   |  out|    1|       s_axi|        control|   return void|
+|s_axi_control_BREADY   |   in|    1|       s_axi|        control|   return void|
+|s_axi_control_BRESP    |  out|    2|       s_axi|        control|   return void|
+|ap_clk                 |   in|    1|  ap_ctrl_hs|  sa_spike_sppf|  return value|
+|ap_rst_n               |   in|    1|  ap_ctrl_hs|  sa_spike_sppf|  return value|
+|interrupt              |  out|    1|  ap_ctrl_hs|  sa_spike_sppf|  return value|
+|x_in                   |   in|   32|     ap_none|           x_in|       pointer|
+|y_out                  |  out|   32|      ap_vld|          y_out|       pointer|
+|y_out_ap_vld           |  out|    1|      ap_vld|          y_out|       pointer|
+|cv1_w                  |   in|    8|     ap_none|          cv1_w|       pointer|
+|cv1_b                  |   in|   32|     ap_none|          cv1_b|       pointer|
+|cv1_s                  |   in|    8|     ap_none|          cv1_s|       pointer|
+|cv2_w                  |   in|    8|     ap_none|          cv2_w|       pointer|
+|cv2_b                  |   in|   32|     ap_none|          cv2_b|       pointer|
+|cv2_s                  |   in|    8|     ap_none|          cv2_s|       pointer|
+|ping_buf_i             |   in|   32|     ap_ovld|       ping_buf|       pointer|
+|ping_buf_o             |  out|   32|     ap_ovld|       ping_buf|       pointer|
+|ping_buf_o_ap_vld      |  out|    1|     ap_ovld|       ping_buf|       pointer|
+|spk_buf_i              |   in|    8|     ap_ovld|        spk_buf|       pointer|
+|spk_buf_o              |  out|    8|     ap_ovld|        spk_buf|       pointer|
+|spk_buf_o_ap_vld       |  out|    1|     ap_ovld|        spk_buf|       pointer|
+|pool_buf1_i            |   in|    8|     ap_ovld|      pool_buf1|       pointer|
+|pool_buf1_o            |  out|    8|     ap_ovld|      pool_buf1|       pointer|
+|pool_buf1_o_ap_vld     |  out|    1|     ap_ovld|      pool_buf1|       pointer|
+|pool_buf2_i            |   in|    8|     ap_ovld|      pool_buf2|       pointer|
+|pool_buf2_o            |  out|    8|     ap_ovld|      pool_buf2|       pointer|
+|pool_buf2_o_ap_vld     |  out|    1|     ap_ovld|      pool_buf2|       pointer|
+|pool_buf3_i            |   in|    8|     ap_ovld|      pool_buf3|       pointer|
+|pool_buf3_o            |  out|    8|     ap_ovld|      pool_buf3|       pointer|
+|pool_buf3_o_ap_vld     |  out|    1|     ap_ovld|      pool_buf3|       pointer|
+|concat_buf_i           |   in|    8|     ap_ovld|     concat_buf|       pointer|
+|concat_buf_o           |  out|    8|     ap_ovld|     concat_buf|       pointer|
+|concat_buf_o_ap_vld    |  out|    1|     ap_ovld|     concat_buf|       pointer|
+|cat_i32_buf_i          |   in|   32|     ap_ovld|    cat_i32_buf|       pointer|
+|cat_i32_buf_o          |  out|   32|     ap_ovld|    cat_i32_buf|       pointer|
+|cat_i32_buf_o_ap_vld   |  out|    1|     ap_ovld|    cat_i32_buf|       pointer|
+|spike_buf_i            |   in|    8|     ap_ovld|      spike_buf|       pointer|
+|spike_buf_o            |  out|    8|     ap_ovld|      spike_buf|       pointer|
+|spike_buf_o_ap_vld     |  out|    1|     ap_ovld|      spike_buf|       pointer|
+|tmp_acc_i              |   in|   32|     ap_ovld|        tmp_acc|       pointer|
+|tmp_acc_o              |  out|   32|     ap_ovld|        tmp_acc|       pointer|
+|tmp_acc_o_ap_vld       |  out|    1|     ap_ovld|        tmp_acc|       pointer|
+|T                      |   in|   32|     ap_none|              T|        scalar|
+|C_in                   |   in|   32|     ap_none|           C_in|        scalar|
+|C_mid                  |   in|   32|     ap_none|          C_mid|        scalar|
+|C_out                  |   in|   32|     ap_none|          C_out|        scalar|
+|H                      |   in|   32|     ap_none|              H|        scalar|
+|W                      |   in|   32|     ap_none|              W|        scalar|
+|k                      |   in|   32|     ap_none|              k|        scalar|
++-----------------------+-----+-----+------------+---------------+--------------+
+

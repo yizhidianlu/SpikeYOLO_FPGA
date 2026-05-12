@@ -15,6 +15,30 @@
 set PART     xc7z020clg400-1
 set CLK_PERIOD 10                 ;# 100 MHz initial M4 target
 
+# --- CWD-resilient path setup (Vitis HLS launches csim binary from
+# csim_<top>/sol1/csim/build/, i.e. 5 levels below repo root). Testbenches
+# that read tests/golden/exploded/... and models/exploded/... need
+# absolute paths via env vars. See Remote Claude URGENT_ASK 2026-05-12.
+set REPO_ROOT  [file normalize ..]
+set WEIGHT_DIR [file join $REPO_ROOT models exploded]
+set GOLDEN_ROOT [file join $REPO_ROOT tests golden exploded]
+
+# Per-target golden-dir lookup (covers the 4 tbs that read SA_GOLDEN_DIR:
+# tb_ms_downsampling / tb_ms_all_conv_block / tb_spike_sppf / tb_detect_head;
+# others use dummy/hardcoded data — set anyway as a safe default).
+array set GOLDEN_BY_TOP {
+    sa_conv2d_int        "tests/golden/exploded/layer_00_stem"
+    sa_conv2d_bn         "tests/golden/exploded/layer_00_stem"
+    sa_lif_expand        "tests/golden/exploded/layer_00_stem"
+    sa_maxpool_or        "tests/golden/exploded/layer_08_sppf"
+    sa_ms_downsampling   "tests/golden/exploded/layer_00_stem"
+    sa_sep_conv          "hw/hls/sim/golden_local/sep_conv_smoke"
+    sa_ms_all_conv_block "tests/golden/exploded/layer_01_acb1"
+    sa_spike_sppf        "tests/golden/exploded/layer_08_sppf"
+    sa_detect_head       "tests/golden/exploded/layer_11_detect"
+    sa_tiny_fpga_top     "tests/golden/exploded"
+}
+
 # Each entry: {top_kernel  source_files  testbench_files}
 # source_files / testbench_files are space-separated relative paths.
 set TARGETS [list \
@@ -46,6 +70,20 @@ foreach entry $TARGETS {
     open_solution -reset sol1 -flow_target vivado
     set_part ${PART}
     create_clock -period ${CLK_PERIOD} -name default
+
+    # Set absolute-path env vars so testbench main() resolves data files
+    # regardless of csim_design's deep CWD.
+    set ::env(SA_REPO_ROOT)   $REPO_ROOT
+    set ::env(SA_WEIGHT_DIR)  $WEIGHT_DIR
+    set ::env(SA_GOLDEN_ROOT) $GOLDEN_ROOT
+    if {[info exists GOLDEN_BY_TOP($TOP)]} {
+        set abs_golden [file join $REPO_ROOT $GOLDEN_BY_TOP($TOP)]
+        set ::env(SA_GOLDEN_DIR)     $abs_golden
+        set ::env(SA_SEP_GOLDEN_DIR) $abs_golden
+    }
+    puts "   SA_REPO_ROOT  = $::env(SA_REPO_ROOT)"
+    puts "   SA_WEIGHT_DIR = $::env(SA_WEIGHT_DIR)"
+    puts "   SA_GOLDEN_DIR = $::env(SA_GOLDEN_DIR)"
 
     csim_design -O -ldflags "-Wl,--as-needed"
     close_project

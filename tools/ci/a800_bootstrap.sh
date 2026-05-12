@@ -13,15 +13,20 @@
 #   scp -P 50535 models/SpikeYOLO_23.1M_T1D4.pt models/tiny_fpga_fp32.pt root@<host>:/root/
 
 set -e
-echo "[bootstrap] === A800 v2.1 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
+echo "[bootstrap] === A800 v2.2 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
 
-# ---- 0. AutoDL 学术加速 (proxy for cocodataset.org / github / pypi / hf) ----
-if [ -f /etc/network_turbo ]; then
-    echo "[bootstrap] enabling AutoDL academic proxy (cocodataset.org / github / pip 走加速)"
+# ---- 0. AutoDL 学术加速 (opt-in)
+# 默认 aria2 -x16 -s16 直连 cocodataset.org (主开发机实测 5-7 MB/s OK).
+# 如果你的实例 turbo work, 设 SPIKE_USE_TURBO=1 启用 (可能进一步加速到 30+ MB/s).
+# 如果 turbo 失效但仍被启用会污染 proxy env, 拖慢 aria2 -> 默认关.
+if [ "${SPIKE_USE_TURBO}" = "1" ] && [ -f /etc/network_turbo ]; then
+    echo "[bootstrap] SPIKE_USE_TURBO=1: enabling AutoDL academic proxy"
     source /etc/network_turbo
-    echo "[bootstrap] proxy active: http_proxy=${http_proxy:-(unset)}"
+    echo "[bootstrap] proxy: http_proxy=${http_proxy:-(unset)}"
 else
-    echo "[bootstrap] WARN: /etc/network_turbo not found (non-AutoDL instance?); using direct connection"
+    # 显式 unset 任何之前 session 残留 proxy 让 aria2 干净直连
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY 2>/dev/null || true
+    echo "[bootstrap] turbo disabled (default); aria2 -x16 will direct-connect cocodataset.org"
 fi
 
 WORKDIR=/root/autodl-tmp
@@ -79,10 +84,16 @@ TRAIN_IMGS=$(ls $COCO_ROOT/images/train2017 2>/dev/null | wc -l)
 if [ "$TRAIN_IMGS" -lt 118000 ]; then
     echo "[bootstrap] COCO incomplete (train=$TRAIN_IMGS); downloading to $COCO_ROOT/_downloads"
     cd $COCO_ROOT/_downloads
+    if ! command -v aria2c >/dev/null 2>&1; then
+        echo "[bootstrap] installing aria2c (apt-get, fast)"
+        apt-get install -y -qq aria2 2>/dev/null || apt install -y aria2 2>/dev/null || {
+            echo "[bootstrap] aria2 install failed, fallback to wget (slower)"
+        }
+    fi
     if command -v aria2c >/dev/null 2>&1; then
-        DL="aria2c -x16 -s16 -c --console-log-level=warn --summary-interval=30"
+        DL="aria2c -x16 -s16 -c --max-tries=20 --retry-wait=10 --console-log-level=warn --summary-interval=30"
+        echo "[bootstrap] aria2c -x16 -s16 ready (主开发机当时同款方案, expected 5-15 MB/s)"
     else
-        echo "[bootstrap] aria2c not installed; using wget (slower). Install: apt-get install -y aria2"
         DL="wget -c --no-verbose"
     fi
     for url in \

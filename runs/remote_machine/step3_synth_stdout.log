@@ -1,15 +1,15 @@
-=== Step 3 attempt 4 (Plan beta Variant 1) started at 2026-05-12T16:39:40+08:00 ===
+=== Step 3 attempt 5 (Variant 1.1: gmem5+depth256) started at 2026-05-12T16:50:34+08:00 ===
 
 ****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
   **** SW Build 5069499 on May 21 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Tue May 12 16:39:45 2026
+  **** Start of session at: Tue May 12 16:50:41 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
 source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
-INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 16:39:46 +0800 2026
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 16:50:41 +0800 2026
 INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
 WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
 Sourcing Tcl script 'run_synth.tcl'
@@ -47,7 +47,7 @@ INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
 INFO: [HLS 200-1510] Running: csynth_design 
-INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0 seconds. CPU system time: 1 seconds. Elapsed time: 0.122 seconds; current allocated memory: 227.109 MB.
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.119 seconds; current allocated memory: 227.598 MB.
 INFO: [HLS 200-10] Analyzing design file 'src/maxpool_or.cpp' ... 
 WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/maxpool_or.cpp:26:29)
 WARNING: [HLS 207-5569] unexpected pragma parameter 'y_out' (src/maxpool_or.cpp:27:29)
@@ -220,27 +220,27 @@ INFO: [HLS 200-10] Analyzing design file 'src/tiny_fpga_top.cpp' ...
 WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
 WARNING: [HLS 207-5569] unexpected pragma parameter 'img_in' (src/tiny_fpga_top.cpp:159:29)
 WARNING: [HLS 207-5569] unexpected pragma parameter 'feat_out' (src/tiny_fpga_top.cpp:160:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'w_pool' (src/tiny_fpga_top.cpp:164:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'bias_pool' (src/tiny_fpga_top.cpp:165:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'shift_pool' (src/tiny_fpga_top.cpp:166:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'w_offsets' (src/tiny_fpga_top.cpp:167:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'bias_offsets' (src/tiny_fpga_top.cpp:168:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'shift_offsets' (src/tiny_fpga_top.cpp:169:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_a' (src/tiny_fpga_top.cpp:170:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_b' (src/tiny_fpga_top.cpp:171:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_c' (src/tiny_fpga_top.cpp:172:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_d' (src/tiny_fpga_top.cpp:173:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_e' (src/tiny_fpga_top.cpp:174:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_f' (src/tiny_fpga_top.cpp:175:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spike' (src/tiny_fpga_top.cpp:176:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_acc' (src/tiny_fpga_top.cpp:177:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_a' (src/tiny_fpga_top.cpp:178:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_b' (src/tiny_fpga_top.cpp:179:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_c' (src/tiny_fpga_top.cpp:180:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_d' (src/tiny_fpga_top.cpp:181:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_e' (src/tiny_fpga_top.cpp:182:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'layer_id' (src/tiny_fpga_top.cpp:183:33)
-INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 2 seconds. CPU system time: 1 seconds. Elapsed time: 40.262 seconds; current allocated memory: 239.504 MB.
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w_pool' (src/tiny_fpga_top.cpp:165:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias_pool' (src/tiny_fpga_top.cpp:166:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift_pool' (src/tiny_fpga_top.cpp:167:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'w_offsets' (src/tiny_fpga_top.cpp:168:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'bias_offsets' (src/tiny_fpga_top.cpp:169:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'shift_offsets' (src/tiny_fpga_top.cpp:170:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_a' (src/tiny_fpga_top.cpp:171:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_b' (src/tiny_fpga_top.cpp:172:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_c' (src/tiny_fpga_top.cpp:173:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_d' (src/tiny_fpga_top.cpp:174:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_e' (src/tiny_fpga_top.cpp:175:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_f' (src/tiny_fpga_top.cpp:176:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spike' (src/tiny_fpga_top.cpp:177:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_acc' (src/tiny_fpga_top.cpp:178:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_a' (src/tiny_fpga_top.cpp:179:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_b' (src/tiny_fpga_top.cpp:180:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_c' (src/tiny_fpga_top.cpp:181:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_d' (src/tiny_fpga_top.cpp:182:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_e' (src/tiny_fpga_top.cpp:183:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'layer_id' (src/tiny_fpga_top.cpp:184:33)
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 1 seconds. CPU system time: 2 seconds. Elapsed time: 40.134 seconds; current allocated memory: 239.961 MB.
 INFO: [HLS 200-777] Using interface defaults for 'Vivado' flow target.
 INFO: [HLS 200-1995] There were 50,510 instructions in the design after the 'Compile/Link' phase of compilation. See the Design Size Report for more details: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1/syn/report/csynth_design_size.rpt
 INFO: [HLS 200-1995] There were 24,115 instructions in the design after the 'Unroll/Inline (step 1)' phase of compilation. See the Design Size Report for more details: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1/syn/report/csynth_design_size.rpt
@@ -312,9 +312,6 @@ WARNING: [HLS 214-450] Ignore address on register port 'ping_buf' (src/lif_expan
 WARNING: [HLS 214-450] Ignore address on register port 'concat_buf' (src/spike_sppf.cpp:138:41)
 WARNING: [HLS 214-450] Ignore address on register port 'concat_buf' (src/spike_sppf.cpp:156:28)
 WARNING: [HLS 214-450] Ignore address on register port 'cat_i32_buf' (src/spike_sppf.cpp:158:76)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:214:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:214:47)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:214:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:215:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:215:47)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:215:77)
@@ -330,18 +327,18 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:219:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:219:47)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:219:77)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:233:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:233:47)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:233:77)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:244:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:244:47)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:244:77)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:220:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:220:47)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:220:77)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:234:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:234:47)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:234:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:245:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:245:47)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:245:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:246:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:246:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:246:79)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:246:47)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:246:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:247:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:247:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:247:79)
@@ -351,15 +348,15 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:249:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:249:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:249:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:262:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:262:47)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:262:77)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:250:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:250:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:250:79)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:263:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:263:47)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:263:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:264:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:264:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:264:79)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:264:47)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:264:77)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:265:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:265:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:265:79)
@@ -369,12 +366,12 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:267:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:267:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:267:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:281:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:281:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:281:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:292:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:292:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:292:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:268:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:268:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:268:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:282:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:282:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:282:79)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:293:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:293:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:293:79)
@@ -390,9 +387,9 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:297:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:297:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:297:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:310:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:310:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:310:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:298:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:298:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:298:79)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:311:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:311:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:311:79)
@@ -408,20 +405,20 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:315:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:315:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:315:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:328:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:328:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:328:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:316:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:316:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:316:79)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:329:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:329:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:329:79)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:346:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:346:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:346:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:330:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:330:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:330:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:347:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:347:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:347:79)
 WARNING: [HLS 214-450] Ignore address on register port 'scratch_a' (src/lif_expand.cpp:43:21)
 WARNING: [HLS 214-450] Ignore address on register port 'scratch_spike' (src/lif_expand.cpp:55:70)
-WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:357:21)
-WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:357:48)
-WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:357:79)
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:358:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:358:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:358:79)
@@ -437,6 +434,9 @@ WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny
 WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:362:21)
 WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:362:48)
 WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:362:79)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets' (src/tiny_fpga_top.cpp:363:21)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets' (src/tiny_fpga_top.cpp:363:48)
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets' (src/tiny_fpga_top.cpp:363:79)
 WARNING: [HLS 214-450] Ignore address on register port 'scratch_a' (src/detect_head.cpp:64:21)
 WARNING: [HLS 214-450] Ignore address on register port 'feat_out' (src/detect_head.cpp:65:18)
 INFO: [HLS 214-241] Aggregating scalar variable 'scratch_spk_d' with compact=bit mode in 8-bits (src/tiny_fpga_top.cpp:158:0)
@@ -455,7 +455,7 @@ ERROR: [HLS 214-323] Address computation on scalar port 'w_offsets' is not suppo
 ERROR: [HLS 214-323] Address computation on scalar port 'bias_offsets' is not supported (src/tiny_fpga_top.cpp:158:0)
 ERROR: [HLS 214-323] Address computation on scalar port 'shift_offsets' is not supported (src/tiny_fpga_top.cpp:158:0)
 ERROR: [HLS 200-1715] Encountered problem during source synthesis
-INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:50; Allocated memory: 20.195 MB.
+INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:50; Allocated memory: 20.355 MB.
 Pre-synthesis failed.
     while executing
 "source run_synth.tcl"
@@ -463,5 +463,5 @@ Pre-synthesis failed.
     invoked from within
 "uplevel \#0 [list source $tclfile] "
 
-INFO: [HLS 200-112] Total CPU user time: 6 seconds. Total CPU system time: 3 seconds. Total elapsed time: 53.535 seconds; peak allocated memory: 247.211 MB.
+INFO: [HLS 200-112] Total CPU user time: 6 seconds. Total CPU system time: 3 seconds. Total elapsed time: 53.396 seconds; peak allocated memory: 247.871 MB.
 SYNTH_TCL_EXIT_FAIL 

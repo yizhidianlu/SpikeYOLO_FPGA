@@ -1,31 +1,30 @@
-# Step 3 — Vitis HLS C-synthesis (attempts 1-3, all BLOCKED)
+# Step 3 — Vitis HLS C-synthesis (attempts 1-4, all BLOCKED)
 
-## Status: BLOCKED (3rd consecutive csynth failure on `sa_tiny_fpga_top`)
+## Status: BLOCKED (4th attempt — offset arrays demoted to scalar register, HLS 214-323)
 
-## Wall time per attempt: ~50-58 s before abort
-## Latest attempt: 2026-05-12T16:23 (Plan β Variant 2 applied via 267b7e4)
+## Attempts
 
-## Attempts log
+| # | Patch | Error | URGENT_ASK |
+|---|---|---|---|
+| 1 | vanilla | HLS 214-298 struct-of-ptr | URGENT_ASK_2 |
+| 2 | Option α DISAGGREGATE pragma | HLS 214-298 (pragma no-op for args) | URGENT_ASK_3 |
+| 3 | Plan β Variant 2 ptr-to-ptr | HLS 214-134 ptr-to-ptr unsupported | URGENT_ASK_4 |
+| 4 | Plan β Variant 1 flat pools + offsets | **HLS 214-323** offset arrays demoted to scalar register port | **URGENT_ASK_5** |
 
-| # | Patch applied | Error | URGENT_ASK |
-|---|----|----|----|
-| 1 | (none — vanilla) | HLS 214-298: struct-of-pointers on top arg | URGENT_ASK_2 |
-| 2 | Option α: `#pragma HLS DISAGGREGATE variable=L` (62e1e19) | HLS 214-298 (same) — pragma doesn't apply to function arg | URGENT_ASK_3 |
-| 3 | Plan β Variant 2: `const sa_i8_t *const *L_w / L_bias / L_shift` (267b7e4) | **HLS 214-134**: pointer-to-pointer also not supported | **URGENT_ASK_4** (this commit) |
-
-All 3 attempts abort during source-analysis phase (~50 s) at target 1/5. Targets 2-5 never run.
-
-## Latest error (verbatim)
+## Latest error
 
 ```
-ERROR: [HLS 214-134] in function 'sa_tiny_fpga_top': Pointer to pointer is not supported for variable 'L_shift'
-ERROR: [HLS 214-134] in function 'sa_tiny_fpga_top': Pointer to pointer is not supported for variable 'L_bias'
-ERROR: [HLS 214-134] in function 'sa_tiny_fpga_top': Pointer to pointer is not supported for variable 'L_w'
-ERROR: [HLS 200-1715] Encountered problem during source synthesis
+WARNING: [HLS 214-450] Ignore address on register port 'shift_offsets'  (line 359)
+WARNING: [HLS 214-450] Ignore address on register port 'w_offsets'      (line 360)
+WARNING: [HLS 214-450] Ignore address on register port 'bias_offsets'   (line 360)
+... (many more)
+ERROR: [HLS 214-323] Address computation on scalar port 'w_offsets' is not supported
+ERROR: [HLS 214-323] Address computation on scalar port 'bias_offsets' is not supported
+ERROR: [HLS 214-323] Address computation on scalar port 'shift_offsets' is not supported
 ```
+
+Root cause hypothesis: 6 m_axi ports sharing `gmem2` bundle; the 3 offset arrays (depth=30) are too lightweight, Vitis demotes them to scalar register. See URGENT_ASK_5.md for full analysis + Plan β Variant 1.1 proposal (move offsets to separate bundle / increase depth).
 
 ## Next step
 
-Awaiting Main's Plan β Variant 1 (flat pool + offset table) per `URGENT_ASK_4.md`. Re-poll in +3 min per AUTOPOLL.
-
-Step 4 / 5 / 6 remain blocked.
+Awaiting Plan β Variant 1.1 patch in `REPLIES_FROM_MAIN.md`. Continuing loop. Step 4 / 5 / 6 remain blocked.

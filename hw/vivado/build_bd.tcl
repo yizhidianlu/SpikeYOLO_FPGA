@@ -1,7 +1,7 @@
-# hw/vivado/build_bd.tcl — Vivado 2023.2 Block Design for SpikeYOLO on ZYBO Z7-20.
+# hw/vivado/build_bd.tcl — Vivado 2024.1 Block Design for SpikeYOLO on ZYBO Z7-20.
 #
 # Usage:
-#   source /opt/Xilinx/Vivado/2023.2/settings64.sh
+#   source /opt/Xilinx/Vivado/2024.1/settings64.sh
 #   vivado -mode batch -source build_bd.tcl
 #
 # Inputs:

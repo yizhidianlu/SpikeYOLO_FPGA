@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { lfs: true }
       - run: |
-          source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+          source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
           cd hw/hls && vitis_hls -f run_csim.tcl
       - run: python tools/verify/numpy_vs_hls.py --all-layers
       - uses: actions/upload-artifact@v4

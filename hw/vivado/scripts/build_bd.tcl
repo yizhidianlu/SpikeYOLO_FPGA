@@ -1,12 +1,12 @@
 # hw/vivado/scripts/build_bd.tcl
 #
-# Vivado 2023.2 batch entry point — wraps the canonical BD builder that lives
+# Vivado 2024.1 batch entry point — wraps the canonical BD builder that lives
 # at hw/vivado/build_bd.tcl. The top-level script holds the actual create_bd_*
 # calls; this thin wrapper exists so callers can stay inside scripts/ alongside
 # synth_impl.tcl and axi_protocol_check.tcl without duplicating logic.
 #
 # Usage:
-#   source /opt/Xilinx/Vivado/2023.2/settings64.sh
+#   source /opt/Xilinx/Vivado/2024.1/settings64.sh
 #   vivado -mode batch -source hw/vivado/scripts/build_bd.tcl
 #
 # The wrapped script:

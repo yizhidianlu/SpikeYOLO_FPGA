@@ -33,7 +33,7 @@ if [ -n "${PETALINUX:-}" ]; then
 elif [ "${SPIKE_DRYRUN_NO_PETALINUX:-0}" = "1" ] || [ "${CI:-0}" = "1" ]; then
     skip "no toolchain in this env" "PETALINUX env"
 else
-    bad "\$PETALINUX not set; run: source /opt/petalinux-v2023.2/settings.sh"
+    bad "\$PETALINUX not set; run: source /opt/petalinux-v2024.1/settings.sh"
 fi
 
 # 2. XSA path placeholder (warn-only — B2 may not have synthesised yet)

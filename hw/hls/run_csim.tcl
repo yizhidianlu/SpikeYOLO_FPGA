@@ -2,7 +2,7 @@
 # kernel suite.
 #
 # Usage:
-#   source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+#   source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
 #   vitis_hls -f run_csim.tcl
 #
 # Iterates over every (top, testbench) pair so a single script invocation

@@ -39,7 +39,7 @@ owner: "B1-session-2026-05-12-W6"
 
 | 维度 | 选择 | 理由 |
 |---|---|---|
-| HLS 版本 | Vitis HLS 2023.2 | 与 Vivado / Petalinux 版本对齐 |
+| HLS 版本 | Vitis HLS 2024.1 | 与 Vivado / Petalinux 版本对齐 |
 | 顶层接口 | s_axilite（控制） + m_axi（DDR3）+ AXI-Stream（可选层间） | 简化 BD，避开过多 stream depth 调优 |
 | 数据类型 | `ap_int<8>` / `ap_int<32>` 显式 | 避免编译器隐式扩展导致面积膨胀 |
 | 流水线 | 内层循环 II=1，外层 dataflow | 标准 systolic 模板 |

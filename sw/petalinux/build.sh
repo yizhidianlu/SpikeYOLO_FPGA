@@ -1,5 +1,5 @@
 #!/bin/bash
-# sw/petalinux/build.sh — one-shot Petalinux 2023.2 image build for ZYBO Z7-20.
+# sw/petalinux/build.sh — one-shot Petalinux 2024.1 image build for ZYBO Z7-20.
 #
 # Inputs:
 #   ../../hw/vivado/out/system.xsa            (B2 hardware platform)
@@ -12,7 +12,7 @@
 #   spikeyolo_petalinux/images/linux/petalinux-sdimage.wic
 #
 # Usage:
-#   source /opt/petalinux-v2023.2/settings.sh
+#   source /opt/petalinux-v2024.1/settings.sh
 #   ./build.sh                                 # full build (default)
 #   ./build.sh --fast                          # skip image regeneration
 #   ./build.sh --dry-run                       # print petalinux-* commands, do not invoke
@@ -68,7 +68,7 @@ run() {
 if [ "${DRY_RUN}" = "0" ]; then
     if [ -z "${PETALINUX:-}" ]; then
         echo "[build.sh] ERROR: \$PETALINUX env not set." >&2
-        echo "           run: source /opt/petalinux-v2023.2/settings.sh" >&2
+        echo "           run: source /opt/petalinux-v2024.1/settings.sh" >&2
         exit 1
     fi
     if ! command -v petalinux-create >/dev/null 2>&1; then

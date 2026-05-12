@@ -11,7 +11,7 @@
 #   R2 (resource burst)  : any resource > 75% (warn) or > 90% (block).
 #
 # Usage:
-#   source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+#   source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
 #   vitis_hls -f run_synth.tcl
 #
 # Long-running (~25 min on a Ryzen 7 5800X). Skip in PR CI; run on the

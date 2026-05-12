@@ -1,6 +1,6 @@
 # hw/vivado/scripts/synth_impl.tcl
 #
-# Vivado 2023.2 batch entry point — runs synthesis, implementation,
+# Vivado 2024.1 batch entry point — runs synthesis, implementation,
 # write_bitstream, and emits hw/vivado/out/address_map.yaml (Contract 4).
 # Wraps hw/vivado/build_bitstream.tcl so callers under scripts/ have a single
 # co-located pair (build_bd.tcl + synth_impl.tcl).
@@ -10,7 +10,7 @@
 #   (creates out/spike_zybo.xpr)
 #
 # Usage:
-#   source /opt/Xilinx/Vivado/2023.2/settings64.sh
+#   source /opt/Xilinx/Vivado/2024.1/settings64.sh
 #   vivado -mode batch -source hw/vivado/scripts/synth_impl.tcl
 #
 # The wrapped script:

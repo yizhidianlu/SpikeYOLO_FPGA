@@ -8,7 +8,7 @@
 #   - investigating a C-sim vs RTL divergence
 #
 # Usage:
-#   source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+#   source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
 #   vitis_hls -f run_cosim.tcl
 #
 # Exit code: 0 if every cosim_design returns 0; non-zero on first failure

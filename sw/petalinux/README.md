@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Petalinux 2023.2 SD card image for ZYBO Z7-20 with USB UVC + DRM/KMS + AXI DMA + UIO + CMA. Hosts C2 driver/SDK and C3 application.
+Petalinux 2024.1 SD card image for ZYBO Z7-20 with USB UVC + DRM/KMS + AXI DMA + UIO + CMA. Hosts C2 driver/SDK and C3 application.
 
 ## Layout
 
@@ -22,7 +22,7 @@ images/linux/                  BOOT.BIN, image.ub, petalinux-sdimage.wic
 ## Build
 
 ```bash
-source /opt/petalinux-v2023.2/settings.sh
+source /opt/petalinux-v2024.1/settings.sh
 bash build.sh    # depends on ../../hw/vivado/out/system.xsa
 ```
 

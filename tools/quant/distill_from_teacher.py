@@ -12,7 +12,11 @@ import argparse
 import csv
 import hashlib
 import json
+import os
+import random
+import signal
 import sys
+import time
 from pathlib import Path
 
 # Repo-root bootstrap so `import ultralytics` resolves to the local checkout
@@ -41,7 +45,175 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--device", type=str, default=None)
     p.add_argument("--dry-run", action="store_true",
                    help="single-batch wiring smoke test; no checkpoint saved")
+    p.add_argument("--resume", type=Path, default=None,
+                   help="explicit resumable .pt to continue from")
+    p.add_argument("--resume-auto", action="store_true",
+                   help="auto-pick newest mtime resumable .pt under cfg.resume_dir")
+    p.add_argument("--force-resume", action="store_true",
+                   help="skip config-hash check during resume (manual override)")
     return p
+
+
+# ---------------------------------------------------------------------------
+# Resumable-checkpoint helpers (W8 sprint).
+# Atomic write (tmp -> os.replace), full optimizer/scheduler/scaler/RNG state.
+# ---------------------------------------------------------------------------
+def _serialize_config_for_hash(cfg: dict) -> str:
+    """Stable JSON for config hashing (filters paths -> str)."""
+    return json.dumps(cfg, sort_keys=True, default=str)
+
+
+def _save_resumable_ckpt(path: Path, model, optimizer, scheduler, scaler,
+                         epoch: int, step: int, train_args: dict, config: dict,
+                         adapter=None, extra_meta: dict = None) -> None:
+    """Atomic resumable checkpoint with full RNG + opt + sched + scaler state."""
+    import torch
+    import numpy as np
+    payload = {
+        "model_state":     {k: v.detach().cpu().clone() for k, v in model.state_dict().items()},
+        "optimizer_state": optimizer.state_dict() if optimizer is not None else None,
+        "scheduler_state": scheduler.state_dict() if scheduler is not None else None,
+        "scaler_state":    scaler.state_dict() if scaler is not None else None,
+        "adapter_state":   (adapter.state_dict() if adapter is not None else None),
+        "epoch":           int(epoch),
+        "step":            int(step),
+        "config_hash":     hashlib.sha256(_serialize_config_for_hash(config).encode()).hexdigest(),
+        "config":          config,
+        "train_args":      dict(train_args),
+        "rng_torch":       torch.get_rng_state(),
+        "rng_torch_cuda":  torch.cuda.get_rng_state() if torch.cuda.is_available() else None,
+        "rng_numpy":       np.random.get_state(),
+        "rng_python":      random.getstate(),
+        "meta": {
+            "saved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "version":  "1.0",
+            **(extra_meta or {}),
+        },
+    }
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = str(path) + ".tmp"
+    torch.save(payload, tmp)
+    os.replace(tmp, str(path))   # POSIX-atomic on Windows too (NTFS ReplaceFile)
+    print(f"[resume] saved -> {path} (epoch={epoch} step={step})")
+
+
+def _load_resumable_ckpt(path: Path, model, optimizer, scheduler, scaler,
+                         config: dict, adapter=None, force: bool = False):
+    """Load resumable .pt and restore everything. Returns (epoch, step)."""
+    import torch
+    import numpy as np
+    print(f"[resume] loading {path}")
+    payload = torch.load(str(path), weights_only=False, map_location="cpu")
+    expected = hashlib.sha256(_serialize_config_for_hash(config).encode()).hexdigest()
+    saved_hash = payload.get("config_hash", "")
+    if saved_hash != expected:
+        msg = (f"[resume] config hash mismatch: saved={saved_hash[:12]} "
+               f"vs current={expected[:12]}")
+        if not force:
+            print(msg)
+            print("[resume] saved config keys: " + ", ".join(sorted(payload.get("config", {}).keys())))
+            raise RuntimeError("config drifted since save; pass --force-resume to override")
+        print(msg + "  (--force-resume in effect, continuing)")
+    # Restore states
+    model.load_state_dict(payload["model_state"], strict=False)
+    if adapter is not None and payload.get("adapter_state") is not None:
+        try:
+            adapter.load_state_dict(payload["adapter_state"], strict=False)
+        except Exception as e:
+            print(f"[resume] WARN: adapter restore skipped: {e!r}")
+    if optimizer is not None and payload.get("optimizer_state") is not None:
+        try:
+            optimizer.load_state_dict(payload["optimizer_state"])
+        except Exception as e:
+            print(f"[resume] WARN: optimizer restore failed: {e!r}")
+    if scheduler is not None and payload.get("scheduler_state") is not None:
+        try:
+            scheduler.load_state_dict(payload["scheduler_state"])
+        except Exception as e:
+            print(f"[resume] WARN: scheduler restore failed: {e!r}")
+    if scaler is not None and payload.get("scaler_state") is not None:
+        try:
+            scaler.load_state_dict(payload["scaler_state"])
+        except Exception as e:
+            print(f"[resume] WARN: scaler restore failed: {e!r}")
+    # RNG
+    try:
+        torch.set_rng_state(payload["rng_torch"])
+        if payload.get("rng_torch_cuda") is not None and torch.cuda.is_available():
+            torch.cuda.set_rng_state(payload["rng_torch_cuda"])
+        np.random.set_state(payload["rng_numpy"])
+        random.setstate(payload["rng_python"])
+    except Exception as e:
+        print(f"[resume] WARN: RNG restore partial: {e!r}")
+    epoch = int(payload.get("epoch", 0))
+    step = int(payload.get("step", 0))
+    print(f"[resume] restored at epoch={epoch} step={step} (saved {payload.get('meta', {}).get('saved_at', '?')})")
+    return epoch, step
+
+
+def _find_auto_resume(resume_dir: Path):
+    """Pick newest mtime *.pt under resume_dir; prefer 'latest.pt' if present."""
+    resume_dir = Path(resume_dir)
+    if not resume_dir.exists():
+        return None
+    latest = resume_dir / "latest.pt"
+    if latest.exists():
+        return latest
+    candidates = sorted(resume_dir.glob("*.pt"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0] if candidates else None
+
+
+class GracefulSaver:
+    """SIGINT/SIGTERM/SIGBREAK -> save resumable ckpt then exit cleanly.
+
+    Note: on Windows ``taskkill /F`` does NOT trigger Python signal handlers.
+    The reliable graceful path is:
+      * Ctrl+C / Ctrl+Break on a foreground console (sends SIGINT/SIGBREAK)
+      * Natural epoch boundary (we ALWAYS save resumable each epoch)
+    Worst case: ``taskkill /F`` mid-epoch loses partial progress (≤1 epoch).
+    """
+    def __init__(self):
+        self.requested = False
+        self.save_fn = None
+        self.installed = False
+
+    def set_save_fn(self, fn):
+        self.save_fn = fn
+
+    def install(self):
+        if self.installed:
+            return
+        try:
+            signal.signal(signal.SIGINT, self._handler)
+        except Exception as e:
+            print(f"[graceful] SIGINT handler install failed: {e!r}")
+        try:
+            signal.signal(signal.SIGTERM, self._handler)
+        except Exception:
+            pass
+        # Windows-only Ctrl+Break
+        if hasattr(signal, "SIGBREAK"):
+            try:
+                signal.signal(signal.SIGBREAK, self._handler)
+            except Exception:
+                pass
+        self.installed = True
+        print("[graceful] signal handlers installed (SIGINT/SIGTERM/SIGBREAK)")
+
+    def _handler(self, signum, frame):
+        if self.requested:
+            print(f"[graceful] second signal {signum}; force exit")
+            sys.exit(1)
+        self.requested = True
+        print(f"[graceful] received signal {signum}; saving resume ckpt then exit...")
+        try:
+            if self.save_fn is not None:
+                self.save_fn()
+        except Exception as e:
+            print(f"[graceful] save failed: {e!r}")
+        print("[graceful] exit clean")
+        sys.exit(0)
 
 
 def _load_yaml(path: Path) -> dict:
@@ -172,6 +344,106 @@ def _write_log_row(log_path: Path, row: dict, header: list):
         w.writerow(row)
 
 
+def _register_detect_taps(model, store: dict, key: str):
+    """Hook the SpikeDetect head to capture per-scale [B, no_total, H, W] logits.
+
+    SpikeDetect.forward concatenates ``(cv2[i](x[i]), cv3[i](x[i]))`` along
+    channel dim 2 (5D path: T,B,C+, H,W) then ``.mean(0)`` collapses the time
+    axis -> 4D ``[B, reg_max*4 + nc, H, W]``. Channel order is
+    **[reg_max*4 first, nc last]** (line 222 split). We capture the LIST of
+    per-scale 4D outputs *during training* (model.training==True path).
+    """
+    seq = getattr(model, "model", None)
+    if seq is None:
+        return []
+    handles = []
+    # SpikeDetect is the last module in the Sequential
+    head = seq[-1]
+    head_cls_name = type(head).__name__
+    if head_cls_name not in ("SpikeDetect", "Detect"):
+        print(f"[detect_tap:{key}] WARN: last layer is {head_cls_name}, not SpikeDetect")
+        return []
+
+    def _hook(_m, _inp, out):
+        # During training, SpikeDetect returns the list ``x`` (post-mean over T)
+        # of shape ``[B, no, H, W]`` per scale. During eval it returns a tuple
+        # ``(y, x)``; either way we only want the per-scale list.
+        if isinstance(out, tuple) and len(out) == 2 and isinstance(out[1], list):
+            store[key] = list(out[1])
+        elif isinstance(out, list):
+            store[key] = list(out)
+        else:
+            store[key] = None
+    handles.append(head.register_forward_hook(_hook))
+    return handles
+
+
+def _register_spike_taps(model, layer_ids, store: dict, key_prefix: str):
+    """Hook MS_AllConvBlock outputs as 'spike-like' tensors.
+
+    True LIF post-spike binary tensors live deep inside MS_AllConvBlock; the
+    layer output (post final mem_update) is a graded tensor in {0,1,...,Vmax}.
+    We use the same tap layers as feat_align (typically [5,7,8]) but treat the
+    activation magnitude as a soft spike-rate proxy. This gives a non-zero
+    spike_rate_loss without invasive surgery into yolo_spikformer's internals.
+    """
+    seq = getattr(model, "model", None)
+    if seq is None:
+        return []
+    handles = []
+    for lid in layer_ids:
+        if lid < len(seq):
+            def make_hook(name):
+                def _h(_m, _i, o):
+                    raw = o[0] if isinstance(o, (list, tuple)) else o
+                    raw = _squeeze_time_dim(raw, name)
+                    store[name] = raw
+                return _h
+            handles.append(seq[lid].register_forward_hook(make_hook(f"{key_prefix}_{lid:02d}")))
+    return handles
+
+
+def _kd_logits_from_detect(student_dets, teacher_dets, num_classes: int, reg_max: int = 16,
+                           T: float = 4.0):
+    """Compute KD-logits loss from raw SpikeDetect per-scale outputs.
+
+    Channel order in tiny_fpga / SpikeYOLO: ``[reg(64), cls(80)]`` (cv2 first
+    then cv3, per yolo_spikformer line 209). We slice off cls/reg, pick the
+    teacher scale closest in spatial size to the student's, spatially align
+    via adaptive_avg_pool2d, and call distill_losses.kd_logits_loss
+    (cls KL@T=4 + reg L1).
+    """
+    import torch
+    import torch.nn.functional as F
+    from distill_losses import kd_logits_loss as _kd
+    if not (student_dets and teacher_dets):
+        return None
+    s = student_dets[0]   # tiny_fpga has 1 scale
+    if s is None or s.dim() != 4:
+        return None
+    sH, sW = s.shape[-2:]
+    # pick teacher scale closest in HxW
+    def _area(t):
+        return t.shape[-1] * t.shape[-2]
+    target_area = sH * sW
+    t_pick = min((t for t in teacher_dets if t is not None and t.dim() == 4),
+                 key=lambda t: abs(_area(t) - target_area), default=None)
+    if t_pick is None:
+        return None
+    if t_pick.shape[-2:] != (sH, sW):
+        t_pick = F.adaptive_avg_pool2d(t_pick, (sH, sW))
+    if t_pick.shape[1] != s.shape[1]:
+        # channel mismatch (different reg_max or nc) — bail out
+        return None
+    # SpikeDetect channel order = [reg(reg_max*4), cls(nc)]; reorder so kd_logits_loss
+    # sees [cls(nc), reg(reg_max*4)] (its expected layout).
+    s_reg, s_cls = s[:, :reg_max * 4], s[:, reg_max * 4:reg_max * 4 + num_classes]
+    t_reg, t_cls = t_pick[:, :reg_max * 4], t_pick[:, reg_max * 4:reg_max * 4 + num_classes]
+    s_cat = torch.cat([s_cls, s_reg], dim=1)
+    t_cat = torch.cat([t_cls, t_reg], dim=1)
+    return _kd(s_cat, t_cat, num_classes=num_classes, T=T)
+
+
 def _import_siblings():
     """Import sibling modules, package- or script-style."""
     sys.path.insert(0, str(Path(__file__).parent))
@@ -185,7 +457,8 @@ def _import_siblings():
 
 
 def _do_dry_run(student, teacher, cfg, s_feats, t_feats, build_adapter,
-                feat_align_loss, weights, device, cfg_hash, handles):
+                feat_align_loss, spike_rate_loss, weights, device, cfg_hash, handles,
+                s_dets_store, t_dets_store, s_spikes, t_spikes, num_classes):
     import torch
     print("[distill] DRY-RUN: single random batch")
     student.train()
@@ -220,6 +493,44 @@ def _do_dry_run(student, teacher, cfg, s_feats, t_feats, build_adapter,
                           f"(over {len(specs)} alignment points: {[s[0] for s in specs]})")
         except Exception as e:
             print(f"[distill] dry-run align skipped: {e!r}")
+
+    # KD logits (W8 activation): captured from SpikeDetect hooks
+    try:
+        s_dets = s_dets_store.get("student_det", None)
+        t_dets = t_dets_store.get("teacher_det", None)
+        kd_val = _kd_logits_from_detect(s_dets, t_dets, num_classes=num_classes)
+        if kd_val is not None:
+            loss_kd = kd_val
+            print(f"[distill] dry-run kd_logits_loss = {float(loss_kd):.6f} "
+                  f"(student_scales={len(s_dets) if s_dets else 0} "
+                  f"teacher_scales={len(t_dets) if t_dets else 0})")
+        else:
+            print(f"[distill] dry-run kd_logits skipped: detect tap empty "
+                  f"(s={s_dets is not None} t={t_dets is not None})")
+    except Exception as e:
+        print(f"[distill] dry-run kd_logits failed: {e!r}")
+
+    # Spike-rate (W8 activation): collapse all-but-channel and L1
+    try:
+        if s_spikes and t_spikes:
+            common = sorted(set(s_spikes) & set(t_spikes))
+            if common:
+                # build pseudo-binary by clamping nonzero (graded spike -> rate proxy)
+                s_proxy = {k: (s_spikes[k] > 0).float() for k in common}
+                # teacher channels >= student → take leading-channel slice for L1 match
+                t_proxy = {}
+                for k in common:
+                    t_t = (t_spikes[k] > 0).float()
+                    sc = s_spikes[k].shape[1]
+                    if t_t.shape[1] > sc:
+                        t_t = t_t[:, :sc]
+                    t_proxy[k] = t_t
+                loss_spike = spike_rate_loss(s_proxy, t_proxy)
+                print(f"[distill] dry-run spike_rate_loss = {float(loss_spike):.6f} "
+                      f"(over {len(common)} taps)")
+    except Exception as e:
+        print(f"[distill] dry-run spike_rate failed: {e!r}")
+
     w_det, w_kd, w_align, w_spike = weights
     total = w_det * loss_det + w_kd * loss_kd + w_align * loss_align + w_spike * loss_spike
     print(f"[distill] dry-run loss: det={float(loss_det):.4f} kd={float(loss_kd):.4f} "
@@ -232,25 +543,27 @@ def _do_dry_run(student, teacher, cfg, s_feats, t_feats, build_adapter,
 
 
 def _build_distilling_trainer_cls(student, teacher, adapter, s_feats, t_feats,
-                                  weights, cfg, feat_align_loss):
+                                  s_dets_store, t_dets_store, s_spikes, t_spikes,
+                                  weights, cfg, feat_align_loss, spike_rate_loss,
+                                  loss_breakdown_box, num_classes):
     """Return a ``DetectionTrainer`` subclass that adds KD on top of det loss.
 
     Strategy: keep ultralytics' DataLoader / optimizer / scheduler / val
     pipeline intact; intercept only (a) ``preprocess_batch`` to run the
-    frozen teacher forward (populating ``t_feats`` via hooks), and
-    (b) the student's ``forward(batch)`` to add the alignment loss to the
-    detection loss before backprop. The trainer loop calls
-    ``self.loss, self.loss_items = self.model(batch)`` (engine/trainer.py
-    line 344), so wrapping ``student.forward`` is a transparent splice.
+    frozen teacher forward (populating ``t_feats`` / detect-head taps via
+    hooks), and (b) the student's ``forward(batch)`` to add KD logits +
+    feature-align + spike-rate losses to detection loss before backprop.
 
-    KD logits + spike_rate losses stay placeholder zeros until the
-    detect-head and LIF taps are wired (M2 work).
+    W8 activation: kd_logits + spike_rate are now REAL (no longer 0.0
+    placeholders). Each call writes per-component scalars into
+    ``loss_breakdown_box`` so the per-step CSV logger picks up real numbers.
     """
     import torch
     from ultralytics.models.yolo.detect import DetectionTrainer
 
-    w_det, _w_kd, w_align, _w_spike = weights
+    w_det, w_kd, w_align, w_spike = weights
     teacher_mode = cfg.get("teacher_inference_mode", "avgpool_from_640")
+    kd_T = float(cfg.get("kd_temperature", 4.0))
 
     class _DistillingDetectionTrainer(DetectionTrainer):
         def get_model(self, cfg=None, weights=None, verbose=True):  # noqa: ARG002
@@ -281,7 +594,10 @@ def _build_distilling_trainer_cls(student, teacher, adapter, s_feats, t_feats,
         if not (isinstance(det_out, tuple) and len(det_out) == 2):
             return det_out  # eval-mode pass-through
         det_loss, det_items = det_out
-        loss_align = det_loss.new_zeros(())
+        z = det_loss.new_zeros(())
+        loss_align, loss_kd, loss_spike = z, z, z
+
+        # --- feat_align (active since W4) ---
         common = sorted(set(s_feats) & set(t_feats))
         if adapter is not None and common:
             try:
@@ -290,7 +606,47 @@ def _build_distilling_trainer_cls(student, teacher, adapter, s_feats, t_feats,
                 loss_align = feat_align_loss(s_feats, aligned)
             except Exception as e:
                 print(f"[distill] align loss failed: {e!r}")
-        return w_det * det_loss + w_align * loss_align, det_items
+
+        # --- KD logits (W8 activation) ---
+        try:
+            s_dets = s_dets_store.get("student_det", None)
+            t_dets = t_dets_store.get("teacher_det", None)
+            kd_val = _kd_logits_from_detect(s_dets, t_dets, num_classes=num_classes, T=kd_T)
+            if kd_val is not None:
+                loss_kd = kd_val
+        except Exception as e:
+            # KD failure shouldn't abort training; downgrade to 0 and log once
+            if not getattr(_kd_combined_forward, "_kd_warned", False):
+                print(f"[distill] kd_logits failed (will keep 0): {e!r}")
+                _kd_combined_forward._kd_warned = True
+
+        # --- spike_rate (W8 activation) ---
+        try:
+            common_sp = sorted(set(s_spikes) & set(t_spikes))
+            if common_sp:
+                s_proxy = {k: (s_spikes[k] > 0).float() for k in common_sp}
+                t_proxy = {}
+                for k in common_sp:
+                    t_t = (t_spikes[k] > 0).float()
+                    sc = s_spikes[k].shape[1]
+                    if t_t.shape[1] > sc:
+                        t_t = t_t[:, :sc]
+                    t_proxy[k] = t_t
+                loss_spike = spike_rate_loss(s_proxy, t_proxy)
+        except Exception as e:
+            if not getattr(_kd_combined_forward, "_sp_warned", False):
+                print(f"[distill] spike_rate failed (will keep 0): {e!r}")
+                _kd_combined_forward._sp_warned = True
+
+        # Stash per-component float values for the CSV logger callback
+        loss_breakdown_box["det"]   = float(det_loss.detach())
+        loss_breakdown_box["kd"]    = float(loss_kd.detach()) if hasattr(loss_kd, "detach") else float(loss_kd)
+        loss_breakdown_box["align"] = float(loss_align.detach()) if hasattr(loss_align, "detach") else float(loss_align)
+        loss_breakdown_box["spike"] = float(loss_spike.detach()) if hasattr(loss_spike, "detach") else float(loss_spike)
+
+        total = (w_det * det_loss + w_kd * loss_kd
+                 + w_align * loss_align + w_spike * loss_spike)
+        return total, det_items
 
     student.forward = _kd_combined_forward  # type: ignore[assignment]
     # Returner unwrap helper so the caller can restore the un-monkeypatched
@@ -328,13 +684,35 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
     t_feats, t_handles = ({}, [])
     if teacher is not None:
         t_feats, t_handles = _register_taps(teacher, align_ids)
+    # W8: also tap detect heads (KD logits) and the same align layers as
+    # spike-rate proxy taps. Detect-head store is dict[str -> list].
+    s_dets_store, t_dets_store = {}, {}
+    s_handles += _register_detect_taps(student, s_dets_store, "student_det")
+    if teacher is not None:
+        t_handles += _register_detect_taps(teacher, t_dets_store, "teacher_det")
+    # Use the SAME prefix for student and teacher spike taps so the dict-key
+    # intersection inside spike_rate_loss is non-empty.
+    s_spikes, t_spikes = {}, {}
+    s_handles += _register_spike_taps(student, align_ids, s_spikes, "lif")
+    if teacher is not None:
+        t_handles += _register_spike_taps(teacher, align_ids, t_spikes, "lif")
+    # Detect head num_classes (for KD slice)
+    num_classes = int(cfg.get("num_classes", 80))
+    try:
+        head = list(student.model.children())[-1]
+        if hasattr(head, "nc"):
+            num_classes = int(head.nc)
+    except Exception:
+        pass
     lw = cfg.get("loss_weights", {"det": 1.0, "kd_logits": 1.5, "feat_align": 0.5, "spike_rate": 0.3})
     weights = (float(lw.get("det", 1.0)), float(lw.get("kd_logits", 1.5)),
                float(lw.get("feat_align", 0.5)), float(lw.get("spike_rate", 0.3)))
     cfg_hash = _config_hash(cfg)
     if args.dry_run:
         return _do_dry_run(student, teacher, cfg, s_feats, t_feats, build_adapter,
-                           feat_align_loss, weights, device, cfg_hash, s_handles + t_handles)
+                           feat_align_loss, spike_rate_loss, weights, device, cfg_hash,
+                           s_handles + t_handles, s_dets_store, t_dets_store,
+                           s_spikes, t_spikes, num_classes)
     # --epochs 0 is an extra safety hatch (effectively a no-op)
     if epochs <= 0:
         print(f"[distill] epochs={epochs} <= 0; nothing to do (use --dry-run for wiring smoke test)")
@@ -367,8 +745,13 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
     # sprint unlocks it (sanity 5-epoch on val2017-alias dataset).
     # ------------------------------------------------------------------
     print(f"[distill] REAL training requested: epochs={epochs} batch={batch_size}")
+    # Per-step loss breakdown box: forward closure writes, CSV callback reads.
+    loss_breakdown_box = {"det": 0.0, "kd": 0.0, "align": 0.0, "spike": 0.0}
     TrainerCls, _restore_student_forward = _build_distilling_trainer_cls(
-        student, teacher, adapter, s_feats, t_feats, weights, cfg, feat_align_loss)
+        student, teacher, adapter, s_feats, t_feats,
+        s_dets_store, t_dets_store, s_spikes, t_spikes,
+        weights, cfg, feat_align_loss, spike_rate_loss,
+        loss_breakdown_box, num_classes)
     data_yaml = str(cfg.get("data", {}).get("dataset_yaml",
                                             "ultralytics/cfg/datasets/coco_local.yaml"))
     overrides = dict(
@@ -387,10 +770,14 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
     ckpt_interval = int(cfg.get("ckpt_interval", 1))
     out_path: Path = args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    # W8: resumable rolling ckpt dir (latest.pt + epoch_NN.pt).
+    resume_dir = Path(cfg.get("resume_dir", "runs/distill/resumable/"))
+    resume_dir.mkdir(parents=True, exist_ok=True)
     # ------------------------------------------------------------------
     # Trainer callbacks (closed over args/cfg/log_header/etc).
     # ------------------------------------------------------------------
     state = {"step": 0}
+    trainer_box = {"trainer": None}   # forward ref for graceful save
 
     def _cb_log_distill_losses(trainer):
         state["step"] += 1
@@ -409,27 +796,50 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
                 lr_val = float(trainer.optimizer.param_groups[0]["lr"])
             except Exception:
                 lr_val = float(cfg.get("lr", 5e-4))
+            # W8: real per-component breakdown from forward closure
             _write_log_row(args.log, {
                 "epoch":      int(getattr(trainer, "epoch", 0)),
                 "step":       int(state["step"]),
                 "loss_total": round(loss_total, 6),
-                "loss_det":   round(loss_det_val, 6),
-                "loss_kd":    0.0,
-                "loss_align": 0.0,
-                "loss_spike": 0.0,
+                "loss_det":   round(float(loss_breakdown_box.get("det", loss_det_val)), 6),
+                "loss_kd":    round(float(loss_breakdown_box.get("kd", 0.0)), 6),
+                "loss_align": round(float(loss_breakdown_box.get("align", 0.0)), 6),
+                "loss_spike": round(float(loss_breakdown_box.get("spike", 0.0)), 6),
                 "lr":         round(lr_val, 8),
             }, log_header)
         except Exception as e:
             print(f"[distill] log callback failed: {e!r}")
 
+    def _do_resumable_save(reason: str = "epoch"):
+        tr = trainer_box.get("trainer")
+        if tr is None:
+            return
+        ep = int(getattr(tr, "epoch", 0))
+        try:
+            opt = getattr(tr, "optimizer", None)
+            sched = getattr(tr, "scheduler", None)
+            scaler = getattr(tr, "scaler", None)
+            # latest.pt + per-epoch snapshot for rollback
+            _save_resumable_ckpt(resume_dir / "latest.pt", student, opt, sched, scaler,
+                                 epoch=ep + 1, step=int(state["step"]),
+                                 train_args=dict(overrides), config=cfg,
+                                 adapter=adapter,
+                                 extra_meta={"reason": reason, "cfg_hash": cfg_hash})
+            _save_resumable_ckpt(resume_dir / f"epoch_{ep + 1:03d}.pt", student, opt, sched, scaler,
+                                 epoch=ep + 1, step=int(state["step"]),
+                                 train_args=dict(overrides), config=cfg,
+                                 adapter=adapter,
+                                 extra_meta={"reason": reason, "cfg_hash": cfg_hash})
+        except Exception as e:
+            print(f"[resume] save failed: {e!r}")
+
     def _cb_save_epoch_ckpt(trainer):
-        # Save state_dict only (NOT the full Module) so the per-epoch
-        # checkpoint can be reloaded in a fresh interpreter without needing
-        # the KD-monkeypatched forward closures to be in scope. The final
-        # save at the end of train_impl() saves the unwrapped Module.
+        # W8: resumable save (model + opt + sched + scaler + RNG) atomically
+        # at every epoch end. Worst-case forced kill loses ≤1 epoch.
         ep = int(getattr(trainer, "epoch", 0))
         if (ep + 1) % max(ckpt_interval, 1) != 0:
             return
+        # legacy state_dict snapshot kept (downstream eval scripts read this)
         ckpt_path = out_path.with_name(out_path.stem + f"_ep{ep + 1}" + out_path.suffix)
         try:
             torch.save({
@@ -445,10 +855,42 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
             print(f"[distill] epoch {ep + 1} checkpoint -> {ckpt_path}")
         except Exception as e:
             print(f"[distill] epoch ckpt save failed: {e!r}")
+        _do_resumable_save(reason=f"on_fit_epoch_end_{ep + 1}")
 
     nonlocal_box = {"restore": _restore_student_forward}
+    # ------------------------------------------------------------------
+    # Resume detection (W8): pick explicit --resume / --resume-auto path
+    # before constructing the trainer, so model weights can be pre-loaded
+    # before the optimizer/scheduler state restore. Optimizer/scheduler
+    # state restore happens inside on_pretrain_routine_end so trainer has
+    # built the real opt/sched.
+    # ------------------------------------------------------------------
+    resume_path = None
+    if args.resume is not None:
+        resume_path = args.resume
+    elif args.resume_auto:
+        resume_path = _find_auto_resume(resume_dir)
+        if resume_path is None:
+            print(f"[resume] --resume-auto: no .pt found under {resume_dir}; starting fresh")
+    if resume_path is not None and Path(resume_path).exists():
+        try:
+            # First pass: restore MODEL weights (opt/sched aren't built yet)
+            _ = _load_resumable_ckpt(Path(resume_path), student, optimizer=None,
+                                     scheduler=None, scaler=None,
+                                     config=cfg, adapter=adapter,
+                                     force=args.force_resume)
+        except Exception as e:
+            print(f"[resume] WARN: model-state pre-load failed: {e!r}")
+            resume_path = None
+
+    # Graceful signal handler — installed early, save_fn binds after trainer ctor
+    saver = GracefulSaver()
+    saver.set_save_fn(lambda: _do_resumable_save(reason="signal"))
+    saver.install()
+
     try:
         trainer = TrainerCls(overrides=overrides)
+        trainer_box["trainer"] = trainer
         print(f"[distill] DistillingDetectionTrainer constructed OK; "
               f"loss_names={trainer.loss_names if hasattr(trainer, 'loss_names') else 'TBD'}")
         # ------------------------------------------------------------------
@@ -529,6 +971,24 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
                 print(f"[distill] FP32 validator-patch hook failed: {_e!r}")
 
         trainer.add_callback("on_pretrain_routine_end", _cb_force_fp32_validator)
+
+        # W8: optimizer / scheduler / scaler / RNG restore (model already
+        # restored above). Runs AFTER _setup_train builds opt+sched.
+        def _cb_restore_opt_state(tr):
+            if resume_path is None:
+                return
+            try:
+                _load_resumable_ckpt(Path(resume_path), student,
+                                     optimizer=getattr(tr, "optimizer", None),
+                                     scheduler=getattr(tr, "scheduler", None),
+                                     scaler=getattr(tr, "scaler", None),
+                                     config=cfg, adapter=adapter,
+                                     force=args.force_resume)
+                print(f"[resume] full opt/sched/scaler/RNG restored from {resume_path}")
+            except Exception as e:
+                print(f"[resume] WARN: opt/sched restore failed: {e!r}")
+        trainer.add_callback("on_pretrain_routine_end", _cb_restore_opt_state)
+
         # Wire callbacks BEFORE .train() so first step is logged.
         trainer.add_callback("on_train_batch_end", _cb_log_distill_losses)
         trainer.add_callback("on_fit_epoch_end",   _cb_save_epoch_ckpt)

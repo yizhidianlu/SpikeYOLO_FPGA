@@ -15,7 +15,7 @@
 | 模型 | tiny_fpga 变体：256×256 输入、宽度 0.1875、单尺度 P4 检测 |
 | 量化 | INT8 权重 + INT4 激活（MultiSpike4，膜电位 clamp 到 [0,4]） |
 | 时间步 | T = 1（单时间步直接推理，无 ANN-SNN 转换） |
-| 工具链 | Vitis HLS 2023.x + Vivado + Petalinux + C/C++ |
+| 工具链 | Vitis HLS 2024.1 + Vivado + Petalinux + C/C++ |
 | 周期 | 6 个月，3–5 人团队 |
 
 ---

@@ -42,7 +42,7 @@ DDR3 控制器串成完整 SoC，实现并产出比特流，时序闭合 100 →
 
 | 维度 | 选择 | 理由 |
 |---|---|---|
-| Vivado 版本 | 2023.2 | 与 Vitis HLS / Petalinux 对齐 |
+| Vivado 版本 | 2024.1 | 与 Vitis HLS / Petalinux 对齐 |
 | 时钟规划 | PL 双时钟域：100 MHz (M4) + 200 MHz HDMI pixel | HDMI 1080p@60 需要 148.5 MHz pixel clock |
 | HDMI IP | Digilent dvi2rgb + rgb2dvi 或 Xilinx Video PHY | Digilent 在 ZYBO 上社区维护更稳 |
 | AXI 互联 | AXI Smartconnect（自动 ID 转换） | 比手动 AXI Interconnect 简单且时序好 |
@@ -140,7 +140,7 @@ set_property IOSTANDARD TMDS_33 [get_ports {hdmi_clk_p}]
 ```tcl
 # 在 build_bitstream.tcl 末尾追加
 set fp [open out/address_map.yaml w]
-puts $fp "soc: zynq-7020\nboard: zybo-z7-20\nvivado_version: \"2023.2\""
+puts $fp "soc: zynq-7020\nboard: zybo-z7-20\nvivado_version: \"2024.1\""
 puts $fp "peripherals:"
 foreach seg [get_bd_addr_segs -of [get_bd_addr_spaces /ps_0/Data]] {
     set name [get_property NAME $seg]

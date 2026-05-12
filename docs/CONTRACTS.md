@@ -231,7 +231,7 @@ xsim hw/hls/sim/tb_axi_top.sv
 ```yaml
 soc: zynq-7020
 board: zybo-z7-20
-vivado_version: "2023.2"
+vivado_version: "2024.1"
 bitstream: out/system.bit
 hwh: out/system.hwh
 

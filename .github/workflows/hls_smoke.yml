@@ -120,7 +120,7 @@ jobs:
 
       - name: Source Vitis HLS env
         run: |
-          source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+          source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
           echo "XILINX_HLS=$XILINX_HLS" >> $GITHUB_ENV
 
       - name: Run Vitis C-sim against golden
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { lfs: true }
       - run: |
-          source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+          source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
           cd hw/hls && vitis_hls -f run_cosim.tcl 2>&1 | tee cosim.log
           grep -q "COSIM PASS" cosim.log
 

@@ -1,7 +1,7 @@
 # B1 HLS Kernel — Build & Verification Guide
 
 **Owner**: B1 HLS Kernel Agent — see [`docs/AGENT_PLAYBOOKS/B1_hls_kernel.md`](../../docs/AGENT_PLAYBOOKS/B1_hls_kernel.md)
-**Target**: Vitis HLS 2023.2 / Z-7020 (`xc7z020clg400-1`) / 100 MHz (M4) -> 150 MHz (M5)
+**Target**: Vitis HLS 2024.1 / Z-7020 (`xc7z020clg400-1`) / 100 MHz (M4) -> 150 MHz (M5)
 **Status (W4)**: 12 layers end-to-end host_csim `DUT vs GOLDEN OK 12288 elems byte-identical`.
 
 ## TL;DR (self-hosted Vivado runner)
@@ -11,7 +11,7 @@ The eight steps below are the **canonical zero-friction path**. After D2 cuts
 
 ```bash
 # 1. Environment (one-time per runner).
-source /opt/Xilinx/Vitis_HLS/2023.2/settings64.sh
+source /opt/Xilinx/Vitis_HLS/2024.1/settings64.sh
 conda activate spikeyolo
 
 # 2. Dependencies: Digilent IP repo + explode .npz golden / weights.

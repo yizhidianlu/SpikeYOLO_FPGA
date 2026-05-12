@@ -5,7 +5,7 @@
 ## 这是什么
 
 SpikeYOLO 23M teacher 蒸馏到 tiny_fpga student（256×256，宽度 0.1875，单尺度 P4），
-经 INT8 权重 + INT4 激活 PTQ，翻译成 HLS C++（Vitis HLS 2023.x），部署到 Digilent
+经 INT8 权重 + INT4 激活 PTQ，翻译成 HLS C++（Vitis HLS 2024.1），部署到 Digilent
 ZYBO Z7-20（Xilinx Z-7020 SoC）上的 USB UVC 摄像头 → FPGA 加速 → HDMI 1080p
 本机显示 pipeline。目标：**≥30 FPS，mAP 下降 ≤ 1%**。
 

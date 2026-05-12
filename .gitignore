@@ -171,3 +171,6 @@ pnnx*
 
 # Local training logs (M0 baseline runs)
 logs_23M/
+
+# COCO dataset cache (downloaded by tools/ci/download_coco_train2017.py for W9+ real training)
+datasets/

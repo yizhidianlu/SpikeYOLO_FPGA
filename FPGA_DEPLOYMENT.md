@@ -29,7 +29,7 @@
 推理      tiny_fpga: 256×256 input, 单尺度 P4, INT8 weight + INT4 activation
 性能      ≥ 30 FPS (10 min stable, jitter < 5%)
 精度      COCO val mAP50-95 degradation ≤ 1.0%
-工具链    Vitis HLS 2023.2 + Vivado + Petalinux + C/C++
+工具链    Vitis HLS 2024.1 + Vivado + Petalinux + C/C++
 周期      6 个月, 3–5 人团队
 ```
 

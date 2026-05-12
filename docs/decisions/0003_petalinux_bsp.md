@@ -1,4 +1,4 @@
-# ADR-0003: Petalinux 2023.2 BSP source for ZYBO Z7-20
+# ADR-0003: Petalinux 2024.1 BSP source for ZYBO Z7-20
 
 - **Status**: accepted
 - **Date**: 2026-05-11
@@ -8,26 +8,26 @@
 
 ## Context
 
-Petalinux 2023.2 needs a board-specific BSP to bring up the ZYBO Z7-20
+Petalinux 2024.1 needs a board-specific BSP to bring up the ZYBO Z7-20
 (Z-7020 SoC, on-board DDR3 1 GB, on-board HDMI Tx PHY, USB OTG, Pmod, SD).
 Three candidate sources exist; only one matches both the Vivado toolchain
-already pinned by B2 (2023.2) and the on-board peripheral set.
+already pinned by B2 (2024.1) and the on-board peripheral set.
 
 | Option | Source | Pro | Con |
 |---|---|---|---|
-| **A** | Digilent `Petalinux-Zybo-Z7-20-2023.2-1.bsp` (github.com/Digilent/Petalinux-Zybo-Z7) | Board-vendor maintained; HDMI/USB/SD/Ethernet/I2C-EEPROM all enumerated; matches B2 ADR-0001 (`rgb2dvi` Tx); ships a working `system.dts` we can layer onto | Carries Digilent kernel patches (mainline lag ≤ 1 cycle); BSP file is ~600 MB and not vendored in-repo |
+| **A** | Digilent `Petalinux-Zybo-Z7-20-2024.1-1.bsp` (github.com/Digilent/Petalinux-Zybo-Z7) | Board-vendor maintained; HDMI/USB/SD/Ethernet/I2C-EEPROM all enumerated; matches B2 ADR-0001 (`rgb2dvi` Tx); ships a working `system.dts` we can layer onto | Carries Digilent kernel patches (mainline lag ≤ 1 cycle); BSP file is ~600 MB and not vendored in-repo |
 | **B** | Xilinx generic Zynq BSP + hand-written ZYBO Z7-20 dts | Fully vanilla; no third-party patches; smallest blob to vendor | Must enumerate every on-board pin / DDR3 timing / I/O bank voltage / HDMI clock domain manually — 3-5 engineer-days of work duplicating Digilent's effort, R7 (USB UVC) regression risk |
-| **C** | Avnet ZYBO BSP | (none — Avnet stopped maintaining ZYBO at 2018.3) | No 2023.2 support, dead end |
+| **C** | Avnet ZYBO BSP | (none — Avnet stopped maintaining ZYBO at 2018.3) | No 2024.1 support, dead end |
 
 ## Decision
 
-**Choose Option A — Digilent `Petalinux-Zybo-Z7-20-2023.2-1.bsp`**, layered
+**Choose Option A — Digilent `Petalinux-Zybo-Z7-20-2024.1-1.bsp`**, layered
 with this repo's `project-spec/meta-user/` overrides for the spike_accel
 device-tree nodes, kernel config fragment, and `spike-accel-app` recipe.
 
 Rationale:
 
-1. Vivado 2023.2 ↔ Petalinux 2023.2 ↔ Digilent BSP 2023.2-1 are mutually pinned
+1. Vivado 2024.1 ↔ Petalinux 2024.1 ↔ Digilent BSP 2024.1-1 are mutually pinned
    — no toolchain skew risk with B2's bitstream output.
 2. HDMI Tx, USB OTG, SD root mount, console UART, I2C EEPROM, Ethernet PHY are
    pre-validated by the board vendor — eliminates the bulk of R7-class
@@ -65,7 +65,7 @@ Rationale:
 
 ## Fallback path
 
-If Digilent BSP 2023.2-1 has unresolved blockers at M2 (e.g., kernel patch
+If Digilent BSP 2024.1-1 has unresolved blockers at M2 (e.g., kernel patch
 conflicts with `CONFIG_PREEMPT_RT` for the R3 fallback), C1 falls back to
 Option B (Xilinx generic + hand-written dts). Estimated cost: 3 engineer-days,
 all confined to `meta-user/recipes-bsp/device-tree/files/system-user.dtsi`

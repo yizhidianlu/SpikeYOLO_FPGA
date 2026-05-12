@@ -98,7 +98,7 @@ Two entries this month (full text in `docs/CONTRACTS_CHANGELOG.md`):
 - A2: re-run `extract_golden.py` against the post-distill `.npz`; expect new `weights_sha256` and `pad_autocorrected: false`. Extend `coco_val100` to real 100 images once C3 detect head decoder lands.
 - B1: detect_head (Layer 11) + `tiny_fpga_top.cpp` orchestration; first `vitis_hls` synth + cosim run; publish `tiny_fpga_top.xo` + `tiny_fpga_regmap.yaml` for B2.
 - B2: vendor `rgb2dvi` IP; run first `vivado -mode batch` BD build + bitstream; populate real bitstream/hwh paths in `address_map.yaml`; AXI-VIP smoke against B1 .xo.
-- C1: Petalinux 2023.2 BSP, `image.ub` + `BOOT.BIN`, USB UVC kernel config (CONFIG_USB_VIDEO_CLASS=y).
+- C1: Petalinux 2024.1 BSP, `image.ub` + `BOOT.BIN`, USB UVC kernel config (CONFIG_USB_VIDEO_CLASS=y).
 - D1: this month's deliverables — wire `tools/ci/gen_milestone_report.py` so M2 report is auto-generated from CI artifacts; expand `tools/perf/fps_bench.py` from skeleton to real GPU mode (board mode still stub until M3); add `coco_val_on_board.py`. Coordinate with all Agents on monthly data-feed schema.
 - D2: queue-age cleanup script for self-hosted runners; provision Vitis runner once Vitis license sorted; nightly board runner specced for M3.
 

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Vivado 2023.2 Block Design integrating spike_accel IP (from B1), AXI DMA, VDMA, Digilent rgb2dvi HDMI TX, Zynq PS, and DDR3 controller. Produces the bitstream and the address map that drives C1 device tree and C2 driver.
+Vivado 2024.1 Block Design integrating spike_accel IP (from B1), AXI DMA, VDMA, Digilent rgb2dvi HDMI TX, Zynq PS, and DDR3 controller. Produces the bitstream and the address map that drives C1 device tree and C2 driver.
 
 ## Layout
 
@@ -60,7 +60,7 @@ or `ip_repo/spike_accel/`. The IP shows up as
 ## Build
 
 ```bash
-source /opt/Xilinx/Vivado/2023.2/settings64.sh
+source /opt/Xilinx/Vivado/2024.1/settings64.sh
 bash hw/vivado/scripts/setup_ip_repo.sh        # once, see above
 vivado -mode batch -source hw/vivado/build_bd.tcl
 vivado -mode batch -source hw/vivado/build_bitstream.tcl
@@ -75,7 +75,7 @@ R1 / R2).
 
 Before kicking off the first real synth on the self-hosted Linux box:
 
-- [ ] Vivado 2023.2 installed and licensed (xc7z020 needs Webpack)
+- [ ] Vivado 2024.1 installed and licensed (xc7z020 needs Webpack)
 - [ ] `git clone --recurse-submodules` (or run `setup_ip_repo.sh`)
 - [ ] `hw/hls/build/sa_tiny_fpga_top.xo` present (B1 must have run
       `make hls-synth-tiny` first; CI mirrors the .xo into

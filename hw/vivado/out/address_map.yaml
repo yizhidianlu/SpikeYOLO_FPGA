@@ -5,7 +5,7 @@
 
 soc: zynq-7020
 board: zybo-z7-20
-vivado_version: "2023.2"
+vivado_version: "2024.1"
 bitstream: "out/system.bit (placeholder, not yet built)"
 hwh: "out/system.hwh (placeholder, not yet built)"
 hdmi_tx_ip: "digilentinc.com:ip:rgb2dvi:1.4"   # see docs/decisions/0001_hdmi_tx_selection.md

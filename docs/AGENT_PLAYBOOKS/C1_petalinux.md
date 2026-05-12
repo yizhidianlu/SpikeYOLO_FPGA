@@ -31,7 +31,7 @@ owner: "C1-session-2026-05-11"
 
 ## Mission
 
-基于 B2 输出的硬件平台 `system.xsa` 构建 Petalinux 2023.2 SD 卡镜像，
+基于 B2 输出的硬件平台 `system.xsa` 构建 Petalinux 2024.1 SD 卡镜像，
 集成 USB UVC 摄像头驱动、HDMI DRM/framebuffer、AXI DMA 内核模块、
 V4L2 用户空间工具，启动后能立即跑 spike_accel 应用。
 
@@ -39,8 +39,8 @@ V4L2 用户空间工具，启动后能立即跑 spike_accel 应用。
 
 | 维度 | 选择 | 理由 |
 |---|---|---|
-| Petalinux 版本 | 2023.2 | 与 Vivado 对齐 |
-| 内核 | linux-xlnx 2023.2 LTS（5.15 系列） | 稳定 + 官方维护 |
+| Petalinux 版本 | 2024.1 | 与 Vivado 对齐 |
+| 内核 | linux-xlnx 2024.1 LTS（6.1 系列） | 稳定 + 官方维护 |
 | Rootfs | minimal + busybox + 选装包 | 减启动时间 + 减 SD 体积 |
 | 网络 | 默认 DHCP eth0 + sshd | 调试用 |
 | 显示栈 | DRM/KMS（不用 fbdev legacy） | 现代 + zero-copy |
@@ -54,7 +54,7 @@ V4L2 用户空间工具，启动后能立即跑 spike_accel 应用。
 # sw/petalinux/build.sh
 #!/bin/bash
 set -e
-source /opt/petalinux-v2023.2/settings.sh
+source /opt/petalinux-v2024.1/settings.sh
 
 if [ ! -d "spikeyolo_petalinux" ]; then
     petalinux-create -t project --template zynq -n spikeyolo_petalinux

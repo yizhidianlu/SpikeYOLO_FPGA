@@ -34,7 +34,11 @@ typedef struct {
 void sa_tiny_fpga_top(
     const sa_i8_t *img_in, sa_i8_t *feat_out,
     int layer_id,
-    const sa_layer_weights_t *L,
+    /* Plan β: 3 pointer-to-pointer arrays replace struct-of-ptr L
+     * (HLS 214-298). See tiny_fpga_top.cpp comment + URGENT_ASK_3. */
+    const sa_i8_t  *const *L_w,
+    const sa_i32_t *const *L_bias,
+    const sa_i8_t  *const *L_shift,
           sa_i32_t *scratch_a,
           sa_i32_t *scratch_b,
           sa_i32_t *scratch_c,
@@ -116,12 +120,22 @@ int main()
         }
     }
 
-    /* ---- Build sa_layer_weights_t[30] ---- */
+    /* ---- Build sa_layer_weights_t[30] (host-side, kept for clarity) ---- */
     std::vector<sa_layer_weights_t> L(N_LAYERS);
     for (int i = 0; i < N_LAYERS; i++) {
         L[i].w         = w_t[i].as_i8();
         L[i].bias      = b_t[i].as_i32();
         L[i].out_shift = s_t[i].as_i8();
+    }
+
+    /* ---- Plan β: extract 3 pointer arrays for DUT call (HLS top sig changed). ---- */
+    std::vector<const sa_i8_t  *> L_w_arr(N_LAYERS);
+    std::vector<const sa_i32_t *> L_bias_arr(N_LAYERS);
+    std::vector<const sa_i8_t  *> L_shift_arr(N_LAYERS);
+    for (int i = 0; i < N_LAYERS; i++) {
+        L_w_arr[i]     = L[i].w;
+        L_bias_arr[i]  = L[i].bias;
+        L_shift_arr[i] = L[i].out_shift;
     }
 
     /* ---- Allocate scratch ----
@@ -171,7 +185,7 @@ int main()
         reinterpret_cast<const sa_i8_t *>(img.bytes.data()),
         feat_out.data(),
         /*layer_id=*/-1,
-        L.data(),
+        L_w_arr.data(), L_bias_arr.data(), L_shift_arr.data(),
         sa.data(), sb.data(), sc.data(), sd.data(), se.data(), sf.data(),
         ss.data(), sacc.data(),
         spk_a.data(), spk_b.data(), spk_c.data(), spk_d.data(), spk_e.data());

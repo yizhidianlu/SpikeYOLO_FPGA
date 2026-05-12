@@ -135,7 +135,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-runs/
+# Ignore contents of runs/, but NOT the directory itself, so whitelist
+# patterns below can re-include subdirs. Per gitignore(5): "It is not
+# possible to re-include a file if a parent directory of that file is
+# excluded." Fix per Remote Claude URGENT_ASK_3.md (2026-05-12).
+runs/*
 # Whitelist Claude<->Claude message-bus dirs so cross-machine reports are
 # tracked. Per docs/CLAUDE_COLLABORATION_PROTOCOL.md.
 !runs/remote_machine/

@@ -131,7 +131,14 @@ void sa_tiny_fpga_top(
     const sa_i8_t  *img_in,
           sa_i8_t  *feat_out,
     int             layer_id,
-    const sa_layer_weights_t *L,        /* L[30]                              */
+    /* Per Remote Claude URGENT_ASK_3 Plan β: HLS 2024.1 rejects struct-of-
+     * pointers as top arg (HLS 214-298, fires in source analysis before
+     * DISAGGREGATE pragma can apply). Replace L with 3 pointer-to-pointer
+     * args; in-memory layout is still struct-of-pointer arrays on the
+     * host side (A1 Contract 1 unchanged), only the IP signature differs. */
+    const sa_i8_t  *const *L_w,         /* L_w[30]     each -> per-layer weights      */
+    const sa_i32_t *const *L_bias,      /* L_bias[30]  each -> per-layer bias         */
+    const sa_i8_t  *const *L_shift,     /* L_shift[30] each -> per-layer out_shift    */
           sa_i32_t *scratch_a,          /* large enough for biggest layer out */
           sa_i32_t *scratch_b,          /* same                                */
           sa_i32_t *scratch_c,          /* sppf cv1 mid + acb r_buf            */
@@ -146,16 +153,13 @@ void sa_tiny_fpga_top(
           sa_i8_t  *scratch_spk_d,      /* sppf pool_buf3                      */
           sa_i8_t  *scratch_spk_e)      /* sppf concat_buf                     */
 {
-    /* Vitis HLS 2024.1 rejects struct-of-pointers on top function args
-     * (error HLS 214-298). DISAGGREGATE splits sa_layer_weights_t (3
-     * pointer fields w/bias/out_shift) into individual m_axi ports per
-     * field, so L.w / L.bias / L.out_shift each get a separate AXI
-     * master interface. Fix per Remote Claude URGENT_ASK_2.md Option α,
-     * 2026-05-12T15:53. */
-    #pragma HLS DISAGGREGATE variable=L
     SA_AXI_MM(img_in,        gmem0, 196608)
     SA_AXI_MM(feat_out,      gmem1, 21504)
-    SA_AXI_MM(L,             gmem2, 240)             /* 30 entries * 8 bytes/ptr * 3   */
+    /* Plan β: 3 individual m_axi for pointer arrays (was struct-of-ptr L).
+     * Each L_w/L_bias/L_shift is a 30-entry array of pointers (240 B each). */
+    SA_AXI_MM(L_w,           gmem2, 30)
+    SA_AXI_MM(L_bias,        gmem2, 30)
+    SA_AXI_MM(L_shift,       gmem2, 30)
     SA_AXI_MM(scratch_a,     gmem3, 16777216)
     SA_AXI_MM(scratch_b,     gmem3, 16777216)
     SA_AXI_MM(scratch_c,     gmem3, 16777216)
@@ -189,7 +193,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             img_in, /*x_i32=*/(const sa_i32_t *)0,
             scratch_a,
-            L[0].w, L[0].bias, L[0].out_shift,
+            L_w[0], L_bias[0], L_shift[0],
             scratch_spike, scratch_acc,
             T, C_RGB, C_L1, H_STEM_IN, W_STEM_IN,
             /*K=*/7, /*stride=*/4, /*pad=*/2, /*groups=*/1, /*first_layer=*/1);
@@ -200,12 +204,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 1) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L[1].w, L[1].bias, L[1].out_shift,
-            L[2].w, L[2].bias, L[2].out_shift,
-            L[3].w, L[3].bias, L[3].out_shift,
-            L[4].w, L[4].bias, L[4].out_shift,
-            L[5].w, L[5].bias, L[5].out_shift,
-            L[6].w, L[6].bias, L[6].out_shift,
+            L_w[1], L_bias[1], L_shift[1],
+            L_w[2], L_bias[2], L_shift[2],
+            L_w[3], L_bias[3], L_shift[3],
+            L_w[4], L_bias[4], L_shift[4],
+            L_w[5], L_bias[5], L_shift[5],
+            L_w[6], L_bias[6], L_shift[6],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L1, /*C_exp=*/48, /*C_mid=*/96, H_L1, W_L1,
@@ -219,7 +223,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, /*x_i32=*/scratch_b,
             scratch_a,
-            L[7].w, L[7].bias, L[7].out_shift,
+            L_w[7], L_bias[7], L_shift[7],
             scratch_spike, scratch_acc,
             T, C_L1, C_L3, H_L1, W_L1,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -230,12 +234,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 3) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L[8].w,  L[8].bias,  L[8].out_shift,
-            L[9].w,  L[9].bias,  L[9].out_shift,
-            L[10].w, L[10].bias, L[10].out_shift,
-            L[11].w, L[11].bias, L[11].out_shift,
-            L[12].w, L[12].bias, L[12].out_shift,
-            L[13].w, L[13].bias, L[13].out_shift,
+            L_w[8],  L_bias[8],  L_shift[8],
+            L_w[9],  L_bias[9],  L_shift[9],
+            L_w[10], L_bias[10], L_shift[10],
+            L_w[11], L_bias[11], L_shift[11],
+            L_w[12], L_bias[12], L_shift[12],
+            L_w[13], L_bias[13], L_shift[13],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, /*C_exp=*/96, /*C_mid=*/192, H_L3, W_L3,
@@ -248,12 +252,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 4) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,                           /* swap in/out */
-            L[8].w,  L[8].bias,  L[8].out_shift,
-            L[9].w,  L[9].bias,  L[9].out_shift,
-            L[10].w, L[10].bias, L[10].out_shift,
-            L[11].w, L[11].bias, L[11].out_shift,
-            L[12].w, L[12].bias, L[12].out_shift,
-            L[13].w, L[13].bias, L[13].out_shift,
+            L_w[8],  L_bias[8],  L_shift[8],
+            L_w[9],  L_bias[9],  L_shift[9],
+            L_w[10], L_bias[10], L_shift[10],
+            L_w[11], L_bias[11], L_shift[11],
+            L_w[12], L_bias[12], L_shift[12],
+            L_w[13], L_bias[13], L_shift[13],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, 96, 192, H_L3, W_L3,
@@ -267,7 +271,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, scratch_a,
             scratch_b,
-            L[14].w, L[14].bias, L[14].out_shift,
+            L_w[14], L_bias[14], L_shift[14],
             scratch_spike, scratch_acc,
             T, C_L3, C_L6, H_L3, W_L3,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -278,12 +282,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 6) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            L[15].w, L[15].bias, L[15].out_shift,
-            L[16].w, L[16].bias, L[16].out_shift,
-            L[17].w, L[17].bias, L[17].out_shift,
-            L[18].w, L[18].bias, L[18].out_shift,
-            L[19].w, L[19].bias, L[19].out_shift,
-            L[20].w, L[20].bias, L[20].out_shift,
+            L_w[15], L_bias[15], L_shift[15],
+            L_w[16], L_bias[16], L_shift[16],
+            L_w[17], L_bias[17], L_shift[17],
+            L_w[18], L_bias[18], L_shift[18],
+            L_w[19], L_bias[19], L_shift[19],
+            L_w[20], L_bias[20], L_shift[20],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, /*C_exp=*/192, /*C_mid=*/288, H_L6, W_L6,
@@ -296,12 +300,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 7) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L[15].w, L[15].bias, L[15].out_shift,
-            L[16].w, L[16].bias, L[16].out_shift,
-            L[17].w, L[17].bias, L[17].out_shift,
-            L[18].w, L[18].bias, L[18].out_shift,
-            L[19].w, L[19].bias, L[19].out_shift,
-            L[20].w, L[20].bias, L[20].out_shift,
+            L_w[15], L_bias[15], L_shift[15],
+            L_w[16], L_bias[16], L_shift[16],
+            L_w[17], L_bias[17], L_shift[17],
+            L_w[18], L_bias[18], L_shift[18],
+            L_w[19], L_bias[19], L_shift[19],
+            L_w[20], L_bias[20], L_shift[20],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, 192, 288, H_L6, W_L6,
@@ -314,8 +318,8 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 8) {
         sa_spike_sppf(
             scratch_b, scratch_a,
-            L[21].w, L[21].bias, L[21].out_shift,
-            L[22].w, L[22].bias, L[22].out_shift,
+            L_w[21], L_bias[21], L_shift[21],
+            L_w[22], L_bias[22], L_shift[22],
             scratch_c,                /* ping_buf  (cv1 mid: T*48*16*16)     */
             scratch_spk_a,            /* spk_buf                              */
             scratch_spk_b,            /* pool_buf1                            */
@@ -332,7 +336,7 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 9) {
         sa_ms_standard_conv_inplace(
             scratch_a, scratch_b,
-            L[23].w, L[23].bias, L[23].out_shift,
+            L_w[23], L_bias[23], L_shift[23],
             scratch_spike, scratch_acc,
             T, C_HEAD, C_HEAD, H_DET, W_DET,
             /*K=*/1, /*stride=*/1, /*pad=*/0, /*groups=*/1);
@@ -343,12 +347,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 10) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            L[24].w, L[24].bias, L[24].out_shift,
-            L[25].w, L[25].bias, L[25].out_shift,
-            L[26].w, L[26].bias, L[26].out_shift,
-            L[27].w, L[27].bias, L[27].out_shift,
-            L[28].w, L[28].bias, L[28].out_shift,
-            L[29].w, L[29].bias, L[29].out_shift,
+            L_w[24], L_bias[24], L_shift[24],
+            L_w[25], L_bias[25], L_shift[25],
+            L_w[26], L_bias[26], L_shift[26],
+            L_w[27], L_bias[27], L_shift[27],
+            L_w[28], L_bias[28], L_shift[28],
+            L_w[29], L_bias[29], L_shift[29],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_HEAD, /*C_exp=*/96, /*C_mid=*/144, H_DET, W_DET,

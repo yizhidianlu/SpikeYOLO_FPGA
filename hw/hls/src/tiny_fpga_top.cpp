@@ -131,17 +131,17 @@ void sa_tiny_fpga_top(
     const sa_i8_t  *img_in,
           sa_i8_t  *feat_out,
     int             layer_id,
-    /* Plan β Variant 1 (per URGENT_ASK_4): Vitis HLS 2024.1 also rejects
-     * pointer-to-pointer top args (HLS 214-134). Replace with flat pool
-     * pointers + offset tables. All top args are now plain T*, no nesting.
-     * Driver/testbench assembles pool+offset from existing struct array
-     * at runtime — A1 weight_packer.py / Contract 1 .npz format UNTOUCHED. */
-    const sa_i8_t  *w_pool,          /* concatenated weight bytes for L00..L29  */
-    const sa_i32_t *bias_pool,       /* concatenated bias for L00..L29          */
-    const sa_i8_t  *shift_pool,      /* concatenated out_shift for L00..L29     */
-    const sa_i32_t *w_offsets,       /* w_offsets[30]   byte/elem offsets       */
-    const sa_i32_t *bias_offsets,    /* bias_offsets[30]                        */
-    const sa_i32_t *shift_offsets,   /* shift_offsets[30]                       */
+    /* Plan β Variant 1.2 (per STOP_step3_summary 5/5 fail): HLS 2024.1
+     * demotes any small pointer-arg with stride-0 indexed-read pattern to
+     * scalar regardless of bundle/depth pragmas. Embed offset tables at
+     * pool head — drops top args to 3, offsets read via reinterpret_cast
+     * from inside pool m_axi (which is a real wide-access pattern Vitis
+     * keeps as m_axi). Layout per pool:
+     *   pool = [30 × int32 offsets (120 B)] [data ...]
+     * tb / driver responsible for prepending the 30-entry offset table. */
+    const sa_i8_t  *w_pool,          /* [30 i32 offsets | weight bytes L00..L29] */
+    const sa_i32_t *bias_pool,       /* [30 i32 offsets | bias i32 L00..L29]     */
+    const sa_i8_t  *shift_pool,      /* [30 i32 offsets | shift bytes L00..L29]  */
           sa_i32_t *scratch_a,          /* large enough for biggest layer out */
           sa_i32_t *scratch_b,          /* same                                */
           sa_i32_t *scratch_c,          /* sppf cv1 mid + acb r_buf            */
@@ -158,16 +158,20 @@ void sa_tiny_fpga_top(
 {
     SA_AXI_MM(img_in,        gmem0, 196608)
     SA_AXI_MM(feat_out,      gmem1, 21504)
-    /* Plan β Variant 1.1 (URGENT_ASK_5 fix): offsets were demoted to scalar
-     * register on gmem2 (6 m_axi on one bundle + depth=30 too small).
-     * Move offsets to separate bundle gmem5, pad depth to 256 (>= 1 cache-
-     * line) so Vitis keeps them as real m_axi masters, not register infer. */
-    SA_AXI_MM(w_pool,        gmem2, 0x80000)   /* 512 KB headroom */
-    SA_AXI_MM(bias_pool,     gmem2, 0x2000)    /* 8 KB             */
-    SA_AXI_MM(shift_pool,    gmem2, 0x1000)    /* 4 KB             */
-    SA_AXI_MM(w_offsets,     gmem5, 256)       /* pad depth */
-    SA_AXI_MM(bias_offsets,  gmem5, 256)
-    SA_AXI_MM(shift_offsets, gmem5, 256)
+    /* Plan β Variant 1.2: only 3 m_axi (pools include offsets). */
+    SA_AXI_MM(w_pool,        gmem2, 0x80000)   /* 512 KB headroom (offsets + data) */
+    SA_AXI_MM(bias_pool,     gmem2, 0x2000)    /* 8 KB                              */
+    SA_AXI_MM(shift_pool,    gmem2, 0x1000)    /* 4 KB                              */
+
+    /* Reinterpret first 30 i32 of each pool as the offset table; data slice
+     * starts after the offset header. Vitis sees normal m_axi indexed reads
+     * (no demotion). */
+    const sa_i32_t *w_off  = (const sa_i32_t *)w_pool;
+    const sa_i32_t *b_off  = bias_pool;                          /* already i32* */
+    const sa_i32_t *s_off  = (const sa_i32_t *)shift_pool;
+    const sa_i8_t  *w_data = w_pool  + 30 * sizeof(sa_i32_t);    /* +120 B header */
+    const sa_i32_t *b_data = bias_pool + 30;                     /* +30 i32 header */
+    const sa_i8_t  *s_data = shift_pool + 30 * sizeof(sa_i32_t); /* +120 B header */
     SA_AXI_MM(scratch_a,     gmem3, 16777216)
     SA_AXI_MM(scratch_b,     gmem3, 16777216)
     SA_AXI_MM(scratch_c,     gmem3, 16777216)
@@ -201,7 +205,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             img_in, /*x_i32=*/(const sa_i32_t *)0,
             scratch_a,
-            &w_pool[w_offsets[0]], &bias_pool[bias_offsets[0]], &shift_pool[shift_offsets[0]],
+            &w_data[w_off[0]], &b_data[b_off[0]], &s_data[s_off[0]],
             scratch_spike, scratch_acc,
             T, C_RGB, C_L1, H_STEM_IN, W_STEM_IN,
             /*K=*/7, /*stride=*/4, /*pad=*/2, /*groups=*/1, /*first_layer=*/1);
@@ -212,12 +216,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 1) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            &w_pool[w_offsets[1]], &bias_pool[bias_offsets[1]], &shift_pool[shift_offsets[1]],
-            &w_pool[w_offsets[2]], &bias_pool[bias_offsets[2]], &shift_pool[shift_offsets[2]],
-            &w_pool[w_offsets[3]], &bias_pool[bias_offsets[3]], &shift_pool[shift_offsets[3]],
-            &w_pool[w_offsets[4]], &bias_pool[bias_offsets[4]], &shift_pool[shift_offsets[4]],
-            &w_pool[w_offsets[5]], &bias_pool[bias_offsets[5]], &shift_pool[shift_offsets[5]],
-            &w_pool[w_offsets[6]], &bias_pool[bias_offsets[6]], &shift_pool[shift_offsets[6]],
+            &w_data[w_off[1]], &b_data[b_off[1]], &s_data[s_off[1]],
+            &w_data[w_off[2]], &b_data[b_off[2]], &s_data[s_off[2]],
+            &w_data[w_off[3]], &b_data[b_off[3]], &s_data[s_off[3]],
+            &w_data[w_off[4]], &b_data[b_off[4]], &s_data[s_off[4]],
+            &w_data[w_off[5]], &b_data[b_off[5]], &s_data[s_off[5]],
+            &w_data[w_off[6]], &b_data[b_off[6]], &s_data[s_off[6]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L1, /*C_exp=*/48, /*C_mid=*/96, H_L1, W_L1,
@@ -231,7 +235,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, /*x_i32=*/scratch_b,
             scratch_a,
-            &w_pool[w_offsets[7]], &bias_pool[bias_offsets[7]], &shift_pool[shift_offsets[7]],
+            &w_data[w_off[7]], &b_data[b_off[7]], &s_data[s_off[7]],
             scratch_spike, scratch_acc,
             T, C_L1, C_L3, H_L1, W_L1,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -242,12 +246,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 3) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            &w_pool[w_offsets[8]],  &bias_pool[bias_offsets[8]],  &shift_pool[shift_offsets[8]],
-            &w_pool[w_offsets[9]],  &bias_pool[bias_offsets[9]],  &shift_pool[shift_offsets[9]],
-            &w_pool[w_offsets[10]], &bias_pool[bias_offsets[10]], &shift_pool[shift_offsets[10]],
-            &w_pool[w_offsets[11]], &bias_pool[bias_offsets[11]], &shift_pool[shift_offsets[11]],
-            &w_pool[w_offsets[12]], &bias_pool[bias_offsets[12]], &shift_pool[shift_offsets[12]],
-            &w_pool[w_offsets[13]], &bias_pool[bias_offsets[13]], &shift_pool[shift_offsets[13]],
+            &w_data[w_off[8]],  &b_data[b_off[8]],  &s_data[s_off[8]],
+            &w_data[w_off[9]],  &b_data[b_off[9]],  &s_data[s_off[9]],
+            &w_data[w_off[10]], &b_data[b_off[10]], &s_data[s_off[10]],
+            &w_data[w_off[11]], &b_data[b_off[11]], &s_data[s_off[11]],
+            &w_data[w_off[12]], &b_data[b_off[12]], &s_data[s_off[12]],
+            &w_data[w_off[13]], &b_data[b_off[13]], &s_data[s_off[13]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, /*C_exp=*/96, /*C_mid=*/192, H_L3, W_L3,
@@ -260,12 +264,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 4) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,                           /* swap in/out */
-            &w_pool[w_offsets[8]],  &bias_pool[bias_offsets[8]],  &shift_pool[shift_offsets[8]],
-            &w_pool[w_offsets[9]],  &bias_pool[bias_offsets[9]],  &shift_pool[shift_offsets[9]],
-            &w_pool[w_offsets[10]], &bias_pool[bias_offsets[10]], &shift_pool[shift_offsets[10]],
-            &w_pool[w_offsets[11]], &bias_pool[bias_offsets[11]], &shift_pool[shift_offsets[11]],
-            &w_pool[w_offsets[12]], &bias_pool[bias_offsets[12]], &shift_pool[shift_offsets[12]],
-            &w_pool[w_offsets[13]], &bias_pool[bias_offsets[13]], &shift_pool[shift_offsets[13]],
+            &w_data[w_off[8]],  &b_data[b_off[8]],  &s_data[s_off[8]],
+            &w_data[w_off[9]],  &b_data[b_off[9]],  &s_data[s_off[9]],
+            &w_data[w_off[10]], &b_data[b_off[10]], &s_data[s_off[10]],
+            &w_data[w_off[11]], &b_data[b_off[11]], &s_data[s_off[11]],
+            &w_data[w_off[12]], &b_data[b_off[12]], &s_data[s_off[12]],
+            &w_data[w_off[13]], &b_data[b_off[13]], &s_data[s_off[13]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, 96, 192, H_L3, W_L3,
@@ -279,7 +283,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, scratch_a,
             scratch_b,
-            &w_pool[w_offsets[14]], &bias_pool[bias_offsets[14]], &shift_pool[shift_offsets[14]],
+            &w_data[w_off[14]], &b_data[b_off[14]], &s_data[s_off[14]],
             scratch_spike, scratch_acc,
             T, C_L3, C_L6, H_L3, W_L3,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -290,12 +294,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 6) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            &w_pool[w_offsets[15]], &bias_pool[bias_offsets[15]], &shift_pool[shift_offsets[15]],
-            &w_pool[w_offsets[16]], &bias_pool[bias_offsets[16]], &shift_pool[shift_offsets[16]],
-            &w_pool[w_offsets[17]], &bias_pool[bias_offsets[17]], &shift_pool[shift_offsets[17]],
-            &w_pool[w_offsets[18]], &bias_pool[bias_offsets[18]], &shift_pool[shift_offsets[18]],
-            &w_pool[w_offsets[19]], &bias_pool[bias_offsets[19]], &shift_pool[shift_offsets[19]],
-            &w_pool[w_offsets[20]], &bias_pool[bias_offsets[20]], &shift_pool[shift_offsets[20]],
+            &w_data[w_off[15]], &b_data[b_off[15]], &s_data[s_off[15]],
+            &w_data[w_off[16]], &b_data[b_off[16]], &s_data[s_off[16]],
+            &w_data[w_off[17]], &b_data[b_off[17]], &s_data[s_off[17]],
+            &w_data[w_off[18]], &b_data[b_off[18]], &s_data[s_off[18]],
+            &w_data[w_off[19]], &b_data[b_off[19]], &s_data[s_off[19]],
+            &w_data[w_off[20]], &b_data[b_off[20]], &s_data[s_off[20]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, /*C_exp=*/192, /*C_mid=*/288, H_L6, W_L6,
@@ -308,12 +312,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 7) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            &w_pool[w_offsets[15]], &bias_pool[bias_offsets[15]], &shift_pool[shift_offsets[15]],
-            &w_pool[w_offsets[16]], &bias_pool[bias_offsets[16]], &shift_pool[shift_offsets[16]],
-            &w_pool[w_offsets[17]], &bias_pool[bias_offsets[17]], &shift_pool[shift_offsets[17]],
-            &w_pool[w_offsets[18]], &bias_pool[bias_offsets[18]], &shift_pool[shift_offsets[18]],
-            &w_pool[w_offsets[19]], &bias_pool[bias_offsets[19]], &shift_pool[shift_offsets[19]],
-            &w_pool[w_offsets[20]], &bias_pool[bias_offsets[20]], &shift_pool[shift_offsets[20]],
+            &w_data[w_off[15]], &b_data[b_off[15]], &s_data[s_off[15]],
+            &w_data[w_off[16]], &b_data[b_off[16]], &s_data[s_off[16]],
+            &w_data[w_off[17]], &b_data[b_off[17]], &s_data[s_off[17]],
+            &w_data[w_off[18]], &b_data[b_off[18]], &s_data[s_off[18]],
+            &w_data[w_off[19]], &b_data[b_off[19]], &s_data[s_off[19]],
+            &w_data[w_off[20]], &b_data[b_off[20]], &s_data[s_off[20]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, 192, 288, H_L6, W_L6,
@@ -326,8 +330,8 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 8) {
         sa_spike_sppf(
             scratch_b, scratch_a,
-            &w_pool[w_offsets[21]], &bias_pool[bias_offsets[21]], &shift_pool[shift_offsets[21]],
-            &w_pool[w_offsets[22]], &bias_pool[bias_offsets[22]], &shift_pool[shift_offsets[22]],
+            &w_data[w_off[21]], &b_data[b_off[21]], &s_data[s_off[21]],
+            &w_data[w_off[22]], &b_data[b_off[22]], &s_data[s_off[22]],
             scratch_c,                /* ping_buf  (cv1 mid: T*48*16*16)     */
             scratch_spk_a,            /* spk_buf                              */
             scratch_spk_b,            /* pool_buf1                            */
@@ -344,7 +348,7 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 9) {
         sa_ms_standard_conv_inplace(
             scratch_a, scratch_b,
-            &w_pool[w_offsets[23]], &bias_pool[bias_offsets[23]], &shift_pool[shift_offsets[23]],
+            &w_data[w_off[23]], &b_data[b_off[23]], &s_data[s_off[23]],
             scratch_spike, scratch_acc,
             T, C_HEAD, C_HEAD, H_DET, W_DET,
             /*K=*/1, /*stride=*/1, /*pad=*/0, /*groups=*/1);
@@ -355,12 +359,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 10) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            &w_pool[w_offsets[24]], &bias_pool[bias_offsets[24]], &shift_pool[shift_offsets[24]],
-            &w_pool[w_offsets[25]], &bias_pool[bias_offsets[25]], &shift_pool[shift_offsets[25]],
-            &w_pool[w_offsets[26]], &bias_pool[bias_offsets[26]], &shift_pool[shift_offsets[26]],
-            &w_pool[w_offsets[27]], &bias_pool[bias_offsets[27]], &shift_pool[shift_offsets[27]],
-            &w_pool[w_offsets[28]], &bias_pool[bias_offsets[28]], &shift_pool[shift_offsets[28]],
-            &w_pool[w_offsets[29]], &bias_pool[bias_offsets[29]], &shift_pool[shift_offsets[29]],
+            &w_data[w_off[24]], &b_data[b_off[24]], &s_data[s_off[24]],
+            &w_data[w_off[25]], &b_data[b_off[25]], &s_data[s_off[25]],
+            &w_data[w_off[26]], &b_data[b_off[26]], &s_data[s_off[26]],
+            &w_data[w_off[27]], &b_data[b_off[27]], &s_data[s_off[27]],
+            &w_data[w_off[28]], &b_data[b_off[28]], &s_data[s_off[28]],
+            &w_data[w_off[29]], &b_data[b_off[29]], &s_data[s_off[29]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_HEAD, /*C_exp=*/96, /*C_mid=*/144, H_DET, W_DET,

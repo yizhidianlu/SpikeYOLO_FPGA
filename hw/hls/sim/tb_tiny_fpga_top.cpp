@@ -128,32 +128,13 @@ int main()
         L[i].out_shift = s_t[i].as_i8();
     }
 
-    /* ---- Plan β Variant 1.2: pools prefixed by 30-entry offset header.
-     * Layout: pool = [30 × int32 offsets (120 B)] [data ...]. Offsets are
-     * computed first then written into the pool head; data appended after.
-     * Kernel uses reinterpret_cast on pool head to read offsets via m_axi
-     * (no separate small-pointer top arg). A1 Contract 1 still UNTOUCHED. */
-    std::vector<sa_i32_t> w_off(N_LAYERS, 0);
-    std::vector<sa_i32_t> b_off(N_LAYERS, 0);
-    std::vector<sa_i32_t> s_off(N_LAYERS, 0);
-    sa_i32_t w_cursor = 0, b_cursor = 0, s_cursor = 0;
-    for (int i = 0; i < N_LAYERS; i++) {
-        const size_t nw = w_t[i].bytes.size();
-        const size_t nb = b_t[i].bytes.size() / sizeof(sa_i32_t);
-        const size_t ns = s_t[i].bytes.size();
-        w_off[i] = w_cursor; w_cursor += (sa_i32_t)nw;
-        b_off[i] = b_cursor; b_cursor += (sa_i32_t)nb;
-        s_off[i] = s_cursor; s_cursor += (sa_i32_t)ns;
-    }
-
-    /* Build pools with offset header prepended. */
-    std::vector<sa_i8_t>  w_pool(30 * sizeof(sa_i32_t));
-    std::vector<sa_i32_t> bias_pool(30, 0);
-    std::vector<sa_i8_t>  shift_pool(30 * sizeof(sa_i32_t));
-    std::memcpy(w_pool.data(),     w_off.data(), 30 * sizeof(sa_i32_t));
-    std::memcpy(bias_pool.data(),  b_off.data(), 30 * sizeof(sa_i32_t));
-    std::memcpy(shift_pool.data(), s_off.data(), 30 * sizeof(sa_i32_t));
-
+    /* ---- Plan β Variant 1.3 (STOP_step3 6/6 fix): pools are pure data.
+     * Kernel uses compile-time SA_W_OFF[i]/SA_B_OFF[i]/SA_S_OFF[i] from
+     * hw/hls/include/weight_offsets.h. No runtime offset reads — Vitis HLS
+     * sees only direct array reads on top-arg m_axi (no demotion). */
+    std::vector<sa_i8_t>  w_pool;
+    std::vector<sa_i32_t> bias_pool;
+    std::vector<sa_i8_t>  shift_pool;
     for (int i = 0; i < N_LAYERS; i++) {
         const size_t nw = w_t[i].bytes.size();
         const size_t nb = b_t[i].bytes.size() / sizeof(sa_i32_t);
@@ -165,7 +146,7 @@ int main()
         bias_pool.insert(bias_pool.end(),   bp, bp + nb);
         shift_pool.insert(shift_pool.end(), sp, sp + ns);
     }
-    std::fprintf(stdout, "[tb] pools (offset-headered): w=%zuB bias=%zu*i32 shift=%zuB\n",
+    std::fprintf(stdout, "[tb] V1.3 pools (data only): w=%zuB bias=%zu*i32 shift=%zuB\n",
                  w_pool.size(), bias_pool.size(), shift_pool.size());
 
     /* ---- Allocate scratch ----

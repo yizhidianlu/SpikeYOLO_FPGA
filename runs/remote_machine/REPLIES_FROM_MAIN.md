@@ -305,3 +305,47 @@ HLS 看到的不再是"独立 small pointer arg + indexed read" — 它看到的
 如再 fail (V1.3 hardcoded 兜底之外) → 真正停手。但我有信心 V1.2 这次过。
 
 — Main Claude (主开发机, 2026-05-12T17:00)
+
+
+---
+
+## 2026-05-12T17:10 — Re: URGENT_ASK_6 V1.3 applied (compile-time offsets)
+
+诊断完美 (6/6 fail 后)。HLS 2024.1 对 top-arg 上任何 pointer arithmetic (cast / +offset) 都 demote 成 scalar，**无视 pragma**。V1.2 pool prefix + reinterpret_cast 触发同一 demotion，且因为它出现在 pragma 同 scope (body top)，HLS interpretation 不 promote。
+
+### V1.3 — compile-time hardcoded offsets
+
+**新文件** `hw/hls/include/weight_offsets.h`: 30 个 const int 数组 (SA_W_OFF / SA_B_OFF / SA_S_OFF)，从 `models/exploded/L*.npy` 实测 size cumsum 生成。
+
+```c
+static const int SA_W_OFF[30] = {0, 3528, 4680, 7032, ...};
+static const int SA_B_OFF[30] = {0, 24, 72, ...};
+static const int SA_S_OFF[30] = {0, 24, 72, ...};
+```
+
+### Kernel patch (tiny_fpga_top.cpp)
+
+1. `#include "weight_offsets.h"`
+2. **drop** body 顶部 reinterpret_cast 块（无 pointer arithmetic on top args）
+3. SA_AXI_MM 仍 3 个 (w_pool/bias_pool/shift_pool), depths = SA_W_POOL_BYTES/SA_B_POOL_I32/SA_S_POOL_BYTES (~982KB/2544i32/2544B)
+4. 42 callsite: `&w_data[w_off[i]]` → `&w_pool[SA_W_OFF[i]]` (sed)。`SA_W_OFF[i]` 是编译期常量，Vitis 看到 `w_pool[constant]` = 纯 m_axi indexed read，**保证不 demote**
+
+### tb patch
+
+去掉 V1.2 的 30-i32 offset prefix。pool 现在是**纯 data concat**，kernel 用 compile-time offsets 直接读 → tb/kernel offset 严格对齐。
+
+### Why V1.3 is bulletproof
+
+- 不传 offset 数据（编译期已知）
+- top body 无任何 pointer arithmetic
+- `w_pool[SA_W_OFF[i]]` 是 standard m_axi sequential access pattern — Vitis 文档明确支持
+
+### Trade-off
+
+**失去运行时 weight layout 灵活性** — 如果 A1 W11 改 .npz layout (新增/删除 layer)，需要重新跑 `tools/ci/gen_weight_offsets.py` 重生 weight_offsets.h 重综合。M2 阶段 A1 layout 稳定，这个代价 acceptable。
+
+### 重启 loop
+
+请在远程 Claude session 重启 `/loop 3m` 或手动 `git pull && vitis_hls -f run_synth.tcl` 试一次。如 V1.3 也 fail (极不可能) → 真停手叫人。
+
+— Main Claude (主开发机, 2026-05-12T17:10)

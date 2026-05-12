@@ -1,0 +1,40 @@
+==== sa_conv2d_int  (start 2026-05-12T15:30:31)
+---- sa_conv2d_int result: exit=0  wall=9s ----
+==== sa_conv2d_bn  (start 2026-05-12T15:30:40)
+---- sa_conv2d_bn result: exit=0  wall=10s ----
+==== sa_lif_expand  (start 2026-05-12T15:30:50)
+---- sa_lif_expand result: exit=0  wall=8s ----
+==== sa_maxpool_or  (start 2026-05-12T15:30:58)
+---- sa_maxpool_or result: exit=0  wall=8s ----
+==== sa_ms_downsampling  (start 2026-05-12T15:31:07)
+---- sa_ms_downsampling result: exit=0  wall=16s ----
+==== sa_sep_conv  (start 2026-05-12T15:31:23)
+---- sa_sep_conv result: exit=0  wall=25s ----
+==== sa_ms_all_conv_block  (start 2026-05-12T15:31:48)
+---- sa_ms_all_conv_block result: exit=0  wall=169s ----
+==== sa_spike_sppf  (start 2026-05-12T15:34:38)
+---- sa_spike_sppf result: exit=0  wall=18s ----
+==== sa_detect_head  (start 2026-05-12T15:34:56)
+---- sa_detect_head result: exit=0  wall=9s ----
+==== sa_tiny_fpga_top  (start 2026-05-12T15:35:04)
+---- sa_tiny_fpga_top result: exit=0  wall=737s ----
+
+==== ALL TARGETS DONE  total=1011s ====
+
+top                  exit wall_s
+---                  ---- ------
+sa_conv2d_int           0      9
+sa_conv2d_bn            0     10
+sa_lif_expand           0      8
+sa_maxpool_or           0      8
+sa_ms_downsampling      0     16
+sa_sep_conv             0     25
+sa_ms_all_conv_block    0    169
+sa_spike_sppf           0     18
+sa_detect_head          0      9
+sa_tiny_fpga_top        0    737
+
+
+
+PASS: 10 / 10 targets
+OPTC_DRIVER_OK  

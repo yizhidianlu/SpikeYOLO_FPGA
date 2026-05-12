@@ -1,0 +1,1246 @@
+==== sa_conv2d_int  (start 2026-05-12T15:30:31)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:30:33 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:30:33 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_conv2d_int (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/conv2d_int.cpp
+== TBS  = sim/tb_conv2d_int.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_conv2d_int 
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_int'.
+INFO: [HLS 200-1510] Running: set_top sa_conv2d_int 
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_conv2d_int.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_int/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[stem_real] skipping (load failed: npz_reader: cannot open tests/golden/exploded/layer_00_stem/input.npy) — run tools/ci/explode_npz.py first
+[stem_3to24] OK  shape=(1,3,32,32) -> (1,24,8,8)
+[pw_24to48] OK  shape=(1,24,16,16) -> (1,48,16,16)
+[dw_48to48] OK  shape=(1,48,16,16) -> (1,48,16,16)
+[head_1x1] OK  shape=(1,96,8,8) -> (1,84,8,8)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:04; Allocated memory: 0.828 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_conv2d_int
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 7.465 seconds; peak allocated memory: 227.691 MB.
+---- sa_conv2d_int result: exit=0  wall=9s ----
+==== sa_conv2d_bn  (start 2026-05-12T15:30:40)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:30:42 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:30:43 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_conv2d_bn (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/conv2d_bn.cpp src/conv2d_int.cpp
+== TBS  = sim/tb_conv2d_bn.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_conv2d_bn 
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_bn'.
+INFO: [HLS 200-1510] Running: set_top sa_conv2d_bn 
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_conv2d_bn.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_bn/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/tb_conv2d_bn.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[first_stem] OK
+[acb_pw] OK
+[acb_dw] OK
+[sppf_cv] OK
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:05; Allocated memory: 0.828 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_conv2d_bn
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 1 seconds. Total elapsed time: 8.145 seconds; peak allocated memory: 227.520 MB.
+---- sa_conv2d_bn result: exit=0  wall=10s ----
+==== sa_lif_expand  (start 2026-05-12T15:30:50)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:30:52 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:30:53 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_lif_expand (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/lif_expand.cpp
+== TBS  = sim/tb_lif_expand.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_lif_expand 
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_lif_expand'.
+INFO: [HLS 200-1510] Running: set_top sa_lif_expand 
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_lif_expand.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_lif_expand/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/tb_lif_expand.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[stem_post] OK shape=(4, 24, 16, 16)
+[acb_post] OK shape=(4, 48, 8, 8)
+[sppf_post] OK shape=(4, 16, 4, 4)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:03; Allocated memory: 0.805 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_lif_expand
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 1 seconds. Total elapsed time: 6.417 seconds; peak allocated memory: 227.570 MB.
+---- sa_lif_expand result: exit=0  wall=8s ----
+==== sa_maxpool_or  (start 2026-05-12T15:30:58)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:31:00 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:31:01 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_maxpool_or (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/maxpool_or.cpp
+== TBS  = sim/tb_maxpool_or.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_maxpool_or 
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_maxpool_or'.
+INFO: [HLS 200-1510] Running: set_top sa_maxpool_or 
+INFO: [HLS 200-1510] Running: add_files src/maxpool_or.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/maxpool_or.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_maxpool_or.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_maxpool_or.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_maxpool_or/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/tb_maxpool_or.cpp in release mode
+   Compiling ../../../../src/maxpool_or.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/maxpool_or.cpp:12:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[sppf_k5] OK  shape=(4,48,16,16)  K=5
+[small_k3] OK  shape=(1,16,8,8)  K=3
+[big_k7] OK  shape=(4,32,32,32)  K=7
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:03; Allocated memory: 0.836 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_maxpool_or
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 1 seconds. Total elapsed time: 6.487 seconds; peak allocated memory: 227.379 MB.
+---- sa_maxpool_or result: exit=0  wall=8s ----
+==== sa_ms_downsampling  (start 2026-05-12T15:31:07)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:31:08 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:31:09 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_ms_downsampling (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/ms_downsampling.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp
+== TBS  = sim/tb_ms_downsampling.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_ms_downsampling 
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_downsampling'.
+INFO: [HLS 200-1510] Running: set_top sa_ms_downsampling 
+INFO: [HLS 200-1510] Running: add_files src/ms_downsampling.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_downsampling.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_ms_downsampling.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_ms_downsampling.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_downsampling/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_ms_downsampling.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Compiling ../../../../src/ms_downsampling.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/ms_downsampling.cpp:21:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[layer_00] golden_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+[layer_00] weight_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+[layer_00] DUT vs REF OK (98304 elems)
+[layer_00] DUT vs GOLDEN OK (98304 elems)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:11; Allocated memory: 0.871 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_ms_downsampling
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 14.594 seconds; peak allocated memory: 228.164 MB.
+---- sa_ms_downsampling result: exit=0  wall=16s ----
+==== sa_sep_conv  (start 2026-05-12T15:31:23)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:31:25 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:31:26 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_sep_conv (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_01_acb1
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SA_SEP_GOLDEN_DIR = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\hls\sim\golden_local\sep_conv_smoke
+== SRCS = src/sep_conv.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp
+== TBS  = sim/tb_sep_conv.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_sep_conv 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_sep_conv'.
+INFO: [HLS 200-1510] Running: set_top sa_sep_conv 
+INFO: [HLS 200-1510] Running: add_files src/sep_conv.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/sep_conv.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_sep_conv.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_sep_conv.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_sep_conv/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_sep_conv.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Compiling ../../../../src/sep_conv.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/sep_conv.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/sep_conv.cpp:32:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+[sep_conv] golden_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\hls\sim\golden_local\sep_conv_smoke
+[sep_conv] weight_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+[sep_conv] DUT vs REF OK (49152 elems)
+[sep_conv] DUT vs GOLDEN OK (49152 elems)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:20; Allocated memory: 0.996 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_sep_conv
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 23.428 seconds; peak allocated memory: 228.008 MB.
+---- sa_sep_conv result: exit=0  wall=25s ----
+==== sa_ms_all_conv_block  (start 2026-05-12T15:31:48)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:31:50 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:31:51 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_ms_all_conv_block (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_01_acb1
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/ms_all_conv_block.cpp src/sep_conv.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp
+== TBS  = sim/tb_ms_all_conv_block.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_ms_all_conv_block 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_all_conv_block'.
+INFO: [HLS 200-1510] Running: set_top sa_ms_all_conv_block 
+INFO: [HLS 200-1510] Running: add_files src/ms_all_conv_block.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_all_conv_block.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/sep_conv.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/sep_conv.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_ms_all_conv_block.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_ms_all_conv_block.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_all_conv_block/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_ms_all_conv_block.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Compiling ../../../../src/sep_conv.cpp in release mode
+   Compiling ../../../../src/ms_all_conv_block.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/sep_conv.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/sep_conv.cpp:32:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+In file included from ../../../../src/ms_all_conv_block.cpp:29:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/ms_all_conv_block.cpp:31:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+[layer_01] golden_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_01_acb1
+[layer_01] weight_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+[layer_01] DUT vs REF OK (98304 elems)
+[layer_01] DUT vs GOLDEN OK (98304 elems)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:02:44; Allocated memory: 0.938 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_ms_all_conv_block
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 167.317 seconds; peak allocated memory: 228.031 MB.
+---- sa_ms_all_conv_block result: exit=0  wall=169s ----
+==== sa_spike_sppf  (start 2026-05-12T15:34:38)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:34:39 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:34:40 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_spike_sppf (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_08_sppf
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/spike_sppf.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp src/maxpool_or.cpp
+== TBS  = sim/tb_spike_sppf.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_spike_sppf 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_spike_sppf'.
+INFO: [HLS 200-1510] Running: set_top sa_spike_sppf 
+INFO: [HLS 200-1510] Running: add_files src/spike_sppf.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/spike_sppf.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/maxpool_or.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/maxpool_or.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_spike_sppf.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_spike_sppf.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_spike_sppf/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_spike_sppf.cpp in release mode
+   Compiling ../../../../src/maxpool_or.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Compiling ../../../../src/spike_sppf.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/maxpool_or.cpp:12:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/spike_sppf.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/spike_sppf.cpp:32:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+[layer_08] golden_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_08_sppf
+[layer_08] weight_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+[layer_08] DUT vs REF OK (12288 elems)
+[layer_08] DUT vs GOLDEN OK (12288 elems)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:13; Allocated memory: 1.031 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_spike_sppf
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 16.335 seconds; peak allocated memory: 228.449 MB.
+---- sa_spike_sppf result: exit=0  wall=18s ----
+==== sa_detect_head  (start 2026-05-12T15:34:56)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:34:57 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:34:58 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_detect_head (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_11_detect
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/detect_head.cpp
+== TBS  = sim/tb_detect_head.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_detect_head 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_detect_head'.
+INFO: [HLS 200-1510] Running: set_top sa_detect_head 
+INFO: [HLS 200-1510] Running: add_files src/detect_head.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/detect_head.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_detect_head.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_detect_head.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_detect_head/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_detect_head.cpp in release mode
+   Compiling ../../../../src/detect_head.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/detect_head.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+[layer_11] golden_dir = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_11_detect
+[layer_11] DUT vs REF OK (12288 elems)
+[layer_11] DUT vs GOLDEN OK (12288 elems)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:04; Allocated memory: 1.078 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_detect_head
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 6.948 seconds; peak allocated memory: 227.852 MB.
+---- sa_detect_head result: exit=0  wall=9s ----
+==== sa_tiny_fpga_top  (start 2026-05-12T15:35:04)
+
+****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
+  **** SW Build 5069499 on May 21 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Tue May 12 15:35:06 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:35:07 +0800 2026
+INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
+WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
+Sourcing Tcl script 'C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_csim_one_target.tcl'
+== csim sa_tiny_fpga_top (Option-C workaround, per-target invocation) ============
+== SA_GOLDEN_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded\layer_00_stem
+== SA_WEIGHT_DIR  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+== SA_GOLDEN_ROOT = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+== SRCS = src/tiny_fpga_top.cpp src/ms_downsampling.cpp src/ms_all_conv_block.cpp src/sep_conv.cpp src/spike_sppf.cpp src/detect_head.cpp src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp src/maxpool_or.cpp
+== TBS  = sim/tb_tiny_fpga_top.cpp sim/npz_reader.cpp
+INFO: [HLS 200-1510] Running: open_project -reset csim_sa_tiny_fpga_top 
+INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_tiny_fpga_top'.
+INFO: [HLS 200-1510] Running: set_top sa_tiny_fpga_top 
+INFO: [HLS 200-1510] Running: add_files src/tiny_fpga_top.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/tiny_fpga_top.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/ms_downsampling.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_downsampling.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/ms_all_conv_block.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/ms_all_conv_block.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/sep_conv.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/sep_conv.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/spike_sppf.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/spike_sppf.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/detect_head.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/detect_head.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files src/maxpool_or.cpp -cflags -Iinclude -DSA_USE_HLS 
+INFO: [HLS 200-10] Adding design file 'src/maxpool_or.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/tb_tiny_fpga_top.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/tb_tiny_fpga_top.cpp' to the project
+INFO: [HLS 200-1510] Running: add_files -tb sim/npz_reader.cpp -cflags -Iinclude -Isim 
+INFO: [HLS 200-10] Adding test bench file 'sim/npz_reader.cpp' to the project
+INFO: [HLS 200-1510] Running: open_solution -reset sol1 -flow_target vivado 
+INFO: [HLS 200-10] Creating and opening solution 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_tiny_fpga_top/sol1'.
+INFO: [HLS 200-10] Cleaning up the solution database.
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/topic?Doc_Version=2024.1%20English&url=ug1448-hls-guidance&resourceid=200-1505.html
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../sim/npz_reader.cpp in release mode
+   Compiling ../../../../sim/tb_tiny_fpga_top.cpp in release mode
+   Compiling ../../../../src/maxpool_or.cpp in release mode
+   Compiling ../../../../src/lif_expand.cpp in release mode
+   Compiling ../../../../src/conv2d_int.cpp in release mode
+   Compiling ../../../../src/conv2d_bn.cpp in release mode
+   Compiling ../../../../src/detect_head.cpp in release mode
+   Compiling ../../../../src/spike_sppf.cpp in release mode
+   Compiling ../../../../src/sep_conv.cpp in release mode
+   Compiling ../../../../src/ms_all_conv_block.cpp in release mode
+   Compiling ../../../../src/ms_downsampling.cpp in release mode
+   Compiling ../../../../src/tiny_fpga_top.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../src/maxpool_or.cpp:12:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/lif_expand.cpp:14:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_int.cpp:13:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/conv2d_bn.cpp:17:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/detect_head.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/spike_sppf.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/spike_sppf.cpp:32:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+In file included from ../../../../src/sep_conv.cpp:30:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/sep_conv.cpp:32:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+In file included from ../../../../src/ms_all_conv_block.cpp:29:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/ms_all_conv_block.cpp:31:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+In file included from ../../../../src/ms_downsampling.cpp:21:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../src/tiny_fpga_top.cpp:49:
+In file included from ../../../.././include/dtypes.h:13:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/ap_int.h:10:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h:658:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h:68:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_half.h:26:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h:19:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/hls_fpo.h:140:
+In file included from E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:150:
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+In file included from ../../../../src/tiny_fpga_top.cpp:51:
+../../../.././include/op_macros.h:20:19: warning: '/*' within block comment [-Wcomment]
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+                  ^
+2 warnings generated.
+[tiny_fpga_top] weight_dir  = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\models\exploded
+[tiny_fpga_top] golden_root = C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\tests\golden\exploded
+[tiny_fpga_top] DUT vs GOLDEN OK (12288 elems, end-to-end byte-identical)
+CSIM PASS
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:12:12; Allocated memory: 1.000 MB.
+INFO: [HLS 200-1510] Running: close_project 
+ONE-TARGET CSIM DONE sa_tiny_fpga_top
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 2 seconds. Total elapsed time: 735.68 seconds; peak allocated memory: 228.320 MB.
+---- sa_tiny_fpga_top result: exit=0  wall=737s ----
+
+==== ALL TARGETS DONE  total=1011s ====
+
+top                  exit wall_s
+---                  ---- ------
+sa_conv2d_int           0      9
+sa_conv2d_bn            0     10
+sa_lif_expand           0      8
+sa_maxpool_or           0      8
+sa_ms_downsampling      0     16
+sa_sep_conv             0     25
+sa_ms_all_conv_block    0    169
+sa_spike_sppf           0     18
+sa_detect_head          0      9
+sa_tiny_fpga_top        0    737
+
+
+
+PASS: 10 / 10 targets

@@ -1,78 +1,107 @@
-# Step 1 — Vitis HLS C-simulation
+# Step 1 — Vitis HLS C-simulation (Option A + Option C)
 
-## Status: BLOCKED (1/10 targets PASS, 2/10 attempted before tcl error abort)
-## Wall time: 50 s (vitis_hls invocation), ~14 s actual csim per attempted target
-## Started: 2026-05-12T15:04:38+08:00
-## Completed: 2026-05-12T15:05:28+08:00 (abort on target 3)
+## Status: SUCCESS  (10/10 targets PASS, byte-identical end-to-end)
+## Wall time: ~21 min (~3 min Option A attempt + 17 min Option C run + ~1 min triage)
+## Started: 2026-05-12T15:04:38+08:00 (first attempt, vanilla)
+## Re-attempt Option A: 2026-05-12T15:24:29+08:00 (post-Main patch)
+## Final Option C run: 2026-05-12T15:30:23 - 15:47:14 (~17 min)
 
 ## Commands run
 
 ```cmd
+# Initial attempt (pre-Main patch) — aborted at target 3
+cd C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA
 call E:\Applaction\Xilinx\Vitis_HLS\2024.1\settings64.bat
 cd hw\hls
-vitis_hls -f run_csim.tcl
-```
+vitis_hls -f run_csim.tcl   # FAILED at sa_ms_downsampling (return 2)
 
-Invoked via PowerShell `cmd /c '...'` wrapper, output captured to
-`runs/remote_machine/step1_csim_stdout.log`.
+# Re-run after Main's Option A patch (commit 8c3c5ff)
+git pull origin vivado/synth-runner
+vitis_hls -f run_csim.tcl   # 4/10 PASS, aborted at sa_ms_downsampling
+                            #  (Option A patch has `set REPO_ROOT [file normalize ..]`
+                            #   which from hw/hls/ resolves to <repo>/hw, not <repo>)
+
+# Option C wrapper (per-target invocation, env-var passing)
+cmd /c 'call settings64.bat && powershell -File runs\remote_machine\run_all_csim.ps1'
+# 10/10 PASS
+```
 
 ## Results per target
 
-| # | Top            | Status | Notes |
-|---|----------------|--------|-------|
-| 1 | sa_conv2d_int  | PASS   | 4 synthetic subtests PASS, `stem_real` soft-skipped (load failed, falls back) |
-| 2 | sa_conv2d_bn   | SETUP  | open_project ran, csim never reached (see target-3 abort below) |
-| 3 | sa_ms_downsampling | **FAIL (exit 2)** | Hard-fails on missing golden — see Issues |
-| 4-10 | (sa_lif_expand, sa_maxpool_or, sa_sep_conv, sa_ms_all_conv_block, sa_spike_sppf, sa_detect_head, sa_tiny_fpga_top) | **not run** | foreach loop aborted after target 3 |
+| # | Top                  | Wall (s) | inside-vitis | golden-loaded?   |
+|---|----------------------|---------:|--------------|------------------|
+| 1 | sa_conv2d_int        |        9 | CSim done 0 err | stem_real soft-skip (hardcoded path); 4 synthetic subtests OK |
+| 2 | sa_conv2d_bn         |       10 | CSim done 0 err | synthetic only |
+| 3 | sa_lif_expand        |        8 | CSim done 0 err | synthetic only |
+| 4 | sa_maxpool_or        |        8 | CSim done 0 err | synthetic only |
+| 5 | sa_ms_downsampling   |       16 | CSim done 0 err | layer_00_stem, **98304 elems byte-identical (DUT vs GOLDEN OK)** |
+| 6 | sa_sep_conv          |       25 | CSim done 0 err | sep_conv_smoke, **49152 elems byte-identical** |
+| 7 | sa_ms_all_conv_block |      169 | CSim done 0 err | layer_01_acb1, **98304 elems byte-identical** |
+| 8 | sa_spike_sppf        |       18 | CSim done 0 err | layer_08_sppf, **12288 elems byte-identical** |
+| 9 | sa_detect_head       |        9 | CSim done 0 err | layer_11_detect, **12288 elems byte-identical** |
+| 10 | sa_tiny_fpga_top    |      737 | CSim done 0 err | **end-to-end 12288 elems byte-identical (DUT vs GOLDEN OK)** |
+| total |                  |     1011 | 10 PASS / 0 FAIL | 6 testbenches loaded real golden |
 
-Wait, target 2 (`sa_conv2d_bn`) actually proceeded to csim. Reading the log more carefully: the abort was at target 3 (`sa_ms_downsampling`). After re-reading: target 1 PASS, target 2 setup completed (need log scan to confirm CSIM result), target 3 hard failed. The tcl-level error from `csim_design` propagates and aborts the foreach.
+## Outputs
 
-## Issues — BLOCKER
+| Path | Size | Note |
+|---|---:|---|
+| `runs/remote_machine/step1_csim_optionC_stdout.log` | ~86 KB | Full inside-vitis trace (UTF-8) |
+| `runs/remote_machine/step1_csim_optionC_driverout.log` | ~700 B | Per-target wall + exit summary |
+| `runs/remote_machine/step1_csim_stdout.log` | ~25 KB | Earlier Option-A attempt log (4/10 PASS, retained for diff vs Option C) |
+| `hw/hls/csim_sa_*/` (10 dirs) | ~10-100 MB each | csim project artifacts (gitignored; build only) |
 
-**Root cause**: Testbench source uses repo-root-relative paths (`tests/golden/exploded/layer_NN_xxx/input.npy`, `models/exploded/L00.w.npy`), but Vitis HLS 2024.1's `csim_design` launches the testbench binary with CWD = `hw/hls/csim_<top>/sol1/csim/build/`. Relative-path resolution therefore searches under that 5-level-deep build directory, where `tests/` does not exist.
+## Key metrics
 
-Exact testbench failure (target 3):
+- **PASS rate**: 10 / 10 targets (after Option C fallback)
+- **Byte-identical end-to-end** on `sa_tiny_fpga_top` (12288 elems, INT8 detect-head output)
+- **Compiler**: Vitis HLS 2024.1 internal Clang
+- **0 FAIL markers**, **0 nonzero return**, **0 simulation failed** across full Option C log
+- 50+ deprecated-pragma WARN per target (`#pragma HLS INTERFACE m_axi` old-syntax) — expected per ADR-0005, M2-W2 backlog
+- Build warning `__GMP_LIBGMP_DLL macro redefined` × 1 per target — Vitis HLS 2024.1 internal header conflict, harmless
+
+## Issues
+
+### Issue 1 (RESOLVED, recorded for the next session): Main's Option A patch has `set REPO_ROOT [file normalize ..]` bug
+
+When invoked from `hw/hls/` (per the canonical `cd hw\hls && vitis_hls -f run_csim.tcl` flow), the TCL `..` resolves to `<repo>/hw`, not `<repo>`. Resulting env vars:
 
 ```
-[layer_00] golden_dir = tests/golden/exploded/layer_00_stem
-[layer_00] weight_dir = models/exploded
-[layer_00] load FAILED: npz_reader: cannot open tests/golden/exploded/layer_00_stem/input.npy
-[layer_00] Hint: run 'python tools/ci/explode_npz.py --all' and ...
+SA_REPO_ROOT  = .../SpikeYOLO_FPGA/hw                                      (wrong; should be repo root)
+SA_WEIGHT_DIR = .../SpikeYOLO_FPGA/hw/models/exploded                       (path does not exist)
+SA_GOLDEN_DIR = .../SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem  (path does not exist)
 ```
 
-The exploded data **does** exist at the repo root:
-- `tests/golden/exploded/layer_00_stem/input.npy` (19 KB) ✓
-- All 12 layers exploded ✓ (`tests/golden/exploded/layer_00_stem` … `layer_11_detect`)
-- `models/exploded/L00.{w,bias,out_shift,scalar}.npy` ✓ (L00–L36 all present, 37 layers worth)
+Targets 1-4 (synthetic) pass anyway because they don't read these. Target 5+ fail on file open.
 
-So the data is fine; only the CWD does not point at it.
+**Fix**: change `hw/hls/run_csim.tcl` line:
+```tcl
+set REPO_ROOT  [file normalize ..]
+```
+to:
+```tcl
+set REPO_ROOT  [file normalize ../..]
+```
 
-**Why target 1 passed but target 3 failed**: `tb_conv2d_int.cpp` uses a hardcoded path (no env_or) and **soft-skips** the `stem_real` subtest on load failure, falling back to synthetic-data subtests (`stem_3to24`, `pw_24to48`, etc.). `tb_ms_downsampling.cpp` requires the load to succeed (`return 2` on exception).
+Remote cannot modify `hw/hls/run_csim.tcl` per protocol. Filed for B1 owner / Main Claude in `runs/remote_machine/REPLIES_FROM_REMOTE.md` (this commit).
 
-**Testbench env-var review** (from `hw/hls/sim/`):
+### Issue 2 (workaround): `-tclargs` fragile under cmd /c quoting
 
-| testbench | env var honored | default (relative) | per-layer? |
-|---|---|---|---|
-| tb_conv2d_int | (none — hardcoded) | `tests/golden/exploded/layer_00_stem` | layer_00 |
-| tb_conv2d_bn | (uses only synthetic data) | n/a | n/a |
-| tb_ms_downsampling | `SA_GOLDEN_DIR`, `SA_WEIGHT_DIR` | layer_00_stem | layer_00 |
-| tb_ms_all_conv_block | `SA_GOLDEN_DIR`, `SA_WEIGHT_DIR` | layer_01_acb1 | layer_01 |
-| tb_spike_sppf | `SA_GOLDEN_DIR`, `SA_WEIGHT_DIR` | layer_08_sppf | layer_08 |
-| tb_detect_head | `SA_GOLDEN_DIR`, `SA_WEIGHT_DIR` | layer_11_detect | layer_11 |
-| tb_sep_conv | `SA_SEP_GOLDEN_DIR`, `SA_WEIGHT_DIR` | hw/hls/sim/golden_local/sep_conv_smoke | n/a |
-| tb_tiny_fpga_top | `SA_GOLDEN_ROOT`, `SA_WEIGHT_DIR` | tests/golden/exploded | (root, joins per-layer internally) |
+Initial Option C used `vitis_hls -f script.tcl -tclargs <TOP> ...` but Vitis HLS 2024.1 saw `argv[0] = "-f"` when invoked via `cmd /c "..."`. Worked around by switching to env-var parameter passing (`OPT_C_TOP / OPT_C_SRCS_CSV / OPT_C_TBS_CSV`). See updated `runs/remote_machine/run_csim_one_target.tcl` and `run_all_csim.ps1`.
 
-The four testbenches sharing `SA_GOLDEN_DIR` but expecting different layers means a single global env-var override CANNOT make all targets pass — by design they assume per-target invocation, but `run_csim.tcl` invokes all 10 targets inside one `vitis_hls` session.
+### Issue 3 (workaround): UTF-16 mangling
 
-## Diagnosis summary
+Initial Option C captured vitis_hls output into a PowerShell variable then `Out-File -Encoding utf8 -Append`. This mixed cmd's UTF-16 output with PS file BOM, producing garbled CJK in the log. Fixed by piping cmd's stdout/stderr **directly** to the log file (`cmd /c "vitis_hls ... >> $Stdout 2>&1"`) and using `Add-Content -Encoding ascii` for short summary lines.
 
-The `vitis_hls -f run_csim.tcl` canonical command **cannot work as-is** on a fresh checkout. Either:
-- (a) `run_csim.tcl` must set `::env(SA_GOLDEN_DIR)` / `::env(SA_WEIGHT_DIR)` per-target before each `csim_design`, OR
-- (b) testbenches need to be amended to use a single root env var (e.g. `SA_REPO_ROOT`) and join per-layer paths internally, OR
-- (c) Remote Claude wraps the build with a per-target driver that sets env vars and calls `vitis_hls` once per target.
+### Issue 4 (informational): `stem_real` soft-skip in `tb_conv2d_int.cpp`
 
-See `URGENT_ASK.md` for full options analysis.
+Has hardcoded `tests/golden/exploded/layer_00_stem` with no env_or override, so always soft-skips on Vitis HLS CWD. Not a regression — testbench is designed to skip when load fails. Other 4 synthetic subtests still validate the kernel. No action needed.
+
+### Issue 5 (informational): `tiny_fpga_regmap.yaml` is documented but ungenerated
+
+`hw/hls/README.md` lines 42/108/118 reference it as a Contract 3 deliverable but no generator script exists. `hw/vivado/build_bd.tcl` doesn't actually consume it (uses VLNV + assign_bd_address). Step 5 will succeed without it. Future B1 task: write the regmap emitter.
 
 ## Next step
 
-Awaiting Main Claude reply on `URGENT_ASK.md`. While waiting: no destructive operations; have drafted (but not yet executed) workaround script `runs/remote_machine/wrapper_per_target_csim.tcl` in case Option C is approved.
+Skip Step 2 (cosim) per Main Claude's REPLY (10/10 PASS → cosim deferred to PR-label gate).
+Begin Step 3: `vitis_hls -f run_synth.tcl` for 5 csynth targets (~25 min on this Ryzen).

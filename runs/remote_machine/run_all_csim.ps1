@@ -117,14 +117,23 @@ foreach ($tgt in $Targets) {
     }
 
     $start = Get-Date
-    "==== $top  (start $($start.ToString('s')))" | Tee-Object -FilePath $Stdout -Append
+    $hdr = "==== $top  (start $($start.ToString('s')))"
+    Add-Content -Path $Stdout -Value $hdr -Encoding ascii
+    Write-Host $hdr
+
+    # Pass per-target params via env vars (Vitis HLS -tclargs flaky under
+    # cmd /c quoting; env vars survive cleanly).
+    $env:OPT_C_TOP      = $top
+    $env:OPT_C_SRCS_CSV = $tgt.srcs
+    $env:OPT_C_TBS_CSV  = $tgt.tbs
 
     Push-Location $HlsDir
     try {
-        $cmd = "vitis_hls -f $DriverTcl -tclargs $top `"$($tgt.srcs)`" `"$($tgt.tbs)`""
         # vitis_hls must be invoked after sourcing settings64.bat. The caller
-        # of this script is expected to have done so via cmd /c chain.
-        $out = & cmd /c "vitis_hls -f `"$DriverTcl`" -tclargs $top `"$($tgt.srcs)`" `"$($tgt.tbs)`" 2>&1"
+        # of this script is expected to have done so via cmd /c chain. Output
+        # is redirected by cmd directly to the log file (avoids PowerShell
+        # capturing UTF-16 and re-encoding it badly).
+        & cmd /c "vitis_hls -f `"$DriverTcl`" >> `"$Stdout`" 2>&1"
         $ec = $LASTEXITCODE
     } finally {
         Pop-Location
@@ -132,8 +141,8 @@ foreach ($tgt in $Targets) {
     $end = Get-Date
     $wall = [int]($end - $start).TotalSeconds
 
-    $out | Out-File -FilePath $Stdout -Encoding utf8 -Append
-    "---- $top result: exit=$ec  wall=${wall}s ----" | Tee-Object -FilePath $Stdout -Append
+    Add-Content -Path $Stdout -Value "---- $top result: exit=$ec  wall=${wall}s ----" -Encoding ascii
+    Write-Host "---- $top result: exit=$ec  wall=${wall}s ----"
 
     $AbsResults += [pscustomobject]@{
         top = $top
@@ -144,13 +153,23 @@ foreach ($tgt in $Targets) {
 
 $endAll = Get-Date
 $totalWall = [int]($endAll - $startAll).TotalSeconds
-"`n==== ALL TARGETS DONE  total=${totalWall}s ====" | Tee-Object -FilePath $Stdout -Append
-$AbsResults | Format-Table -AutoSize | Out-String | Tee-Object -FilePath $Stdout -Append
+$summary = "`n==== ALL TARGETS DONE  total=${totalWall}s ===="
+Add-Content -Path $Stdout -Value $summary -Encoding ascii
+Write-Host $summary
+
+$tableStr = ($AbsResults | Format-Table -AutoSize | Out-String)
+Add-Content -Path $Stdout -Value $tableStr -Encoding ascii
+Write-Host $tableStr
+
 $nFail = ($AbsResults | Where-Object { $_.exit -ne 0 }).Count
 if ($nFail -gt 0) {
-    "FAIL: $nFail / $($Targets.Count) targets" | Tee-Object -FilePath $Stdout -Append
+    $line = "FAIL: $nFail / $($Targets.Count) targets"
+    Add-Content -Path $Stdout -Value $line -Encoding ascii
+    Write-Host $line
     exit 1
 } else {
-    "PASS: $($Targets.Count) / $($Targets.Count) targets" | Tee-Object -FilePath $Stdout -Append
+    $line = "PASS: $($Targets.Count) / $($Targets.Count) targets"
+    Add-Content -Path $Stdout -Value $line -Encoding ascii
+    Write-Host $line
     exit 0
 }

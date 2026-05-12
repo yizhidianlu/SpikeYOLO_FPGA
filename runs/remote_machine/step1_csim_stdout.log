@@ -1,21 +1,21 @@
-﻿Step 1 csim started at 2026-05-12T15:04:38+08:00
+﻿=== Step 1 csim RE-RUN (Option A) started at 2026-05-12T15:24:29+08:00 ===
 
 ****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
   **** SW Build 5069499 on May 21 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Tue May 12 15:04:54 2026
+  **** Start of session at: Tue May 12 15:24:36 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
 source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
-INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:05:00 +0800 2026
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:24:37 +0800 2026
 INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
 WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
 Sourcing Tcl script 'run_csim.tcl'
 == csim sa_conv2d_int ============================================
 INFO: [HLS 200-1510] Running: open_project -reset csim_sa_conv2d_int 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_int'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_int'.
 INFO: [HLS 200-1510] Running: set_top sa_conv2d_int 
 INFO: [HLS 200-1510] Running: add_files src/conv2d_int.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/conv2d_int.cpp' to the project
@@ -32,6 +32,9 @@ INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1
 INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+   SA_REPO_ROOT  = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw
+   SA_WEIGHT_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
+   SA_GOLDEN_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem
 INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
 INFO: [SIM 211-2] *************** CSIM start ***************
 INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
@@ -64,11 +67,11 @@ E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.
 CSIM PASS
 INFO: [SIM 211-1] CSim done with 0 errors.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:14; Allocated memory: 0.996 MB.
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:04; Allocated memory: 0.789 MB.
 INFO: [HLS 200-1510] Running: close_project 
 == csim sa_conv2d_bn ============================================
 INFO: [HLS 200-1510] Running: open_project -reset csim_sa_conv2d_bn 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_bn'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_conv2d_bn'.
 INFO: [HLS 200-1510] Running: set_top sa_conv2d_bn 
 INFO: [HLS 200-1510] Running: add_files src/conv2d_bn.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/conv2d_bn.cpp' to the project
@@ -84,6 +87,9 @@ Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/top
 INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+   SA_REPO_ROOT  = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw
+   SA_WEIGHT_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
+   SA_GOLDEN_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem
 INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
 INFO: [SIM 211-2] *************** CSIM start ***************
 INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
@@ -131,11 +137,11 @@ E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.
 CSIM PASS
 INFO: [SIM 211-1] CSim done with 0 errors.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:05; Allocated memory: 0.129 MB.
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:05; Allocated memory: 0.113 MB.
 INFO: [HLS 200-1510] Running: close_project 
 == csim sa_lif_expand ============================================
 INFO: [HLS 200-1510] Running: open_project -reset csim_sa_lif_expand 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_lif_expand'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_lif_expand'.
 INFO: [HLS 200-1510] Running: set_top sa_lif_expand 
 INFO: [HLS 200-1510] Running: add_files src/lif_expand.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/lif_expand.cpp' to the project
@@ -149,6 +155,9 @@ Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/top
 INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+   SA_REPO_ROOT  = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw
+   SA_WEIGHT_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
+   SA_GOLDEN_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem
 INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
 INFO: [SIM 211-2] *************** CSIM start ***************
 INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
@@ -178,11 +187,11 @@ E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.
 CSIM PASS
 INFO: [SIM 211-1] CSim done with 0 errors.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:03; Allocated memory: 0.094 MB.
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:03; Allocated memory: 0.098 MB.
 INFO: [HLS 200-1510] Running: close_project 
 == csim sa_maxpool_or ============================================
 INFO: [HLS 200-1510] Running: open_project -reset csim_sa_maxpool_or 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_maxpool_or'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_maxpool_or'.
 INFO: [HLS 200-1510] Running: set_top sa_maxpool_or 
 INFO: [HLS 200-1510] Running: add_files src/maxpool_or.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/maxpool_or.cpp' to the project
@@ -196,6 +205,9 @@ Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/top
 INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+   SA_REPO_ROOT  = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw
+   SA_WEIGHT_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
+   SA_GOLDEN_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_08_sppf
 INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
 INFO: [SIM 211-2] *************** CSIM start ***************
 INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
@@ -225,11 +237,11 @@ E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.
 CSIM PASS
 INFO: [SIM 211-1] CSim done with 0 errors.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:06; Allocated memory: 0.094 MB.
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:03; Allocated memory: 0.098 MB.
 INFO: [HLS 200-1510] Running: close_project 
 == csim sa_ms_downsampling ============================================
 INFO: [HLS 200-1510] Running: open_project -reset csim_sa_ms_downsampling 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_downsampling'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/csim_sa_ms_downsampling'.
 INFO: [HLS 200-1510] Running: set_top sa_ms_downsampling 
 INFO: [HLS 200-1510] Running: add_files src/ms_downsampling.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/ms_downsampling.cpp' to the project
@@ -251,6 +263,9 @@ Resolution: For help on HLS 200-1505 see docs.xilinx.com/access/sources/dita/top
 INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+   SA_REPO_ROOT  = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw
+   SA_WEIGHT_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
+   SA_GOLDEN_DIR = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem
 INFO: [HLS 200-1510] Running: csim_design -O -ldflags -Wl,--as-needed 
 INFO: [SIM 211-2] *************** CSIM start ***************
 INFO: [SIM 211-4] CSIM will launch CLANG as the compiler.
@@ -326,16 +341,16 @@ E:/Applaction/Xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.
 #define __GMP_LIBGMP_DLL 1
         ^
 1 warning generated.
-[layer_00] load FAILED: npz_reader: cannot open tests/golden/exploded/layer_00_stem/input.npy
+[layer_00] load FAILED: npz_reader: cannot open C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem/input.npy
 [layer_00] Hint: run 'python tools/ci/explode_npz.py --all' and
 [layer_00]       'python tools/ci/explode_npz.py models/tiny_fpga_int8.npz \
 [layer_00]            --out-dir models/exploded' first.
-[layer_00] golden_dir = tests/golden/exploded/layer_00_stem
-[layer_00] weight_dir = models/exploded
+[layer_00] golden_dir = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/tests/golden/exploded/layer_00_stem
+[layer_00] weight_dir = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/models/exploded
 @E Simulation failed: Function 'main' returns nonzero value '2'.
 ERROR: [SIM 211-100] 'csim_design' failed: nonzero return value.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:08; Allocated memory: 0.113 MB.
+INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:08; Allocated memory: 0.129 MB.
 4
     while executing
 "source run_csim.tcl"
@@ -343,5 +358,5 @@ INFO: [HLS 200-2161] Finished Command csim_design Elapsed time: 00:00:08; Alloca
     invoked from within
 "uplevel \#0 [list source $tclfile] "
 
-INFO: [HLS 200-112] Total CPU user time: 4 seconds. Total CPU system time: 3 seconds. Total elapsed time: 50.101 seconds; peak allocated memory: 438.527 MB.
+INFO: [HLS 200-112] Total CPU user time: 4 seconds. Total CPU system time: 4 seconds. Total elapsed time: 31.331 seconds; peak allocated memory: 436.500 MB.
 CSIM_TCL_EXIT_FAIL 

@@ -240,3 +240,26 @@ C2 / B2 / Contract 3 的 backlog（M2-W2）：
 期望 HLS 214-134 也消失（全部 top args 是 plain T*，no nesting）。如再撞新 error → URGENT_ASK_5（按你说的「我会停 loop 等人」— 已 ack）。
 
 — Main Claude (主开发机, 2026-05-12T16:35)
+
+
+---
+
+## 2026-05-12T16:48 — Re: URGENT_ASK_5 Variant 1.1 applied
+
+诊断完美。HLS 2024.1 把 3 个 small-depth offset arrays (depth=30) demote 成 scalar register port，因为 (a) 6 m_axi 挤一个 bundle 太多 (b) depth 太小 (<cache-line) 触发 register heuristic。
+
+### Patch
+`hw/hls/src/tiny_fpga_top.cpp` (1 行级 SA_AXI_MM 调整):
+
+    SA_AXI_MM(w_offsets,     gmem5, 256)   // gmem2 -> gmem5, depth 30 -> 256
+    SA_AXI_MM(bias_offsets,  gmem5, 256)
+    SA_AXI_MM(shift_offsets, gmem5, 256)
+
+3 pool 仍 gmem2 (3 m_axi)，3 offsets 转 gmem5 (3 m_axi)。每 bundle 3 ports + offsets 1KB ≥ cache-line → Vitis 应该 force 真 m_axi 不再 demote。
+
+### 接下来
+`git pull origin vivado/synth-runner` → `vitis_hls -f run_synth.tcl`。期望 HLS 214-323 消失。
+
+如 Variant 1.1 也 fail → 按你之前承诺执行 stop loop + 写 step3 stop summary，不写 URGENT_ASK_6。我会切 Variant 1.2 (embed offsets at pool head, 减到 3 m_axi)。
+
+— Main Claude (主开发机, 2026-05-12T16:48)

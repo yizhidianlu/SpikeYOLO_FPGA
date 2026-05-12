@@ -158,15 +158,16 @@ void sa_tiny_fpga_top(
 {
     SA_AXI_MM(img_in,        gmem0, 196608)
     SA_AXI_MM(feat_out,      gmem1, 21504)
-    /* Plan β Variant 1: flat pools + offset tables (6 m_axi). Pool depth
-     * tuned to fit largest concatenated set for tiny_fpga (~525K weight
-     * bytes; 7.5K bias int32; 525B shift; 30-entry offsets each). */
+    /* Plan β Variant 1.1 (URGENT_ASK_5 fix): offsets were demoted to scalar
+     * register on gmem2 (6 m_axi on one bundle + depth=30 too small).
+     * Move offsets to separate bundle gmem5, pad depth to 256 (>= 1 cache-
+     * line) so Vitis keeps them as real m_axi masters, not register infer. */
     SA_AXI_MM(w_pool,        gmem2, 0x80000)   /* 512 KB headroom */
     SA_AXI_MM(bias_pool,     gmem2, 0x2000)    /* 8 KB             */
     SA_AXI_MM(shift_pool,    gmem2, 0x1000)    /* 4 KB             */
-    SA_AXI_MM(w_offsets,     gmem2, 30)
-    SA_AXI_MM(bias_offsets,  gmem2, 30)
-    SA_AXI_MM(shift_offsets, gmem2, 30)
+    SA_AXI_MM(w_offsets,     gmem5, 256)       /* pad depth */
+    SA_AXI_MM(bias_offsets,  gmem5, 256)
+    SA_AXI_MM(shift_offsets, gmem5, 256)
     SA_AXI_MM(scratch_a,     gmem3, 16777216)
     SA_AXI_MM(scratch_b,     gmem3, 16777216)
     SA_AXI_MM(scratch_c,     gmem3, 16777216)

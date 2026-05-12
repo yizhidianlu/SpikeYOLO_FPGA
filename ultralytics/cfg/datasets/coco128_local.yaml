@@ -4,7 +4,12 @@
 # Used as BOTH train and val (same overfit caveat as val2017 alias). Pipeline
 # verification only — not a real mAP signal. Owner: A1 (M2 W2 pre-A800, 2026-05-12).
 
-path: C:/Users/jielu/Desktop/Project/SpikeYOLO/datasets/coco128
+# NOTE: this path matches Ultralytics' globally-configured DATASETS_DIR on
+# this machine (C:\Users\jielu\Desktop\SNN\datasets), where coco128 was
+# already auto-extracted on the first launch. Re-pointing the yaml avoids
+# duplicate download and a path-resolution mismatch (Ultralytics extracts to
+# DATASETS_DIR but yaml `path:` resolves separately).
+path: C:/Users/jielu/Desktop/SNN/datasets/coco128
 train: images/train2017     # 128 images
 val:   images/train2017     # eval on same 128
 

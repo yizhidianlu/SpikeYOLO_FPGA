@@ -1,35 +1,54 @@
-=== Step 5 Vivado BD + bitstream started at 2026-05-12T17:38:26+08:00 ===
+=== Step 5 Vivado BD+bit RE-RUN 4 (CWD fixed) at 2026-05-12T21:47:41+08:00 ===
 
 ****** Vivado v2024.1 (64-bit)
   **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Tue May 12 17:38:32 2026
+  **** Start of session at: Tue May 12 21:47:50 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
-source build_bd.tcl
-# set PROJECT     spike_zybo
-# set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
-# set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
-# set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
-# set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
-# set DIGILENT_IP [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
-# set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
-# set PART        xc7z020clg400-1
-# set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
-# if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
-#     ![file exists "${SPIKE_IP}/sa_tiny_fpga_top.xo"]} {
-#     puts "WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/."
-#     puts "      Generating BD with a placeholder IP. Re-run after .xo is built."
-#     set HAS_HLS_IP 0
-# } else {
-#     set HAS_HLS_IP 1
-# }
-# file mkdir $OUT_DIR
-# create_project -force $PROJECT $OUT_DIR -part $PART
-create_project: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 628.477 ; gain = 200.750
-# set_property board_part $BOARD_PART [current_project]
-ERROR: [Board 49-71] The board_part definition was not found for digilentinc.com:zybo-z7-20:part0:1.0. The project's board_part property was not set, but the project's part property was set to xc7z020clg400-1. Valid board_part values can be retrieved with the 'get_board_parts' Tcl command. Check if board.repoPaths parameter is set and the board_part is installed from the tcl app store.
-INFO: [Common 17-206] Exiting Vivado at Tue May 12 17:38:42 2026...
+source {C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_step5_bd_patched.tcl}
+# set HW_VIVADO_DIR  "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado"
+# set BUILD_BD_PATH  "$HW_VIVADO_DIR/build_bd.tcl"
+# set fh [open $BUILD_BD_PATH r]
+# set content [read $fh]
+# close $fh
+# set content [string map [list "digilentinc.com:zybo-z7-20:part0:1.0" "digilentinc.com:zybo-z7-20:part0:1.2"] $content]
+# set content [string map [list {[file dirname [info script]]} $HW_VIVADO_DIR] $content]
+# puts "INFO: run_step5_bd_patched.tcl â€? sourcing patched build_bd.tcl"
+INFO: run_step5_bd_patched.tcl â€? sourcing patched build_bd.tcl
+# puts "INFO:   BOARD_PART :1.0 -> :1.2"
+INFO:   BOARD_PART :1.0 -> :1.2
+# puts "INFO:   [file dirname [info script]] pinned to $HW_VIVADO_DIR"
+INFO:   C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machine pinned to C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado
+# eval $content
+WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/.
+      Generating BD with a placeholder IP. Re-run after .xo is built.
+INFO: board.repoPaths = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-boards/new/board_files
+create_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:10 . Memory (MB): peak = 706.961 ; gain = 277.340
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins rgb2dvi_0/s_axis_video'
+ERROR: [BD 5-106] Arguments to the connect_bd_intf_net command cannot be empty.
+ERROR: [Common 17-39] 'connect_bd_intf_net' failed due to earlier errors.
+
+    while executing
+"connect_bd_intf_net -intf_net vdma_to_rgb2dvi \
+    [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
+    [get_bd_intf_pins rgb2dvi_0/s_axis_video]"
+    ("eval" body line 230)
+    invoked from within
+"eval $content"
+    (file "C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\runs\remote_machine\run_step5_bd_patched.tcl" line 31)
+INFO: [Common 17-206] Exiting Vivado at Tue May 12 21:48:15 2026...
 VIVADO_TCL_EXIT_FAIL 

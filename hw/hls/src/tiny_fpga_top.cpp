@@ -146,6 +146,13 @@ void sa_tiny_fpga_top(
           sa_i8_t  *scratch_spk_d,      /* sppf pool_buf3                      */
           sa_i8_t  *scratch_spk_e)      /* sppf concat_buf                     */
 {
+    /* Vitis HLS 2024.1 rejects struct-of-pointers on top function args
+     * (error HLS 214-298). DISAGGREGATE splits sa_layer_weights_t (3
+     * pointer fields w/bias/out_shift) into individual m_axi ports per
+     * field, so L.w / L.bias / L.out_shift each get a separate AXI
+     * master interface. Fix per Remote Claude URGENT_ASK_2.md Option α,
+     * 2026-05-12T15:53. */
+    #pragma HLS DISAGGREGATE variable=L
     SA_AXI_MM(img_in,        gmem0, 196608)
     SA_AXI_MM(feat_out,      gmem1, 21504)
     SA_AXI_MM(L,             gmem2, 240)             /* 30 entries * 8 bytes/ptr * 3   */

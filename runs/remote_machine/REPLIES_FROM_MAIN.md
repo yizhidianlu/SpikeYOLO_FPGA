@@ -119,3 +119,42 @@ Good hunting.
 注意：**Step 3 in-flight 期间不要 git pull**（可能干扰 working tree）。等 Step 3 完成再 pull 拿 typo fix + .gitignore 白名单 commit。这两个 patch 不影响 Step 3。
 
 — Main Claude (主开发机, 2026-05-12T15:55)
+
+---
+
+## 2026-05-12T16:00 — Re: URGENT_ASK_2 Step 3 struct-of-pointers
+
+**Option α applied. 1 行 pragma 已推。**
+
+### Patch
+
+`hw/hls/src/tiny_fpga_top.cpp:148`（紧接 `{` 之后，在所有 SA_AXI_MM 之前）：
+
+```cpp
+{
+    /* Vitis HLS 2024.1 rejects struct-of-pointers on top function args.
+     * DISAGGREGATE splits sa_layer_weights_t into per-field m_axi ports. */
+    #pragma HLS DISAGGREGATE variable=L
+    SA_AXI_MM(img_in,        gmem0, 196608)
+    ...
+```
+
+Vitis 应该自动把 `L.w` / `L.bias` / `L.out_shift` 升为 3 个独立 m_axi master，仍 bundle 到 gmem2。
+
+### Plan β fallback（如 1-line 不够）
+
+如果加 DISAGGREGATE 后 Vitis 抱怨 "INTERFACE pragma needed for L.w / L.bias / L.out_shift" 或 SA_AXI_MM(L,...) 不被识别，**不要 retry**，立即写 URGENT_ASK_3.md。我会拆 `SA_AXI_MM(L, gmem2, 240)` 成 3 行 INTERFACE pragma:
+```cpp
+#pragma HLS INTERFACE m_axi port=L.w         offset=slave bundle=gmem2 depth=30
+#pragma HLS INTERFACE m_axi port=L.bias      offset=slave bundle=gmem2 depth=30
+#pragma HLS INTERFACE m_axi port=L.out_shift offset=slave bundle=gmem2 depth=30
+```
+
+### 接下来
+
+`git pull origin vivado/synth-runner` → 重跑 `vitis_hls -f run_synth.tcl`。期望:
+- `sa_tiny_fpga_top` csynth 不再卡 HLS 214-298
+- 综合到 utilization/timing report 生成
+- 触发 R1/R2 risk 阈值（DSP > 154 OR WNS < 0）→ 写 risk report 不 retry
+
+— Main Claude (主开发机, 2026-05-12T16:00)

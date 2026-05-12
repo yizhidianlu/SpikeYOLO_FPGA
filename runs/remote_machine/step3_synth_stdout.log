@@ -1,21 +1,21 @@
-=== Step 3 synth started at 2026-05-12T15:50:17+08:00 ===
+=== Step 3 synth RE-RUN (Option alpha applied) started at 2026-05-12T16:00:09+08:00 ===
 
 ****** Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2024.1 (64-bit)
   **** SW Build 5069499 on May 21 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Tue May 12 15:50:29 2026
+  **** Start of session at: Tue May 12 16:00:14 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
 source E:/Applaction/Xilinx/Vitis_HLS/2024.1/scripts/vitis_hls/hls.tcl -notrace
-INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 15:50:30 +0800 2026
+INFO: [HLS 200-10] For user 'jielu' on host 'yizhidianlu' (Windows NT_amd64 version 10.0) on Tue May 12 16:00:15 +0800 2026
 INFO: [HLS 200-10] In directory 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls'
 WARNING: [HLS 200-2053] The vitis_hls executable is deprecated. Consider using vitis-run --mode hls --tcl
 Sourcing Tcl script 'run_synth.tcl'
 == synth sa_tiny_fpga_top =============================================
 INFO: [HLS 200-1510] Running: open_project -reset synth_sa_tiny_fpga_top 
-INFO: [HLS 200-10] Creating and opening project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top'.
+INFO: [HLS 200-10] Opening and resetting project 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top'.
 INFO: [HLS 200-1510] Running: set_top sa_tiny_fpga_top 
 INFO: [HLS 200-1510] Running: add_files src/tiny_fpga_top.cpp -cflags -Iinclude -DSA_USE_HLS 
 INFO: [HLS 200-10] Adding design file 'src/tiny_fpga_top.cpp' to the project
@@ -47,7 +47,7 @@ INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
 INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
 INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
 INFO: [HLS 200-1510] Running: csynth_design 
-INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.118 seconds; current allocated memory: 227.336 MB.
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.12 seconds; current allocated memory: 226.809 MB.
 INFO: [HLS 200-10] Analyzing design file 'src/maxpool_or.cpp' ... 
 WARNING: [HLS 207-5569] unexpected pragma parameter 'x_in' (src/maxpool_or.cpp:26:29)
 WARNING: [HLS 207-5569] unexpected pragma parameter 'y_out' (src/maxpool_or.cpp:27:29)
@@ -218,29 +218,29 @@ WARNING: [HLS 207-5569] unexpected pragma parameter 'groups' (src/ms_downsamplin
 WARNING: [HLS 207-5569] unexpected pragma parameter 'first_layer' (src/ms_downsampling.cpp:82:33)
 INFO: [HLS 200-10] Analyzing design file 'src/tiny_fpga_top.cpp' ... 
 WARNING: [HLS 207-997] '/*' within block comment (include\op_macros.h:20:19)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'img_in' (src/tiny_fpga_top.cpp:149:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'feat_out' (src/tiny_fpga_top.cpp:150:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'L' (src/tiny_fpga_top.cpp:151:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_a' (src/tiny_fpga_top.cpp:152:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_b' (src/tiny_fpga_top.cpp:153:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_c' (src/tiny_fpga_top.cpp:154:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_d' (src/tiny_fpga_top.cpp:155:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_e' (src/tiny_fpga_top.cpp:156:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_f' (src/tiny_fpga_top.cpp:157:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spike' (src/tiny_fpga_top.cpp:158:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_acc' (src/tiny_fpga_top.cpp:159:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_a' (src/tiny_fpga_top.cpp:160:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_b' (src/tiny_fpga_top.cpp:161:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_c' (src/tiny_fpga_top.cpp:162:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_d' (src/tiny_fpga_top.cpp:163:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_e' (src/tiny_fpga_top.cpp:164:29)
-WARNING: [HLS 207-5569] unexpected pragma parameter 'layer_id' (src/tiny_fpga_top.cpp:165:33)
-INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 1 seconds. CPU system time: 2 seconds. Elapsed time: 45.054 seconds; current allocated memory: 239.270 MB.
+WARNING: [HLS 207-5569] unexpected pragma parameter 'img_in' (src/tiny_fpga_top.cpp:156:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'feat_out' (src/tiny_fpga_top.cpp:157:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'L' (src/tiny_fpga_top.cpp:158:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_a' (src/tiny_fpga_top.cpp:159:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_b' (src/tiny_fpga_top.cpp:160:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_c' (src/tiny_fpga_top.cpp:161:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_d' (src/tiny_fpga_top.cpp:162:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_e' (src/tiny_fpga_top.cpp:163:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_f' (src/tiny_fpga_top.cpp:164:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spike' (src/tiny_fpga_top.cpp:165:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_acc' (src/tiny_fpga_top.cpp:166:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_a' (src/tiny_fpga_top.cpp:167:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_b' (src/tiny_fpga_top.cpp:168:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_c' (src/tiny_fpga_top.cpp:169:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_d' (src/tiny_fpga_top.cpp:170:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'scratch_spk_e' (src/tiny_fpga_top.cpp:171:29)
+WARNING: [HLS 207-5569] unexpected pragma parameter 'layer_id' (src/tiny_fpga_top.cpp:172:33)
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 2 seconds. CPU system time: 1 seconds. Elapsed time: 40.555 seconds; current allocated memory: 238.859 MB.
 INFO: [HLS 200-777] Using interface defaults for 'Vivado' flow target.
-INFO: [HLS 200-1995] There were 49,754 instructions in the design after the 'Compile/Link' phase of compilation. See the Design Size Report for more details: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1/syn/report/csynth_design_size.rpt
+INFO: [HLS 200-1995] There were 49,755 instructions in the design after the 'Compile/Link' phase of compilation. See the Design Size Report for more details: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/synth_sa_tiny_fpga_top/sol1/syn/report/csynth_design_size.rpt
 ERROR: [HLS 214-298] Struct type with pointer type inside on top function argument is not supported, please disaggregate argument 'L' manually (src/tiny_fpga_top.cpp:148:0)
 ERROR: [HLS 200-1715] Encountered problem during source synthesis
-INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:55; Allocated memory: 13.402 MB.
+INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:48; Allocated memory: 13.367 MB.
 Pre-synthesis failed.
     while executing
 "source run_synth.tcl"
@@ -248,5 +248,5 @@ Pre-synthesis failed.
     invoked from within
 "uplevel \#0 [list source $tclfile] "
 
-INFO: [HLS 200-112] Total CPU user time: 4 seconds. Total CPU system time: 4 seconds. Total elapsed time: 58.481 seconds; peak allocated memory: 240.676 MB.
+INFO: [HLS 200-112] Total CPU user time: 4 seconds. Total CPU system time: 3 seconds. Total elapsed time: 51.327 seconds; peak allocated memory: 240.082 MB.
 SYNTH_TCL_EXIT_FAIL 

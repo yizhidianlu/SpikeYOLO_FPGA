@@ -30,7 +30,8 @@ set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
 set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
 set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
 set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
-set DIGILENT_IP [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+set DIGILENT_IP     [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+set DIGILENT_BOARDS [file normalize "${IP_REPO_DIR}/digilent/vivado-boards/new/board_files"]
 set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
 set PART        xc7z020clg400-1
 set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
@@ -47,6 +48,20 @@ if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
 }
 
 file mkdir $OUT_DIR
+# Per Remote URGENT_ASK_7: Vivado 2024.1 ships without ZYBO board files.
+# Point board.repoPaths at Digilent's vivado-boards submodule BEFORE
+# create_project / set_property board_part (must be set as a global param
+# so the project picks it up at creation time).
+if {[file isdirectory $DIGILENT_BOARDS]} {
+    set_param board.repoPaths [list $DIGILENT_BOARDS]
+    puts "INFO: board.repoPaths = $DIGILENT_BOARDS"
+} else {
+    puts "ERROR: vivado-boards not found at $DIGILENT_BOARDS"
+    puts "       Run hw/vivado/scripts/setup_ip_repo.sh first (it now fetches both"
+    puts "       vivado-library and vivado-boards as submodules)."
+    exit 1
+}
+
 create_project -force $PROJECT $OUT_DIR -part $PART
 set_property board_part $BOARD_PART [current_project]
 

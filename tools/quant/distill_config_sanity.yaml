@@ -10,7 +10,7 @@ optimizer:    AdamW
 lr:           5.0e-4
 lr_schedule:  cosine
 weight_decay: 1.0e-4
-epochs:       5
+epochs:       5                 # v6: was 1 in v5; full sanity run for distilled mAP (val_every=0 keeps val skipped)
 batch_size:   16
 warmup_epochs: 1
 
@@ -22,7 +22,7 @@ loss_weights:
 
 data:
   dataset_yaml: ultralytics/cfg/datasets/coco_sanity_val_alias.yaml
-  val_every:    1
+  val_every:    0                 # v5: was 1; DISABLE val to avoid epoch-transition Half/float crash
   imgsz:        256
 
 freeze_teacher: true

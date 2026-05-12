@@ -14,6 +14,16 @@
  *
  * Helper #2: sa_residual_add_i32 — element-wise int32 add for the two residual
  *            shortcuts inside ms_all_conv_block.
+ *
+ * Stability note (W6 review): stable since W3, no extension needed for M1.
+ *   - C3's ringbuf / double-buffer scheme is a SW-runtime construct
+ *     (sw/runtime/*.c) — the HLS side just exposes AXI-MM offsets, no
+ *     additional inline helper required.
+ *   - B2's BD wiring consumes the AXI-MM / AXI-Lite pragma macros in
+ *     include/axi_iface.h directly; nothing in op_macros.h is on the IP
+ *     interface surface.
+ *   - M5 dataflow re-write will inline both helpers; until then this file
+ *     should stay short and dependency-free.
  */
 
 #ifndef SA_HLS_OP_MACROS_H

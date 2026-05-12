@@ -19,10 +19,12 @@
  * AXI-MM master per port, one s_axilite control reg). Wrapping the cast as
  * sa_detect_head keeps the per-layer dispatch in tiny_fpga_top uniform.
  *
- * --- resource budget ---
- * estimated DSP : 0   (no MAC)
- * estimated BRAM: 0   (streamed memcpy, no scratch)
- * estimated LUT : ~80 (loop counter + AXI burst FSM)
+ * === Resource estimate (paper) ===
+ * DSP48:    0       (no MAC; pure int32 -> int8 truncation)
+ * BRAM 36K: 0       (streamed memcpy, no on-chip scratch)
+ * LUT:      ~80     (loop counter + AXI burst FSM)
+ * FF:       ~120    (AXI-MM addr regs + 32-bit input flop)
+ * estimated cycles per call: N*C*H*W (1*48*16*16 = ~12 K, II=1 inner loop)
  */
 
 #include "dtypes.h"

@@ -49,7 +49,7 @@ ALL_TB := $(TB_CONV2D_INT) $(TB_CONV2D_BN) $(TB_LIF_EXPAND) $(TB_MAXPOOL_OR)
 
 .PHONY: all clean csim_native explode_golden_all explode_weights gen_sep_smoke \
         host_csim_layer_00 host_csim_layer_01 host_csim_layer_03 host_csim_layer_08 \
-        host_csim_layer_11 host_csim_top
+        host_csim_layer_11 host_csim_top host_csim_all host_csim_macros
 
 all: csim_native
 
@@ -248,6 +248,29 @@ host_csim_top: $(TB_TINY_FPGA_TOP) explode_golden_all $(WEIGHT_TAG)
 	    --cwd $(abspath $(ROOT)) \
 	    --golden-dir tests/golden/exploded/layer_00_stem \
 	    --weight-dir models/exploded
+
+# ---- W6 aggregate target. Sequentially runs every host_csim layer + the
+# end-to-end top so a single `make host_csim_all` covers what hls_smoke.yml
+# does on the self-hosted CI. Each sub-target already has its own deps so
+# the recipe body is just an echo for the trailing "ALL PASS" marker.
+host_csim_all: host_csim_layer_00 host_csim_layer_01 host_csim_layer_03 \
+               host_csim_layer_08 host_csim_layer_11 host_csim_top
+	@echo "=== ALL host_csim PASS ==="
+
+# ---- W6 op_macros unit test. Stand-alone host-side test for the inline
+# helpers in include/op_macros.h (sa_ms_standard_conv_inplace +
+# sa_residual_add_i32). No .npz dependency — hard-coded inputs and asserts.
+TB_OP_MACROS := $(BUILD)/test_op_macros
+
+$(TB_OP_MACROS): sim/test_op_macros.cpp \
+                 src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp \
+                 include/op_macros.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $< \
+	    src/conv2d_bn.cpp src/conv2d_int.cpp src/lif_expand.cpp
+
+host_csim_macros: $(TB_OP_MACROS)
+	@echo "==> $(TB_OP_MACROS) [op_macros unit test]"
+	@$(TB_OP_MACROS)
 
 csim_native: $(ALL_TB) $(GOLDEN_TAG_00) $(WEIGHT_TAG)
 	@$(PYTHON) $(ROOT)/tools/ci/run_host_csim.py \

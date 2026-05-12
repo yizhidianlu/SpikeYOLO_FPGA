@@ -17,6 +17,10 @@ inherit cmake pkgconfig
 
 DEPENDS = "libdrm v4l-utils"
 
+# Runtime deps — libspike-accel ships from C2's sdk recipe (same CMake project
+# here installs it). Bitbake will resolve via PROVIDES at packaging time.
+RDEPENDS:${PN} += "libspike-accel"
+
 EXTRA_OECMAKE = "-DSA_BUILD_TESTS=OFF -DSA_BUILD_STUB=OFF -DSA_APP_NO_V4L2=OFF -DSA_APP_NO_DRM=OFF"
 
 do_install:append() {
@@ -24,6 +28,13 @@ do_install:append() {
     install -m 0644 ${S}/firmware/tiny_fpga_int8.bin ${D}/lib/firmware/
     install -d ${D}/opt
     install -m 0755 ${S}/run_on_board.sh ${D}/opt/
+    # C3 ships runtime.yaml; create the etc dir so packaging works even if the
+    # file is not yet present (will be overlaid by C3 in a later sprint).
+    install -d ${D}${sysconfdir}/spike-accel/
+    if [ -f ${S}/runtime.yaml ]; then \
+        install -m 0644 ${S}/runtime.yaml ${D}${sysconfdir}/spike-accel/runtime.yaml; \
+    fi
 }
 
 FILES:${PN} += "/lib/firmware/tiny_fpga_int8.bin /opt/run_on_board.sh"
+FILES:${PN} += "${sysconfdir}/spike-accel/runtime.yaml"

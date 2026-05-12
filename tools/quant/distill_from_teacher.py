@@ -303,6 +303,18 @@ def _build_distilling_trainer_cls(student, teacher, adapter, s_feats, t_feats,
 
 def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, build_adapter):
     import torch
+    # v6 fix: torch>=2.6 defaults torch.load(weights_only=True). Ultralytics
+    # final_eval()->strip_optimizer() reloads our per-epoch ckpts via plain
+    # torch.load(...) and crashes with WeightsUnpickler since DetectionModel
+    # is not on the safe-globals allowlist. Pre-register it here so the v5
+    # final-eval crash (and the corresponding stderr noise) goes away.
+    try:
+        import torch.serialization as _ts
+        from ultralytics.nn.tasks import DetectionModel as _DetModel
+        _ts.add_safe_globals([_DetModel])
+        print("[distill] registered DetectionModel in torch safe_globals (v6 patch)")
+    except Exception as _e:
+        print(f"[distill] safe_globals patch skipped: {_e!r}")
     epochs = args.epochs if args.epochs is not None else int(cfg.get("epochs", 30))
     batch_size = args.batch_size if args.batch_size is not None else int(cfg.get("batch_size", 64))
     device = _select_device(args.device or cfg.get("device", "auto"))
@@ -439,6 +451,84 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
         trainer = TrainerCls(overrides=overrides)
         print(f"[distill] DistillingDetectionTrainer constructed OK; "
               f"loss_names={trainer.loss_names if hasattr(trainer, 'loss_names') else 'TBD'}")
+        # ------------------------------------------------------------------
+        # v5 fix: ultralytics 8.0.197 validator (engine/validator.py:113) sets
+        # `self.args.half = (device != cpu)` unconditionally during training and
+        # then `model.half()`s. SNN modules accumulate FP32 buffers (LIF mem,
+        # batchnorm running stats etc) that don't follow `.half()` cleanly,
+        # producing `Half input vs float bias` crashes at epoch boundary.
+        # Workaround: force student/adapter back to FP32 and patch trainer.args
+        # so the AMP/half code paths stay disabled.
+        # NOTE: trainer.model is still a STRING (yaml path) here — the real
+        # nn.Module is built inside _setup_train, which is invoked at the top
+        # of trainer.train(). So model-level .float() goes in the
+        # on_pretrain_routine_end callback below, not here.
+        if hasattr(trainer, "args"):
+            if hasattr(trainer.args, "half"):
+                trainer.args.half = False
+            if hasattr(trainer.args, "amp"):
+                trainer.args.amp = False
+        if adapter is not None:
+            adapter.float()
+        # Disable val if val_every == 0 to avoid the validator path entirely.
+        # Note: ultralytics 8.0.197 trainer also force-runs val on final epoch
+        # (final_epoch=True). For sanity v5 (epochs=1) that means even with
+        # val=False the final-epoch validate() will still fire — so we ALSO
+        # short-circuit trainer.validate to return empty metrics in that case.
+        val_every = int(cfg.get("data", {}).get("val_every", 1))
+        if val_every <= 0:
+            if hasattr(trainer.args, "val"):
+                trainer.args.val = False
+            # Replace trainer.validate with a no-op that returns the same
+            # (metrics_dict, fitness) shape ultralytics expects. fitness=0.0
+            # forces stopper to NOT early-stop on first epoch.
+            def _noop_validate():
+                print("[distill] trainer.validate() skipped (val_every=0)")
+                return {}, 0.0
+            trainer.validate = _noop_validate  # type: ignore[assignment]
+
+        def _cb_force_fp32_validator(tr):
+            # _setup_train has just built trainer.model (real nn.Module),
+            # trainer.ema, and trainer.validator. Force everything to FP32
+            # and wrap validator.__call__ so future val calls also stay FP32.
+            try:
+                if hasattr(tr.model, "float"):
+                    tr.model.float()
+                    for m in tr.model.modules():
+                        for p in m.parameters(recurse=False):
+                            p.data = p.data.float()
+                        for b in m.buffers(recurse=False):
+                            if b.dtype == torch.float16:
+                                b.data = b.data.float()
+                if getattr(tr, "ema", None) is not None and getattr(tr.ema, "ema", None) is not None:
+                    tr.ema.ema.float()
+                if getattr(tr, "validator", None) is not None:
+                    val = tr.validator
+                    if hasattr(val, "args") and hasattr(val.args, "half"):
+                        val.args.half = False
+                    # Wrap validator.__call__ so it doesn't half() the model.
+                    if not getattr(val, "_a1_fp32_patched", False):
+                        orig_val_call = val.__call__
+                        def _fp32_val_call(trainer=None, model=None):
+                            try:
+                                val.args.half = False
+                                if trainer is not None:
+                                    trainer.model.float()
+                                    if getattr(trainer, "ema", None) is not None \
+                                            and getattr(trainer.ema, "ema", None) is not None:
+                                        trainer.ema.ema.float()
+                            except Exception as _e:
+                                print(f"[distill] FP32 pre-val hook warn: {_e!r}")
+                            return orig_val_call(trainer=trainer, model=model)
+                        val.__call__ = _fp32_val_call  # type: ignore[assignment]
+                        val._a1_fp32_patched = True
+                        print("[distill] validator __call__ patched to force FP32 "
+                              "(ultralytics 8.0.197 val-path Half/float crash workaround)")
+                print("[distill] FP32 enforcement applied: model + ema + validator")
+            except Exception as _e:
+                print(f"[distill] FP32 validator-patch hook failed: {_e!r}")
+
+        trainer.add_callback("on_pretrain_routine_end", _cb_force_fp32_validator)
         # Wire callbacks BEFORE .train() so first step is logged.
         trainer.add_callback("on_train_batch_end", _cb_log_distill_losses)
         trainer.add_callback("on_fit_epoch_end",   _cb_save_epoch_ckpt)

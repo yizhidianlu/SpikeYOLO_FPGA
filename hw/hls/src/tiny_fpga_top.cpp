@@ -33,14 +33,17 @@
  * for the worst layer (layer 0 stem output = 1*24*64*64 i32 = 384 KB; layer 1
  * acb conv1 expansion = 1*96*64*64 i32 = 1.5 MB; reduce-by-stride after that).
  *
- * --- resource budget (paper estimate; vitis_hls is M2 work) ---
- * estimated DSP : 64   (single PE-array shared across all 11 layers; we run
- *                       layers serially so peak DSP == any one leaf kernel)
- * estimated BRAM: scratch buffers are AXI-MM (DDR3), not on-chip, so on-chip
- *                 BRAM is dominated by the largest leaf scratch (sa_conv2d_int
- *                 tile ~16 KB) + this top dispatcher's static buf metadata
- *                 (~4 KB). Total <= 32 KB.
- * estimated LUT : ~6 K (FSM + offset arithmetic; leaf kernels dominate elsewhere)
+ * === Resource estimate (paper) ===
+ * Top is a pure dispatcher — its own footprint is FSM + offset arithmetic;
+ * the synthesised .xo total equals the per-layer sum (single PE array, serial
+ * schedule) so the numbers below are *dispatcher only*, not the chip total.
+ * DSP48:    0       (no MAC in the dispatcher itself; peak == any leaf <= 64)
+ * BRAM 36K: ~4 KB   (scratch buffers are AXI-MM/DDR3; only the FSM regs +
+ *                    sa_layer_weights_t[30] cache live on-chip)
+ * LUT:      ~6 K    (FSM + offset arithmetic across the 12 if-branches)
+ * FF:       ~3 K    (per-layer geometry constants + AXI-MM addr registers)
+ * estimated cycles per call (run_all): sum of per-layer cycles, dominated by
+ *   stem (~1.6 M) + acb1/acb2a/acb2b (~600 K each) ~= 4.5 M cycles total.
  */
 
 #include "dtypes.h"

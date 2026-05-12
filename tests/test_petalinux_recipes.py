@@ -9,12 +9,18 @@ but we can lint:
 
 from __future__ import annotations
 
+import json
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 
-PETA = Path(__file__).resolve().parent.parent / "sw" / "petalinux"
+REPO = Path(__file__).resolve().parent.parent
+PETA = REPO / "sw" / "petalinux"
 
 
 @pytest.mark.contract
@@ -82,3 +88,51 @@ def test_fetch_app_sources_script_sane():
     text = s.read_text(encoding="utf-8")
     assert "sw/sdk/" in text and "sw/app/" in text
     assert "models/tiny_fpga_int8.bin" in text
+
+
+@pytest.mark.contract
+def test_bootargs_isolcpus_set():
+    """system-user.dtsi should pin core 1 for the spike_accel infer thread."""
+    dts = PETA / "project-spec" / "meta-user" / "recipes-bsp" / \
+          "device-tree" / "files" / "system-user.dtsi"
+    text = dts.read_text(encoding="utf-8")
+    assert "isolcpus=1" in text, "bootargs missing isolcpus=1 (R3 jitter mitigation)"
+
+
+@pytest.mark.contract
+def test_app_recipe_runtime_install_hook():
+    """spike-accel-app.bb must install runtime.yaml dir + declare libspike-accel."""
+    bb = PETA / "project-spec" / "meta-user" / "recipes-apps" / \
+         "spike-accel-app" / "spike-accel-app.bb"
+    text = bb.read_text(encoding="utf-8")
+    assert "${sysconfdir}/spike-accel" in text, "missing runtime.yaml install dir"
+    assert "RDEPENDS:${PN}" in text and "libspike-accel" in text, \
+        "missing RDEPENDS on libspike-accel (C2 SDK lib)"
+
+
+@pytest.mark.contract
+def test_lint_passes():
+    """Recipe lint must pass (subset of recipes covered)."""
+    script = REPO / "tools" / "ci" / "lint_yocto_recipes.py"
+    assert script.exists()
+    r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+    assert r.returncode == 0, "lint failed:\n" + r.stdout + r.stderr
+    # cross-check the json artefact was emitted with zero fails
+    out_json = REPO / "runs" / "yocto_recipe_lint.json"
+    assert out_json.exists()
+    data = json.loads(out_json.read_text(encoding="utf-8"))
+    assert data["fail"] == 0, f"lint json reports fails: {data}"
+
+
+@pytest.mark.contract
+def test_dryrun_passes():
+    """petalinux_build_dryrun.sh must pass without real build tool."""
+    script = REPO / "tools" / "ci" / "petalinux_build_dryrun.sh"
+    assert script.exists()
+    if shutil.which("bash") is None:
+        pytest.skip("bash not on PATH (Windows without git-bash)")
+    env = dict(os.environ)
+    env["SPIKE_DRYRUN_NO_PETALINUX"] = "1"
+    r = subprocess.run(["bash", str(script)], capture_output=True, text=True, env=env)
+    assert r.returncode == 0, "dryrun failed:\n" + r.stdout + r.stderr
+    assert "Dry-run PASS" in r.stdout

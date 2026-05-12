@@ -18,7 +18,7 @@ acceptance_tests:
   - "gh workflow run numpy_regress.yml --ref main"
   - "gh run list --workflow=board_nightly.yml --limit 7"   # 最近 7 天 nightly 健康度
 status: in_progress
-owner: "D2-session-2026-05-11"
+owner: "D2-session-2026-05-12"
 ---
 
 # D2 CI/CD Agent Playbook

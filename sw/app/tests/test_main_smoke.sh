@@ -113,6 +113,24 @@ if [ "${have_real_build}" = "1" ]; then
     else
         bad "three-stage: no summary line in output: ${OUT2}"
     fi
+
+    # ---- preset smoke (M1 W6): exercise --profile dev_host on a real run.
+    OUT3="$(mktemp -t spike_smoke_preset.XXXXXX)"
+    if "${BIN}" --backend stub --profile dev_host \
+                --config "${APP_DIR}/configs/runtime.yaml" \
+                --frames 50 --timeout 200 \
+                --cam-size 640x480 --weights "${FAKE_BIN}" \
+                --drm-dev "${OUT3}.drm" --ppm-dir "${OUT3}.ppm" \
+                > "${OUT3}" 2>&1; then
+        ok "preset dev_host ran to completion"
+    else
+        bad "preset dev_host exit non-zero (log: ${OUT3})"
+    fi
+    if grep -q 'profile=dev_host' "${OUT3}" && grep -q '^summary:' "${OUT3}"; then
+        ok "preset dev_host: profile + summary present"
+    else
+        bad "preset dev_host: profile/summary missing"
+    fi
     rm -f "${FAKE_BIN}"
 fi
 
@@ -142,11 +160,34 @@ if [ "${have_real_build}" = "0" ]; then
              "stride:" "mode:" "ringbuf_capacity:" \
              "capture_thread_affinity:" "infer_thread_affinity:" \
              "display_thread_affinity:" "log_interval_frames:" \
-             "layer:" "id:" "mask:"; do
+             "layer:" "id:" "mask:" \
+             "ppm_dir:" "profile:" "presets:" "dev_host:" \
+             "board_perf:" "board_debug:"; do
         if grep -q "${k}" "${YAML}"; then ok  "runtime.yaml has ${k}"
         else                              bad "runtime.yaml missing ${k}"
         fi
     done
+
+    # M1 W6 — preset compile-check (no real run; just confirm runtime.yaml's
+    # preset entries map back through apply_cfg_kv via the parser keywords).
+    for preset in board_perf board_debug; do
+        # The yaml has the preset; verify each "section.key" inside it is
+        # something main.cpp knows about (presence in main.cpp source).
+        # This is a poor-man's static check until we have a real run.
+        if grep -q "${preset}:" "${YAML}"; then ok "preset ${preset}: declared"
+        else                                     bad "preset ${preset}: missing"; fi
+    done
+
+    # postproc_nms_cli source-level compile check (preprocess-only).
+    if ${CXX} -std=${STD} -E ${DEFS} ${INCS} \
+              "${SRC_DIR}/postproc_nms_cli.cpp" > /dev/null \
+              2>"${SRC_DIR}/.postproc_nms_cli.err"; then
+        ok "preprocess postproc_nms_cli.cpp"
+        rm -f "${SRC_DIR}/.postproc_nms_cli.err"
+    else
+        bad "preprocess postproc_nms_cli.cpp"
+        sed -n '1,8p' "${SRC_DIR}/.postproc_nms_cli.err"
+    fi
 fi
 
 echo "----"

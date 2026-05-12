@@ -97,6 +97,11 @@ struct Cfg {
     /* M1 W5 — layer dispatch (contract-5 v1.1.0). -1 / 0x0FFF match SDK defaults. */
     int       layer_id   = -1;
     uint32_t  layer_mask = 0x0FFFu;
+
+    /* M1 W6 — display mode + profile preset */
+    std::string display_mode = "auto";            /* auto | drm | ppm | none   */
+    std::string ppm_dir      = "runs/c3_frames";
+    std::string profile;                           /* selected preset name      */
 };
 
 
@@ -134,54 +139,130 @@ static int32_t parse_i32_auto(const std::string &v)
     return (int32_t)std::strtol(v.c_str(), nullptr, 0);
 }
 
+/* Apply a single "section.key" -> value pair to a Cfg. Shared between the
+ * top-level YAML walk and the preset-override stage. */
+static void apply_cfg_kv(Cfg &c, const std::string &K, const std::string &val)
+{
+    if      (K == "runtime.backend")        c.backend     = val;
+    else if (K == "runtime.weights_bin")    c.weights     = val;
+    else if (K == "input.source")           c.cam_dev     = val;
+    else if (K == "input.width")            c.cam_w       = std::atoi(val.c_str());
+    else if (K == "input.height")           c.cam_h       = std::atoi(val.c_str());
+    else if (K == "postproc.iou_threshold") c.iou_thresh  = (float)std::atof(val.c_str());
+    else if (K == "postproc.conf_threshold")c.conf_thresh = (float)std::atof(val.c_str());
+    else if (K == "display.device")         c.drm_dev     = val;
+    else if (K == "display.width")          c.fb_w        = std::atoi(val.c_str());
+    else if (K == "display.height")         c.fb_h        = std::atoi(val.c_str());
+    else if (K == "display.mode")           c.display_mode = val;
+    else if (K == "display.ppm_dir")        c.ppm_dir     = val;
+    else if (K == "limits.max_frames")      c.max_frames  = std::atoi(val.c_str());
+    else if (K == "limits.timeout_ms")      c.timeout_ms  = std::atoi(val.c_str());
+    /* M1 W5 — threading. "sequential" -> 1, "three_stage" -> 3. */
+    else if (K == "threading.mode") {
+        if      (val == "sequential")  c.threads = 1;
+        else if (val == "three_stage") c.threads = 3;
+    }
+    else if (K == "threading.ringbuf_capacity")        c.ringbuf_cap = std::atoi(val.c_str());
+    else if (K == "threading.log_interval_frames")     c.log_interval_frames = std::atoi(val.c_str());
+    else if (K == "threading.capture_thread_affinity") c.cpu_capture = std::atoi(val.c_str());
+    else if (K == "threading.infer_thread_affinity")   c.cpu_infer   = std::atoi(val.c_str());
+    else if (K == "threading.display_thread_affinity") c.cpu_display = std::atoi(val.c_str());
+    /* M1 W5 — layer dispatch. */
+    else if (K == "layer.id")   c.layer_id   = parse_i32_auto(val);
+    else if (K == "layer.mask") c.layer_mask = parse_u32_auto(val);
+    /* M1 W6 — profile selector (preset entries are picked up post-walk). */
+    else if (K == "profile.active") c.profile = val;
+}
+
+/* Lead-whitespace count (each tab counts as 2 to match 2-space project style). */
+static int leading_indent(const std::string &s)
+{
+    int n = 0;
+    for (char ch : s) {
+        if (ch == ' ') n += 1;
+        else if (ch == '\t') n += 2;
+        else break;
+    }
+    return n;
+}
+
 static bool parse_runtime_yaml(const std::string &path, Cfg &c)
 {
     std::ifstream f(path);
     if (!f) return false;
+
+    /* Two-pass: pass 1 collects top-level + preset entries; pass 2 applies
+     * the chosen preset's overrides. Profiles are 3-level deep:
+     *     presets:
+     *       dev_host:
+     *         display.mode: ppm
+     * Keys inside a preset are already "section.key" dotted, so they map
+     * directly through apply_cfg_kv(). */
+
+    /* Pass-1 state: track the two outer levels via indent. */
+    std::vector<std::pair<std::string, std::string>> preset_kvs;  /* (preset_name, "k.v") -> val encoded as "k=val" */
+    std::vector<std::string> preset_names;
+    std::vector<std::pair<std::pair<std::string, std::string>, std::string>> preset_entries;
+
     std::string line;
-    std::string section;
+    int level0_indent = -1, level1_indent = -1;
+    std::string section;          /* top-level section ("runtime", "presets", ...) */
+    std::string preset_name;       /* current preset under "presets:" */
     while (std::getline(f, line)) {
         /* strip comment */
         auto h = line.find('#');
         if (h != std::string::npos) line = line.substr(0, h);
         if (trim(line).empty()) continue;
-        bool indented = (line.size() > 0 && (line[0] == ' ' || line[0] == '\t'));
+        int ind = leading_indent(line);
         auto colon = line.find(':');
         if (colon == std::string::npos) continue;
         std::string key = trim(line.substr(0, colon));
-        std::string val = trim(line.substr(colon + 1));
-        if (!indented) {
+        std::string val = strip_quotes(trim(line.substr(colon + 1)));
+
+        if (ind == 0) {
             section = key;
+            preset_name.clear();
+            level0_indent = 0;
+            level1_indent = -1;
             continue;
         }
-        val = strip_quotes(val);
-        if (val.empty()) continue;
-        auto K = section + "." + key;
-        if      (K == "runtime.backend")        c.backend     = val;
-        else if (K == "runtime.weights_bin")    c.weights     = val;
-        else if (K == "input.source")           c.cam_dev     = val;
-        else if (K == "input.width")            c.cam_w       = std::atoi(val.c_str());
-        else if (K == "input.height")           c.cam_h       = std::atoi(val.c_str());
-        else if (K == "postproc.iou_threshold") c.iou_thresh  = (float)std::atof(val.c_str());
-        else if (K == "postproc.conf_threshold")c.conf_thresh = (float)std::atof(val.c_str());
-        else if (K == "display.device")         c.drm_dev     = val;
-        else if (K == "display.width")          c.fb_w        = std::atoi(val.c_str());
-        else if (K == "display.height")         c.fb_h        = std::atoi(val.c_str());
-        else if (K == "limits.max_frames")      c.max_frames  = std::atoi(val.c_str());
-        else if (K == "limits.timeout_ms")      c.timeout_ms  = std::atoi(val.c_str());
-        /* M1 W5 — threading. "sequential" -> 1, "three_stage" -> 3. */
-        else if (K == "threading.mode") {
-            if      (val == "sequential")  c.threads = 1;
-            else if (val == "three_stage") c.threads = 3;
+
+        /* Indented line. Two cases: */
+        if (section == "presets") {
+            if (level1_indent < 0 || ind <= level1_indent) {
+                if (val.empty()) {
+                    /* "  dev_host:" — start a new preset block */
+                    preset_name = key;
+                    level1_indent = ind;
+                    continue;
+                }
+            }
+            /* "    display.mode: ppm" inside a preset */
+            if (!preset_name.empty() && ind > level1_indent && !val.empty()) {
+                preset_entries.push_back({{preset_name, key}, val});
+            }
+            continue;
         }
-        else if (K == "threading.ringbuf_capacity")        c.ringbuf_cap = std::atoi(val.c_str());
-        else if (K == "threading.log_interval_frames")     c.log_interval_frames = std::atoi(val.c_str());
-        else if (K == "threading.capture_thread_affinity") c.cpu_capture = std::atoi(val.c_str());
-        else if (K == "threading.infer_thread_affinity")   c.cpu_infer   = std::atoi(val.c_str());
-        else if (K == "threading.display_thread_affinity") c.cpu_display = std::atoi(val.c_str());
-        /* M1 W5 — layer dispatch. */
-        else if (K == "layer.id")   c.layer_id   = parse_i32_auto(val);
-        else if (K == "layer.mask") c.layer_mask = parse_u32_auto(val);
+
+        /* Regular section.key entry. */
+        if (val.empty()) continue;
+        std::string K = section + "." + key;
+        apply_cfg_kv(c, K, val);
+    }
+
+    /* Pass-2: apply selected preset's keys, if any. */
+    if (!c.profile.empty()) {
+        bool found = false;
+        for (auto &e : preset_entries) {
+            if (e.first.first == c.profile) {
+                found = true;
+                apply_cfg_kv(c, e.first.second, e.second);
+            }
+        }
+        if (!found) {
+            std::fprintf(stderr, "warn: preset '%s' not found in %s\n",
+                         c.profile.c_str(), path.c_str());
+        }
     }
     return true;
 }
@@ -201,17 +282,21 @@ static void parse_args(int argc, char **argv, Cfg &c) {
         else if (a == "--threads"  && i + 1 < argc) c.threads    = std::atoi(argv[++i]);
         else if (a == "--layer-id" && i + 1 < argc) c.layer_id   = parse_i32_auto(argv[++i]);
         else if (a == "--layer-mask" && i + 1 < argc) c.layer_mask = parse_u32_auto(argv[++i]);
-        else if (next("--backend",   c.backend))  {}
-        else if (next("--cam-dev",   c.cam_dev))  {}
-        else if (next("--drm-dev",   c.drm_dev))  {}
-        else if (next("--weights",   c.weights))  {}
-        else if (next("--config",    c.yaml_path)){}
+        else if (next("--backend",      c.backend))      {}
+        else if (next("--cam-dev",      c.cam_dev))      {}
+        else if (next("--drm-dev",      c.drm_dev))      {}
+        else if (next("--weights",      c.weights))      {}
+        else if (next("--config",       c.yaml_path))    {}
+        else if (next("--display-mode", c.display_mode)) {}
+        else if (next("--ppm-dir",      c.ppm_dir))      {}
+        else if (next("--profile",      c.profile))      {}
         else if (a == "--display"  && i + 1 < argc) {
-            /* Reserved for future "dump-frame" / "drm" / "null" mux. Currently
-             * the binary always uses DrmDisplay's host stub on non-Linux. The
-             * flag is accepted so test_main_smoke.sh can pass --display
-             * dump-frame without parser error. */
-            ++i;
+            /* W4 legacy alias: --display dump-frame == --display-mode ppm.
+             * Accepted so test_main_smoke.sh keeps working unchanged. */
+            std::string v = argv[++i];
+            if      (v == "dump-frame") c.display_mode = "ppm";
+            else if (v == "drm")        c.display_mode = "drm";
+            else if (v == "null")       c.display_mode = "none";
         }
         else if (a == "--conf"     && i + 1 < argc) c.conf_thresh = (float)std::atof(argv[++i]);
         else if (a == "--iou"      && i + 1 < argc) c.iou_thresh  = (float)std::atof(argv[++i]);
@@ -221,11 +306,13 @@ static void parse_args(int argc, char **argv, Cfg &c) {
         else if (a == "--help" || a == "-h") {
             std::printf(
                 "Usage: %s [--backend stub|uio] [--config runtime.yaml]\n"
+                "       [--profile dev_host|board_perf|board_debug]\n"
                 "       [--cam-dev /dev/videoN] [--drm-dev /dev/dri/cardN]\n"
                 "       [--weights PATH] [--cam-size WxH] [--conf F] [--iou F]\n"
                 "       [--frames N] [--timeout MS] [--duration SEC] [--bench]\n"
                 "       [--threads 1|3] [--layer-id N] [--layer-mask 0xMMM]\n"
-                "       [--display drm|dump-frame|null]\n",
+                "       [--display-mode auto|drm|ppm|none] [--ppm-dir DIR]\n"
+                "       [--display drm|dump-frame|null]  (legacy alias)\n",
                 argv[0]);
             std::exit(0);
         }
@@ -331,6 +418,12 @@ static void log_stage_breakdown(const FpsMeter &fm)
                 l.capture_ms, l.preproc_ms, l.infer_ms, l.postproc_ms,
                 l.display_ms, l.total_ms, l.effective_fps,
                 (unsigned long)fm.frames());
+    /* M1 W6 — percentile breakdown (p50 / p95 / p99) per stage. */
+    std::printf("stage_pct: infer{p50=%.2f p95=%.2f p99=%.2f} "
+                "cap{p50=%.2f p95=%.2f} disp{p50=%.2f p95=%.2f}\n",
+                l.infer.ms_p50, l.infer.ms_p95, l.infer.ms_p99,
+                l.capture.ms_p50, l.capture.ms_p95,
+                l.display.ms_p50, l.display.ms_p95);
     std::fflush(stdout);
 }
 
@@ -620,10 +713,13 @@ int main(int argc, char **argv)
 {
     Cfg cfg;
 
-    /* 1. CLI pre-scan just for --config so the file is parsed first;
-     *    explicit CLI args then override yaml values. */
+    /* 1. CLI pre-scan for --config and --profile so the yaml is parsed
+     *    against the right preset; explicit CLI args still override yaml
+     *    values in step 3 below. */
     for (int i = 1; i + 1 < argc; i++) {
-        if (std::string(argv[i]) == "--config") { cfg.yaml_path = argv[i + 1]; break; }
+        std::string a = argv[i];
+        if      (a == "--config")  cfg.yaml_path = argv[i + 1];
+        else if (a == "--profile") cfg.profile   = argv[i + 1];
     }
     if (!cfg.yaml_path.empty()) {
         if (!parse_runtime_yaml(cfg.yaml_path, cfg)) {
@@ -636,12 +732,15 @@ int main(int argc, char **argv)
 
     std::printf("spike_accel_demo: backend=%s weights=%s cam=%dx%d fb=%dx%d "
                 "conf=%.2f iou=%.2f frames=%d timeout=%dms threads=%d "
-                "layer_id=%d layer_mask=0x%X sdk=%s\n",
+                "layer_id=%d layer_mask=0x%X display_mode=%s profile=%s sdk=%s\n",
                 cfg.backend.c_str(), cfg.weights.c_str(),
                 cfg.cam_w, cfg.cam_h, cfg.fb_w, cfg.fb_h,
                 cfg.conf_thresh, cfg.iou_thresh,
                 cfg.max_frames, cfg.timeout_ms, cfg.threads,
-                cfg.layer_id, cfg.layer_mask, sa_version());
+                cfg.layer_id, cfg.layer_mask,
+                cfg.display_mode.c_str(),
+                cfg.profile.empty() ? "(none)" : cfg.profile.c_str(),
+                sa_version());
 
     /* --- SDK init --- */
     sa_handle_t accel = nullptr;
@@ -673,8 +772,10 @@ int main(int argc, char **argv)
         return 1;
     }
     DrmDisplay disp;
-    if (!disp.open(cfg.drm_dev, cfg.fb_w, cfg.fb_h)) {
-        std::fprintf(stderr, "drm open failed: %s\n", cfg.drm_dev.c_str());
+    DisplayMode dmode = parse_display_mode(cfg.display_mode);
+    if (!disp.open(cfg.drm_dev, cfg.fb_w, cfg.fb_h, dmode, cfg.ppm_dir)) {
+        std::fprintf(stderr, "drm open failed: %s (mode=%s)\n",
+                     cfg.drm_dev.c_str(), cfg.display_mode.c_str());
         cam.close(); sa_close(accel);
         return 1;
     }
@@ -704,6 +805,8 @@ int main(int argc, char **argv)
         "effective_fps=%.2f stage_cap=%.2fms stage_pre=%.2fms "
         "stage_infer=%.2fms stage_post=%.2fms stage_disp=%.2fms "
         "stage_total=%.2fms threads=%d "
+        "infer_p50=%.2fms infer_p95=%.2fms infer_p99=%.2fms "
+        "display_mode=%s profile=%s "
         "sdk_cycles_compute=%llu sdk_cycles_dma_in=%llu sdk_cycles_dma_out=%llu "
         "sdk_frames_completed=%u sdk_frames_dropped=%u "
         "sdk_last_layer_id=%d sdk_last_layer_mask=0x%X\n",
@@ -711,6 +814,9 @@ int main(int argc, char **argv)
         fps_meter.fps_ema(), fps_meter.fps_cv(),
         lat.effective_fps, lat.capture_ms, lat.preproc_ms, lat.infer_ms,
         lat.postproc_ms, lat.display_ms, lat.total_ms, cfg.threads,
+        lat.infer.ms_p50, lat.infer.ms_p95, lat.infer.ms_p99,
+        cfg.display_mode.c_str(),
+        cfg.profile.empty() ? "(none)" : cfg.profile.c_str(),
         (unsigned long long)perf.cycles_compute,
         (unsigned long long)perf.cycles_dma_in,
         (unsigned long long)perf.cycles_dma_out,

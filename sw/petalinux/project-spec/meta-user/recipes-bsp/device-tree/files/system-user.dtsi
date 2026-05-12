@@ -11,7 +11,10 @@
 
 / {
     chosen {
-        bootargs = "console=ttyPS0,115200 earlycon root=/dev/mmcblk0p2 rw rootwait cma=256M";
+        /* isolcpus=1 : isolate Cortex-A9 core 1 from the scheduler so the
+         * spike_accel inference-wait thread (C2 SDK) gets jitter-free
+         * cycles for IRQ + DMA polling. Core 0 keeps the OS + camera/disp. */
+        bootargs = "console=ttyPS0,115200 earlycon root=/dev/mmcblk0p2 rw rootwait cma=256M isolcpus=1";
     };
 
     /* CMA pool dedicated to spike_accel DMA buffers. */

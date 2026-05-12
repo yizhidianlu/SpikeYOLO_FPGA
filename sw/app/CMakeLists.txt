@@ -66,6 +66,17 @@ endif()
 
 target_link_libraries(spike_accel_demo PRIVATE pthread)
 
+# -----------------------------------------------------------------------------
+# postproc_nms_cli — standalone NMS exerciser (M1 W6).
+# Used by tests/test_postproc_nms_consistency.py to compare C++ NMS output
+# against the Python reference. Pure-C++; no V4L2/DRM/SDK dependencies.
+# -----------------------------------------------------------------------------
+add_executable(postproc_nms_cli
+    src/postproc_nms_cli.cpp
+    src/postproc_nms.cpp
+)
+target_include_directories(postproc_nms_cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 install(TARGETS spike_accel_demo
         RUNTIME DESTINATION /opt
 )

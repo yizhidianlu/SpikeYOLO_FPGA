@@ -105,6 +105,18 @@ jobs:
       - name: Bit-exact PyTorch vs NumPy (37 cases)
         run: pytest tests/test_bit_exact.py -v --tb=short --junit-xml=junit-bit-exact.xml
 
+      - name: A2 self-consistency (12-layer NumPy bit-exact)
+        # A2 W5: numpy_vs_hls.py --self-consistency re-runs numpy_reference
+        # primitives on stored layer inputs and asserts byte-identical match
+        # against stored outputs. Catches drift between extract_golden.py
+        # and the production primitive without needing HLS in the loop.
+        run: |
+          python tools/verify/numpy_vs_hls.py --self-consistency \
+            --weights models/tiny_fpga_int8.npz \
+            --golden-dir tests/golden/ \
+            --out runs/numpy_self_consistency_full.json
+          python -c "import json; d=json.load(open('runs/numpy_self_consistency_full.json')); s=d['summary']; assert s['fail']==0, f'self-consistency fails: {s}'; print('OK', s['pass'], '/', s['total'])"
+
       - name: Extract golden contract suite
         run: pytest tests/test_extract_golden.py -v -m "contract" --tb=short --junit-xml=junit-extract-golden.xml
 
@@ -127,5 +139,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: numpy-regress-${{ github.run_id }}
-          path: junit-*.xml
+          path: |
+            junit-*.xml
+            runs/numpy_self_consistency_full.json
           retention-days: 14

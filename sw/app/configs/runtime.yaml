@@ -33,6 +33,8 @@ display:
   width: 1920
   height: 1080
   refresh_hz: 60
+  mode: auto                   # auto | drm | ppm | none (M1 W6)
+  ppm_dir: runs/c3_frames      # output dir when mode=ppm or AUTO fallback
 
 overlay:
   font_path: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
@@ -58,3 +60,36 @@ threading:
 layer:
   id: -1                       # -1 = all layers; 0..11 = single-layer debug
   mask: 0x0FFF                 # 12-bit mask of layers to schedule
+
+# Profile presets (M1 W6).
+# `profile.active` picks one entry from `presets:`; matching keys override
+# everything above. CLI flags still win as the final layer.
+#
+#   dev_host     — host smoke (no /dev/uio0, no /dev/dri); PPM frame dump.
+#   board_perf   — board production run; DRM, full 12-layer, infinite.
+#   board_debug  — board single-layer (detect head only) for HW bring-up.
+profile:
+  active: dev_host
+
+presets:
+  dev_host:
+    runtime.backend: stub
+    display.mode: ppm
+    limits.max_frames: 100
+    threading.mode: sequential
+    layer.id: -1
+    layer.mask: 0x0FFF
+  board_perf:
+    runtime.backend: uio
+    display.mode: drm
+    limits.max_frames: 0       # forever
+    threading.mode: three_stage
+    layer.id: -1
+    layer.mask: 0x0FFF
+  board_debug:
+    runtime.backend: uio
+    display.mode: drm
+    limits.max_frames: 1000
+    threading.mode: sequential
+    layer.id: 11               # single-layer detect head only
+    layer.mask: 0x0800

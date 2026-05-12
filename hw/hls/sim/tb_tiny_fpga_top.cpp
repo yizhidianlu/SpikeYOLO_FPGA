@@ -34,11 +34,14 @@ typedef struct {
 void sa_tiny_fpga_top(
     const sa_i8_t *img_in, sa_i8_t *feat_out,
     int layer_id,
-    /* Plan β: 3 pointer-to-pointer arrays replace struct-of-ptr L
-     * (HLS 214-298). See tiny_fpga_top.cpp comment + URGENT_ASK_3. */
-    const sa_i8_t  *const *L_w,
-    const sa_i32_t *const *L_bias,
-    const sa_i8_t  *const *L_shift,
+    /* Plan β Variant 1 (URGENT_ASK_4): flat pool ptrs + offset tables
+     * because HLS 2024.1 also rejects ptr-to-ptr (HLS 214-134). */
+    const sa_i8_t  *w_pool,
+    const sa_i32_t *bias_pool,
+    const sa_i8_t  *shift_pool,
+    const sa_i32_t *w_offsets,
+    const sa_i32_t *bias_offsets,
+    const sa_i32_t *shift_offsets,
           sa_i32_t *scratch_a,
           sa_i32_t *scratch_b,
           sa_i32_t *scratch_c,
@@ -128,15 +131,31 @@ int main()
         L[i].out_shift = s_t[i].as_i8();
     }
 
-    /* ---- Plan β: extract 3 pointer arrays for DUT call (HLS top sig changed). ---- */
-    std::vector<const sa_i8_t  *> L_w_arr(N_LAYERS);
-    std::vector<const sa_i32_t *> L_bias_arr(N_LAYERS);
-    std::vector<const sa_i8_t  *> L_shift_arr(N_LAYERS);
+    /* ---- Plan β Variant 1: concat into flat pools + build offset tables.
+     * Keeps A1's Contract 1 .npz format unchanged; the IP-side wire format
+     * is just flat T* + offset[30]. ---- */
+    std::vector<sa_i8_t>  w_pool;
+    std::vector<sa_i32_t> bias_pool;
+    std::vector<sa_i8_t>  shift_pool;
+    std::vector<sa_i32_t> w_offsets(N_LAYERS, 0);
+    std::vector<sa_i32_t> bias_offsets(N_LAYERS, 0);
+    std::vector<sa_i32_t> shift_offsets(N_LAYERS, 0);
     for (int i = 0; i < N_LAYERS; i++) {
-        L_w_arr[i]     = L[i].w;
-        L_bias_arr[i]  = L[i].bias;
-        L_shift_arr[i] = L[i].out_shift;
+        const size_t nw = w_t[i].bytes.size();
+        const size_t nb = b_t[i].bytes.size() / sizeof(sa_i32_t);
+        const size_t ns = s_t[i].bytes.size();
+        w_offsets[i]     = (sa_i32_t)w_pool.size();
+        bias_offsets[i]  = (sa_i32_t)bias_pool.size();
+        shift_offsets[i] = (sa_i32_t)shift_pool.size();
+        const sa_i8_t  *wp = w_t[i].as_i8();
+        const sa_i32_t *bp = b_t[i].as_i32();
+        const sa_i8_t  *sp = s_t[i].as_i8();
+        w_pool.insert(w_pool.end(),         wp, wp + nw);
+        bias_pool.insert(bias_pool.end(),   bp, bp + nb);
+        shift_pool.insert(shift_pool.end(), sp, sp + ns);
     }
+    std::fprintf(stdout, "[tb] pools: w=%zuB bias=%zu*i32 shift=%zuB\n",
+                 w_pool.size(), bias_pool.size(), shift_pool.size());
 
     /* ---- Allocate scratch ----
      *
@@ -185,7 +204,8 @@ int main()
         reinterpret_cast<const sa_i8_t *>(img.bytes.data()),
         feat_out.data(),
         /*layer_id=*/-1,
-        L_w_arr.data(), L_bias_arr.data(), L_shift_arr.data(),
+        w_pool.data(), bias_pool.data(), shift_pool.data(),
+        w_offsets.data(), bias_offsets.data(), shift_offsets.data(),
         sa.data(), sb.data(), sc.data(), sd.data(), se.data(), sf.data(),
         ss.data(), sacc.data(),
         spk_a.data(), spk_b.data(), spk_c.data(), spk_d.data(), spk_e.data());

@@ -131,14 +131,17 @@ void sa_tiny_fpga_top(
     const sa_i8_t  *img_in,
           sa_i8_t  *feat_out,
     int             layer_id,
-    /* Per Remote Claude URGENT_ASK_3 Plan β: HLS 2024.1 rejects struct-of-
-     * pointers as top arg (HLS 214-298, fires in source analysis before
-     * DISAGGREGATE pragma can apply). Replace L with 3 pointer-to-pointer
-     * args; in-memory layout is still struct-of-pointer arrays on the
-     * host side (A1 Contract 1 unchanged), only the IP signature differs. */
-    const sa_i8_t  *const *L_w,         /* L_w[30]     each -> per-layer weights      */
-    const sa_i32_t *const *L_bias,      /* L_bias[30]  each -> per-layer bias         */
-    const sa_i8_t  *const *L_shift,     /* L_shift[30] each -> per-layer out_shift    */
+    /* Plan β Variant 1 (per URGENT_ASK_4): Vitis HLS 2024.1 also rejects
+     * pointer-to-pointer top args (HLS 214-134). Replace with flat pool
+     * pointers + offset tables. All top args are now plain T*, no nesting.
+     * Driver/testbench assembles pool+offset from existing struct array
+     * at runtime — A1 weight_packer.py / Contract 1 .npz format UNTOUCHED. */
+    const sa_i8_t  *w_pool,          /* concatenated weight bytes for L00..L29  */
+    const sa_i32_t *bias_pool,       /* concatenated bias for L00..L29          */
+    const sa_i8_t  *shift_pool,      /* concatenated out_shift for L00..L29     */
+    const sa_i32_t *w_offsets,       /* w_offsets[30]   byte/elem offsets       */
+    const sa_i32_t *bias_offsets,    /* bias_offsets[30]                        */
+    const sa_i32_t *shift_offsets,   /* shift_offsets[30]                       */
           sa_i32_t *scratch_a,          /* large enough for biggest layer out */
           sa_i32_t *scratch_b,          /* same                                */
           sa_i32_t *scratch_c,          /* sppf cv1 mid + acb r_buf            */
@@ -155,11 +158,15 @@ void sa_tiny_fpga_top(
 {
     SA_AXI_MM(img_in,        gmem0, 196608)
     SA_AXI_MM(feat_out,      gmem1, 21504)
-    /* Plan β: 3 individual m_axi for pointer arrays (was struct-of-ptr L).
-     * Each L_w/L_bias/L_shift is a 30-entry array of pointers (240 B each). */
-    SA_AXI_MM(L_w,           gmem2, 30)
-    SA_AXI_MM(L_bias,        gmem2, 30)
-    SA_AXI_MM(L_shift,       gmem2, 30)
+    /* Plan β Variant 1: flat pools + offset tables (6 m_axi). Pool depth
+     * tuned to fit largest concatenated set for tiny_fpga (~525K weight
+     * bytes; 7.5K bias int32; 525B shift; 30-entry offsets each). */
+    SA_AXI_MM(w_pool,        gmem2, 0x80000)   /* 512 KB headroom */
+    SA_AXI_MM(bias_pool,     gmem2, 0x2000)    /* 8 KB             */
+    SA_AXI_MM(shift_pool,    gmem2, 0x1000)    /* 4 KB             */
+    SA_AXI_MM(w_offsets,     gmem2, 30)
+    SA_AXI_MM(bias_offsets,  gmem2, 30)
+    SA_AXI_MM(shift_offsets, gmem2, 30)
     SA_AXI_MM(scratch_a,     gmem3, 16777216)
     SA_AXI_MM(scratch_b,     gmem3, 16777216)
     SA_AXI_MM(scratch_c,     gmem3, 16777216)
@@ -193,7 +200,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             img_in, /*x_i32=*/(const sa_i32_t *)0,
             scratch_a,
-            L_w[0], L_bias[0], L_shift[0],
+            &w_pool[w_offsets[0]], &bias_pool[bias_offsets[0]], &shift_pool[shift_offsets[0]],
             scratch_spike, scratch_acc,
             T, C_RGB, C_L1, H_STEM_IN, W_STEM_IN,
             /*K=*/7, /*stride=*/4, /*pad=*/2, /*groups=*/1, /*first_layer=*/1);
@@ -204,12 +211,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 1) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L_w[1], L_bias[1], L_shift[1],
-            L_w[2], L_bias[2], L_shift[2],
-            L_w[3], L_bias[3], L_shift[3],
-            L_w[4], L_bias[4], L_shift[4],
-            L_w[5], L_bias[5], L_shift[5],
-            L_w[6], L_bias[6], L_shift[6],
+            &w_pool[w_offsets[1]], &bias_pool[bias_offsets[1]], &shift_pool[shift_offsets[1]],
+            &w_pool[w_offsets[2]], &bias_pool[bias_offsets[2]], &shift_pool[shift_offsets[2]],
+            &w_pool[w_offsets[3]], &bias_pool[bias_offsets[3]], &shift_pool[shift_offsets[3]],
+            &w_pool[w_offsets[4]], &bias_pool[bias_offsets[4]], &shift_pool[shift_offsets[4]],
+            &w_pool[w_offsets[5]], &bias_pool[bias_offsets[5]], &shift_pool[shift_offsets[5]],
+            &w_pool[w_offsets[6]], &bias_pool[bias_offsets[6]], &shift_pool[shift_offsets[6]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L1, /*C_exp=*/48, /*C_mid=*/96, H_L1, W_L1,
@@ -223,7 +230,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, /*x_i32=*/scratch_b,
             scratch_a,
-            L_w[7], L_bias[7], L_shift[7],
+            &w_pool[w_offsets[7]], &bias_pool[bias_offsets[7]], &shift_pool[shift_offsets[7]],
             scratch_spike, scratch_acc,
             T, C_L1, C_L3, H_L1, W_L1,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -234,12 +241,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 3) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L_w[8],  L_bias[8],  L_shift[8],
-            L_w[9],  L_bias[9],  L_shift[9],
-            L_w[10], L_bias[10], L_shift[10],
-            L_w[11], L_bias[11], L_shift[11],
-            L_w[12], L_bias[12], L_shift[12],
-            L_w[13], L_bias[13], L_shift[13],
+            &w_pool[w_offsets[8]],  &bias_pool[bias_offsets[8]],  &shift_pool[shift_offsets[8]],
+            &w_pool[w_offsets[9]],  &bias_pool[bias_offsets[9]],  &shift_pool[shift_offsets[9]],
+            &w_pool[w_offsets[10]], &bias_pool[bias_offsets[10]], &shift_pool[shift_offsets[10]],
+            &w_pool[w_offsets[11]], &bias_pool[bias_offsets[11]], &shift_pool[shift_offsets[11]],
+            &w_pool[w_offsets[12]], &bias_pool[bias_offsets[12]], &shift_pool[shift_offsets[12]],
+            &w_pool[w_offsets[13]], &bias_pool[bias_offsets[13]], &shift_pool[shift_offsets[13]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, /*C_exp=*/96, /*C_mid=*/192, H_L3, W_L3,
@@ -252,12 +259,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 4) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,                           /* swap in/out */
-            L_w[8],  L_bias[8],  L_shift[8],
-            L_w[9],  L_bias[9],  L_shift[9],
-            L_w[10], L_bias[10], L_shift[10],
-            L_w[11], L_bias[11], L_shift[11],
-            L_w[12], L_bias[12], L_shift[12],
-            L_w[13], L_bias[13], L_shift[13],
+            &w_pool[w_offsets[8]],  &bias_pool[bias_offsets[8]],  &shift_pool[shift_offsets[8]],
+            &w_pool[w_offsets[9]],  &bias_pool[bias_offsets[9]],  &shift_pool[shift_offsets[9]],
+            &w_pool[w_offsets[10]], &bias_pool[bias_offsets[10]], &shift_pool[shift_offsets[10]],
+            &w_pool[w_offsets[11]], &bias_pool[bias_offsets[11]], &shift_pool[shift_offsets[11]],
+            &w_pool[w_offsets[12]], &bias_pool[bias_offsets[12]], &shift_pool[shift_offsets[12]],
+            &w_pool[w_offsets[13]], &bias_pool[bias_offsets[13]], &shift_pool[shift_offsets[13]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L3, 96, 192, H_L3, W_L3,
@@ -271,7 +278,7 @@ void sa_tiny_fpga_top(
         sa_ms_downsampling(
             (const sa_i8_t *)0, scratch_a,
             scratch_b,
-            L_w[14], L_bias[14], L_shift[14],
+            &w_pool[w_offsets[14]], &bias_pool[bias_offsets[14]], &shift_pool[shift_offsets[14]],
             scratch_spike, scratch_acc,
             T, C_L3, C_L6, H_L3, W_L3,
             /*K=*/3, /*stride=*/2, /*pad=*/1, /*groups=*/1, /*first_layer=*/0);
@@ -282,12 +289,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 6) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            L_w[15], L_bias[15], L_shift[15],
-            L_w[16], L_bias[16], L_shift[16],
-            L_w[17], L_bias[17], L_shift[17],
-            L_w[18], L_bias[18], L_shift[18],
-            L_w[19], L_bias[19], L_shift[19],
-            L_w[20], L_bias[20], L_shift[20],
+            &w_pool[w_offsets[15]], &bias_pool[bias_offsets[15]], &shift_pool[shift_offsets[15]],
+            &w_pool[w_offsets[16]], &bias_pool[bias_offsets[16]], &shift_pool[shift_offsets[16]],
+            &w_pool[w_offsets[17]], &bias_pool[bias_offsets[17]], &shift_pool[shift_offsets[17]],
+            &w_pool[w_offsets[18]], &bias_pool[bias_offsets[18]], &shift_pool[shift_offsets[18]],
+            &w_pool[w_offsets[19]], &bias_pool[bias_offsets[19]], &shift_pool[shift_offsets[19]],
+            &w_pool[w_offsets[20]], &bias_pool[bias_offsets[20]], &shift_pool[shift_offsets[20]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, /*C_exp=*/192, /*C_mid=*/288, H_L6, W_L6,
@@ -300,12 +307,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 7) {
         sa_ms_all_conv_block(
             scratch_a, scratch_b,
-            L_w[15], L_bias[15], L_shift[15],
-            L_w[16], L_bias[16], L_shift[16],
-            L_w[17], L_bias[17], L_shift[17],
-            L_w[18], L_bias[18], L_shift[18],
-            L_w[19], L_bias[19], L_shift[19],
-            L_w[20], L_bias[20], L_shift[20],
+            &w_pool[w_offsets[15]], &bias_pool[bias_offsets[15]], &shift_pool[shift_offsets[15]],
+            &w_pool[w_offsets[16]], &bias_pool[bias_offsets[16]], &shift_pool[shift_offsets[16]],
+            &w_pool[w_offsets[17]], &bias_pool[bias_offsets[17]], &shift_pool[shift_offsets[17]],
+            &w_pool[w_offsets[18]], &bias_pool[bias_offsets[18]], &shift_pool[shift_offsets[18]],
+            &w_pool[w_offsets[19]], &bias_pool[bias_offsets[19]], &shift_pool[shift_offsets[19]],
+            &w_pool[w_offsets[20]], &bias_pool[bias_offsets[20]], &shift_pool[shift_offsets[20]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_L6, 192, 288, H_L6, W_L6,
@@ -318,8 +325,8 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 8) {
         sa_spike_sppf(
             scratch_b, scratch_a,
-            L_w[21], L_bias[21], L_shift[21],
-            L_w[22], L_bias[22], L_shift[22],
+            &w_pool[w_offsets[21]], &bias_pool[bias_offsets[21]], &shift_pool[shift_offsets[21]],
+            &w_pool[w_offsets[22]], &bias_pool[bias_offsets[22]], &shift_pool[shift_offsets[22]],
             scratch_c,                /* ping_buf  (cv1 mid: T*48*16*16)     */
             scratch_spk_a,            /* spk_buf                              */
             scratch_spk_b,            /* pool_buf1                            */
@@ -336,7 +343,7 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 9) {
         sa_ms_standard_conv_inplace(
             scratch_a, scratch_b,
-            L_w[23], L_bias[23], L_shift[23],
+            &w_pool[w_offsets[23]], &bias_pool[bias_offsets[23]], &shift_pool[shift_offsets[23]],
             scratch_spike, scratch_acc,
             T, C_HEAD, C_HEAD, H_DET, W_DET,
             /*K=*/1, /*stride=*/1, /*pad=*/0, /*groups=*/1);
@@ -347,12 +354,12 @@ void sa_tiny_fpga_top(
     if (run_all || layer_id == 10) {
         sa_ms_all_conv_block(
             scratch_b, scratch_a,
-            L_w[24], L_bias[24], L_shift[24],
-            L_w[25], L_bias[25], L_shift[25],
-            L_w[26], L_bias[26], L_shift[26],
-            L_w[27], L_bias[27], L_shift[27],
-            L_w[28], L_bias[28], L_shift[28],
-            L_w[29], L_bias[29], L_shift[29],
+            &w_pool[w_offsets[24]], &bias_pool[bias_offsets[24]], &shift_pool[shift_offsets[24]],
+            &w_pool[w_offsets[25]], &bias_pool[bias_offsets[25]], &shift_pool[shift_offsets[25]],
+            &w_pool[w_offsets[26]], &bias_pool[bias_offsets[26]], &shift_pool[shift_offsets[26]],
+            &w_pool[w_offsets[27]], &bias_pool[bias_offsets[27]], &shift_pool[shift_offsets[27]],
+            &w_pool[w_offsets[28]], &bias_pool[bias_offsets[28]], &shift_pool[shift_offsets[28]],
+            &w_pool[w_offsets[29]], &bias_pool[bias_offsets[29]], &shift_pool[shift_offsets[29]],
             scratch_c, scratch_d, scratch_e, scratch_f,
             scratch_spike, scratch_acc,
             T, C_HEAD, /*C_exp=*/96, /*C_mid=*/144, H_DET, W_DET,

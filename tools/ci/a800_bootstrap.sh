@@ -13,7 +13,16 @@
 #   scp -P 50535 models/SpikeYOLO_23.1M_T1D4.pt models/tiny_fpga_fp32.pt root@<host>:/root/
 
 set -e
-echo "[bootstrap] === A800 v2 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
+echo "[bootstrap] === A800 v2.1 setup $(date '+%Y-%m-%d %H:%M:%S') ==="
+
+# ---- 0. AutoDL 学术加速 (proxy for cocodataset.org / github / pypi / hf) ----
+if [ -f /etc/network_turbo ]; then
+    echo "[bootstrap] enabling AutoDL academic proxy (cocodataset.org / github / pip 走加速)"
+    source /etc/network_turbo
+    echo "[bootstrap] proxy active: http_proxy=${http_proxy:-(unset)}"
+else
+    echo "[bootstrap] WARN: /etc/network_turbo not found (non-AutoDL instance?); using direct connection"
+fi
 
 WORKDIR=/root/autodl-tmp
 COCO_ROOT=/root/autodl-fs/coco_dataset

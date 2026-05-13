@@ -17,16 +17,23 @@
 
 /* AXI-MM master on a named bundle, with `offset=slave` so the runtime can
  * pass DDR3 physical addresses via AXI-Lite.
+ *
+ * URGENT_ASK_9 fix (Option α+β): Vitis HLS 2024.1 silently demotes pointer
+ * top-args to scalar/ap_memory unless `mode=m_axi` is explicitly declared.
+ * The old (pre-2024) syntax `HLS INTERFACE m_axi port=...` is parsed but
+ * downgraded to a hint, producing 0 m_axi master interfaces in component.xml.
+ * Fix: prepend `mode=` keyword to all three INTERFACE pragmas. The new
+ * syntax is back-compatible with 2023.x (per UG1399 §HLS Pragmas).
  */
 #define SA_AXI_MM(port, bundle, depth) \
-    SA_HLS_PRAGMA(HLS INTERFACE m_axi port=port offset=slave bundle=bundle depth=depth)
+    SA_HLS_PRAGMA(HLS INTERFACE mode=m_axi port=port offset=slave bundle=bundle depth=depth)
 
 /* AXI-Lite register slot. */
 #define SA_AXI_LITE(port) \
-    SA_HLS_PRAGMA(HLS INTERFACE s_axilite port=port bundle=control)
+    SA_HLS_PRAGMA(HLS INTERFACE mode=s_axilite port=port bundle=control)
 
 #define SA_AXI_LITE_RETURN \
-    SA_HLS_PRAGMA(HLS INTERFACE s_axilite port=return bundle=control)
+    SA_HLS_PRAGMA(HLS INTERFACE mode=s_axilite port=return bundle=control)
 
 /* Common pragmas used inside kernels. */
 #define SA_PIPELINE_II(N)   SA_HLS_PRAGMA(HLS PIPELINE II=N)

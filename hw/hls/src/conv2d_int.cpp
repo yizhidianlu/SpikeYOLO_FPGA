@@ -55,16 +55,19 @@ void sa_conv2d_int(
     SA_AXI_LITE(groups)
     SA_AXI_LITE_RETURN
 
-    /* R2 (Z-7020 LUT budget) fix per step5_util_breakdown.md 2026-05-13.
-     * One inlined instance of this kernel (fu_658) was costing 28K LUT and
-     * only 2 DSPs - Vitis was unrolling the inner mul into LUT-based shift-add
-     * for that caller's parameter range. Cap concurrent muls/adds via
-     * ALLOCATION so Vitis must time-multiplex DSP MAC instead. csim is
-     * unaffected (ALLOCATION only constrains RTL scheduling, not C semantics).
-     * Limit chosen as 16 (one per PE-tile column) - matches the original
-     * SA_CO_TILE=16 documentation intent. Throughput drops by ~9x worst case
-     * (3x3xCi inner reduction now serialized across 16 mul units), acceptable
-     * for M2 fitting milestone. */
+    /* R2 v3 (URGENT_ASK_13): ALLOCATION (v1+v2) had ZERO Vivado-side effect
+     * on fu_658 in this Vitis HLS 2024.1 install. Per Remote breakdown,
+     * fu_658 internal hierarchy shows `_429_1` sub-instance = 53261 LUT vs
+     * sibling `_429_536_1` = 3436 LUT (15x difference, same source). Vitis
+     * is specializing sa_conv2d_int per-caller, with one variant getting
+     * full mul unroll into LUT shift-add.
+     *
+     * v3 multi-pronged fix:
+     *  1. INLINE off forces shared single instance, no per-caller specialization
+     *  2. BIND_OP impl=DSP forces mul to DSP block (saves 150 LUT/mul)
+     *  3. ALLOCATION (kept) caps concurrent muls; defense-in-depth
+     */
+    SA_HLS_PRAGMA(HLS INLINE off)
     SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
     SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
 
@@ -111,7 +114,13 @@ void sa_conv2d_int(
                                      */
                                     const int w_idx = ((co * C_in_g) + ci) * K * K + ky * K + kx;
                                     sa_i32_t wt = (sa_i32_t)w[w_idx];
-                                    acc += px * wt;
+                                    /* v3 R2 fix: split MAC so we can BIND_OP the mul
+                                     * to DSP48 instead of LUT shift-add. Z-7020 has
+                                     * 220 DSPs, currently using 161 (59 free) - enough
+                                     * room for the previously-LUT-mapped muls. */
+                                    sa_i32_t prod = px * wt;
+                                    SA_HLS_PRAGMA(HLS BIND_OP variable=prod op=mul impl=DSP latency=3)
+                                    acc += prod;
                                 }
                             }
                         }

@@ -50,6 +50,24 @@ foreach _sub [get_runs -filter {NAME =~ system_*_synth_1}] {
 }
 unset -nocomplain _sub
 
+# CRITICAL: refresh IP catalog & upgrade locked IPs. Without this, dropping
+# new HLS-generated component.xml into ip_repo does NOT propagate to the BD
+# instance — Vivado shows `WARNING [Project 1-576] IP ... is locked, no OOC
+# run will be launched` and silently re-uses the previously-synthesized
+# RTL. Symptom: v1=v2=v3 csynth all produce IDENTICAL post-synth utilization
+# despite different HLS pragmas.
+set _ip_repo "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo"
+set _cur_repos [get_property ip_repo_paths [current_project]]
+if {[lsearch $_cur_repos $_ip_repo] < 0} {
+    set_property ip_repo_paths [concat $_cur_repos $_ip_repo] [current_project]
+}
+update_ip_catalog -rebuild
+foreach _ip [get_ips -filter {IS_LOCKED == 1}] {
+    puts "INFO: upgrading locked IP $_ip"
+    catch { upgrade_ip $_ip }
+}
+unset -nocomplain _ip _ip_repo _cur_repos
+
 # ===== Synth =====
 launch_runs synth_1 -jobs 1
 wait_on_run synth_1

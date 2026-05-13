@@ -99,9 +99,19 @@ set_property -dict [list \
     CONFIG.PCW_USE_FABRIC_INTERRUPT    {1} \
     CONFIG.PCW_IRQ_F2P_INTR            {1} \
     CONFIG.PCW_EN_CLK1_PORT            {1} \
-    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} \
+    CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {90} \
     CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {148.5} \
 ] [get_bd_cells ps_0]
+
+# M2-W2 Path B (URGENT_ASK_17 fallback): FCLK_CLK0 100 -> 90 MHz to close
+# timing on the spike_accel critical paths. v7 bitstream + Perf_Explore
+# strategy closed -27% of WNS (-0.764 -> -0.557 ns), but the remaining
+# 0.557 ns slack would need many more retiming passes with diminishing
+# returns. A one-shot 10 % clock reduction grants +1.111 ns of period
+# slack and closes timing cleanly. Throughput hit ~10 %, comfortably
+# inside the 30 FPS / 33 ms M3 budget per REPLIES_FROM_MAIN 2026-05-13T18:20.
+# FCLK_CLK1 (148.5 MHz pixel clock) stays unchanged - it feeds the HDMI
+# path (M3 deferred), no impact on the spike_accel data path.
 
 # ============================================================================
 # 2. Accelerator IP (B1 HLS output)

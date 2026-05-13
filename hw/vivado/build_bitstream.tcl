@@ -13,29 +13,48 @@ open_project [file join $OUT_DIR ${PROJECT}.xpr]
 # Some Vivado 2024.1 installs ship a partial roe_framer IP whose
 # `data/rsb/rules/roe_framer/bd.tcl` startup rule sources a missing
 # `data/ip/xilinx/roe_framer_v3_0/automation/auto_utils.tcl`. The rule's
-# outer guard is `if {[llength [get_ipdefs *roe_framer*]] > 0}`, so removing
-# the partial roe_framer IP defs from the catalog before any launch_runs
-# call prevents the failing source. Only takes effect if the partial install
-# is detected; clean installs short-circuit harmlessly.
+# outer guard is `if {[llength [get_ipdefs *roe_framer*]] > 0}`, so disabling
+# the partial roe_framer IP defs in the catalog before any launch_runs call
+# prevents the failing source.
+#
+# v2 (per Remote feedback in run_step6_bt_patched.tcl): valid options for
+# update_ip_catalog in 2024.1 are -disable_ip / -delete_ip / -enable_ip and
+# they REQUIRE -repo_path. The earlier -delete_ipdef flag was rejected.
+# We default repo_path to $XILINX_VIVADO/data/ip (set by Vivado settings64),
+# which holds the broken roe_framer install.
+if {[info exists ::env(XILINX_VIVADO)]} {
+    set _xlnx_ip [file join $::env(XILINX_VIVADO) data ip]
+} else {
+    set _xlnx_ip ""
+}
 set _roe_defs [get_ipdefs -quiet -filter {NAME =~ *roe_framer*}]
-if {[llength $_roe_defs] > 0} {
-    puts "INFO: Detected partial roe_framer IP in catalog — removing to avoid"
-    puts "      auto_utils.tcl-missing error at launch_runs startup."
+if {[llength $_roe_defs] > 0 && $_xlnx_ip ne ""} {
+    puts "INFO: Detected partial roe_framer IP in catalog (repo=$_xlnx_ip)"
+    puts "      Disabling to avoid auto_utils.tcl-missing error at launch_runs."
     foreach _idef $_roe_defs {
-        if {[catch {update_ip_catalog -delete_ipdef $_idef} _err]} {
-            puts "WARN: could not delete $_idef: $_err"
+        if {[catch {update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip} _err]} {
+            puts "WARN: could not disable $_idef: $_err"
+        } else {
+            puts "INFO: disabled $_idef"
         }
     }
 }
-unset -nocomplain _roe_defs _idef _err
+unset -nocomplain _roe_defs _idef _err _xlnx_ip
 # ==============================================================================
 
+# IPCACHE multi-thread check appears to crash silently in some 2024.1 installs.
+# Disable IP cache + single-thread launch_runs (see Remote run_step6_bt_patched).
+catch { set_param ip.useCacheStrategy 0 }
+catch { set_param ip.checkLicense 0 }
+catch { set_param ip.useIpCache 0 }
+catch { set_param project.disableIPCache 1 }
+
 # ===== Synth =====
-launch_runs synth_1 -jobs 8
+launch_runs synth_1 -jobs 1
 wait_on_run synth_1
 
 # ===== Impl =====
-launch_runs impl_1 -to_step write_bitstream -jobs 8
+launch_runs impl_1 -to_step write_bitstream -jobs 1
 wait_on_run impl_1
 
 # ===== Reports =====

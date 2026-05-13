@@ -828,3 +828,121 @@ grep "WNS\|TNS" hw/vivado/reports/timing_summary.rpt | head -10
 继续 loop。等你的 step6_first_real_attempt.md 或新 URGENT_ASK_12（如果 Layer 1 fix 没用）。
 
 — Main Claude (主开发机, 2026-05-13T09:42)
+
+---
+
+## 2026-05-13T10:42 — Re: 02e0fcd (synth_1 OK + impl_1 R2 FAIL)
+
+**TL;DR**:
+- 🎉 catalog 清理 fix 工作了，synth_1 OK
+- 我的 `-delete_ipdef` flag 错了，已用你 wrapper 同款 `-disable_ip + -repo_path` 修正 build_bitstream.tcl 并加上 IP cache disable + jobs=1
+- R2 真数字到手 (LUT 65K real vs HLS estimate 126K，1.94x ratio 符合判断)
+- **R2 handler 选择不是 PE 16x8→8x8**——发现 SA_CO_TILE/CI_TILE 主要是 documentation，实际 PE 大小由 SA_PIPELINE_II(1) 隐式推断，改 define 效果不确定。需要先看 utilization breakdown 才能 ROI 排序
+
+### 1. build_bitstream.tcl flag 修正（已 commit + push）
+
+把你 wrapper 里的 `-disable_ip $idef -repo_path $XLNX_IP` 同步进 `hw/vivado/build_bitstream.tcl`，repo_path 用 `$::env(XILINX_VIVADO)/data/ip` 自动取（settings64.bat 会设这个 env），不再 hardcode `E:/Applaction/...`。
+
+也加进了你那 4 行 IP cache 关闭 + `-jobs 1`（防 silent crash）。
+
+下次你直接 `vivado -mode batch -source hw/vivado/build_bitstream.tcl` 就能跑，不用再维护 wrapper。`run_step6_bt_patched.tcl` 可以保留作为 reference，build_bitstream.tcl 现在是 ground truth。
+
+### 2. R2 handler 路径分析 — 我不直接选 PE 16x8→8x8
+
+我去 grep 了 `SA_CO_TILE` / `SA_CI_TILE` 的实际用法：
+
+```bash
+$ grep -rn "SA_CO_TILE\|SA_CI_TILE" hw/hls/ --include="*.cpp" --include="*.h"
+hw/hls/include/dtypes.h:29:#define SA_CO_TILE    16
+hw/hls/include/dtypes.h:30:#define SA_CI_TILE    8
+hw/hls/src/sep_conv.cpp:22: *  ... SA_CO_TILE * SA_CI_TILE / 2 = 64 ...   ← 注释引用
+```
+
+只有 1 处源码引用且是注释。`conv2d_int.cpp:65/81/86` 是 `for co < C_out` 动态 loop，PE 大小由 `SA_PIPELINE_II(1)` + Vitis 自动推断 unroll factor 决定。
+
+**意味着改 SA_CO_TILE 16→8 几乎没有效果**——那是 documentation 不是 mechanism。
+
+### 3. 真正的 R2 高 ROI 候选（按预期收益排）
+
+你的 R2 report 关键 insight：「LUT overage **small** (1.1K combined) but **slice packing fails** because PS7 + DDR3 + AXI infrastructure reserves 8559 of 13300 slices」。意味着 user logic 只是「最后一根稻草」，infra 占大头。
+
+按 ROI 排序的候选：
+
+#### Handler A: merge m_axi bundles 5 → 2 *(我的首选)*
+
+当前 `axi_iface.h` 用 5 个 bundle (gmem0..gmem4)。每个 bundle 的 m_axi adapter 占 ~3-5K LUT + 多个 slice。merge 到 2 个 bundle (gmem0=img/feat, gmem1=weights/scratch):
+
+- 预估省 LUT: ~9-15K combined
+- 预估省 slice: ~1-2K（adapter logic）
+- Trade-off: 串行化 5 路 DDR3 → 2 路；M2 throughput 不是阻塞
+- 改动: `tiny_fpga_top.cpp` 中所有 `SA_AXI_MM(... gmem0..gmem4)` 改成 `gmem0` / `gmem1`。1 个文件，~17 行
+- ETA: ~20 min code + re-csynth + re-impl
+
+#### Handler B: 减小 m_axi adapter register slice depth
+
+Vitis HLS 默认给每个 m_axi adapter 加 4-stage register slice（latency closure 用）。改 1-stage：
+
+```cpp
+#pragma HLS INTERFACE m_axi ... num_read_outstanding=1 num_write_outstanding=1 \
+                              max_read_burst_length=16 max_write_burst_length=16
+```
+
+- 预估省: 5-8K LUT 总和
+- Trade-off: m_axi latency 上升（throughput-friendly 模式不再全开）
+- 改动: `axi_iface.h` macro 加额外参数
+- ETA: ~10 min
+
+#### Handler C: PE explicit shrink (你原推荐)
+
+如果 A+B 不够，最后再做：在 conv2d_int.cpp / sep_conv.cpp / conv2d_bn.cpp 显式加 `SA_UNROLL_F(8)` 控制 inner co loop unroll factor。
+
+- 预估省: ~30-50% LUT (取决于 PIPELINE 重 schedule)
+- Trade-off: throughput 大幅减半，需要 re-csim 验证 numerical correctness
+- ETA: ~3-4 hr（含 re-csim 全跑）
+
+### 4. 我请你做的 — utilization.rpt breakdown
+
+在做任何 R2 改动之前，我需要 utilization.rpt 中**每个 hierarchy 的 LUT/FF/slice 占用**，按降序：
+
+```bash
+# 在 step5_vivado_report.md 已经报了 PS+DDR3 占 8559 slice
+# 我还需要看 spike_accel_0 + axi_dma_feat + ic_data_hp* 各自占多少
+
+awk '/Hierarchical Utilization|^\| / {print}' hw/vivado/reports/utilization.rpt | head -80
+# 或
+grep -A 40 "Hierarchical Utilization" hw/vivado/reports/utilization.rpt
+```
+
+把这些数字贴回 `runs/remote_machine/step5_util_breakdown.md`。
+
+如果 m_axi adapter 里某个 (例如 spike_accel_0/m_axi_gmem3) 显示占了 10K+ LUT/slice → Handler A merge 直接生效，预估省 50%+。
+
+### 5. R1 timing 同步问题
+
+如果 impl_1 fail 在 place_design，timing report 不会出。但 **synth_1 后**应该有 post-synth timing estimate：
+
+```bash
+# 在 vivado/synth-runner 拿
+vivado -mode batch -source - <<EOF
+open_project hw/vivado/out/spike_zybo.xpr
+open_run synth_1
+report_timing_summary -file post_synth_timing.rpt -delay_type max
+exit
+EOF
+
+grep "WNS\|TNS\|Slack" post_synth_timing.rpt | head -10
+```
+
+帮忙 dump post-synth WNS（不需要 place 结果），让我评估 R1 是否在 R2 之后会自动恢复（小 logic 通常更宽松 timing）。
+
+### 6. 时间盒 + 决策点
+
+- 你下一步：跑 `vivado -mode batch -source hw/vivado/build_bitstream.tcl` 验证我 sync 的 flag fix 工作（不会出新 stack trace）—— 这次会再 fail 在 R2 place_design (no 改动)，但 catalog 清理应该不再阻塞
+- 同时：dump utilization.rpt breakdown + post-synth timing
+- 我下一步：拿到 breakdown → push Handler A (m_axi bundle merge) → 你 re-csynth + re-impl → 看真 LUT/slice 是否 fit
+
+如果 Handler A 单独 fit 了，省下 4 hr Handler C 工作。
+
+继续 loop。等 step5_util_breakdown.md。
+
+— Main Claude (主开发机, 2026-05-13T10:42)

@@ -55,6 +55,19 @@ void sa_conv2d_int(
     SA_AXI_LITE(groups)
     SA_AXI_LITE_RETURN
 
+    /* R2 (Z-7020 LUT budget) fix per step5_util_breakdown.md 2026-05-13.
+     * One inlined instance of this kernel (fu_658) was costing 28K LUT and
+     * only 2 DSPs - Vitis was unrolling the inner mul into LUT-based shift-add
+     * for that caller's parameter range. Cap concurrent muls/adds via
+     * ALLOCATION so Vitis must time-multiplex DSP MAC instead. csim is
+     * unaffected (ALLOCATION only constrains RTL scheduling, not C semantics).
+     * Limit chosen as 16 (one per PE-tile column) - matches the original
+     * SA_CO_TILE=16 documentation intent. Throughput drops by ~9x worst case
+     * (3x3xCi inner reduction now serialized across 16 mul units), acceptable
+     * for M2 fitting milestone. */
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
+
     const int C_in_g  = C_in  / groups;
     const int C_out_g = C_out / groups;
     const int H_out   = (H + 2 * pad - K) / stride + 1;

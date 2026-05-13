@@ -68,8 +68,8 @@ void sa_conv2d_int(
      *  3. ALLOCATION (kept) caps concurrent muls; defense-in-depth
      */
     SA_HLS_PRAGMA(HLS INLINE off)
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=8)
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=8)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
 
     const int C_in_g  = C_in  / groups;
     const int C_out_g = C_out / groups;
@@ -99,7 +99,16 @@ void sa_conv2d_int(
                     for (int wx = 0; wx < W_out; wx++) {
                         SA_PIPELINE_II(1)
                         sa_i32_t acc = 0;
+                        /* v5 R2 fix: partial-unroll factor=4 on ci reduces
+                         * concurrent mul count vs Vitis default (full-unroll
+                         * of C_in_g*K*K = up to 576 mul) without the sharing-
+                         * overhead penalty of pure ALLOCATION limit reduction
+                         * (v4 limit=8 regressed +4.5K LUT). Combined with
+                         * BIND_OP DSP + ALLOCATION limit=16, the effective
+                         * mul count is ~4*K*K = 36 per cycle, well within
+                         * the 220-DSP budget and minimal LUT shift-add. */
                         for (int ci = 0; ci < C_in_g; ci++) {
+                            SA_UNROLL_F(4)
                             for (int ky = 0; ky < K; ky++) {
                                 for (int kx = 0; kx < K; kx++) {
                                     const int h_in = hy * stride + ky - pad;

@@ -77,7 +77,26 @@ add_executable(postproc_nms_cli
 )
 target_include_directories(postproc_nms_cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-install(TARGETS spike_accel_demo
+# -----------------------------------------------------------------------------
+# spike_accel_w9_smoke — minimum-viable end-to-end smoke test using the W9
+# PTQ INT8 firmware. Pure-C, links only libspike_accel + libc, no V4L2/DRM.
+# Used by tests/test_w9_smoke.sh + D1's board-nightly regression.
+# -----------------------------------------------------------------------------
+add_executable(spike_accel_w9_smoke
+    src/spike_accel_w9_smoke.c
+)
+target_include_directories(spike_accel_w9_smoke
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include
+)
+if(TARGET spike_accel)
+    target_link_libraries(spike_accel_w9_smoke PRIVATE spike_accel)
+else()
+    target_include_directories(spike_accel_w9_smoke PRIVATE ${SPIKE_ACCEL_INCLUDE_DIRS})
+    target_link_libraries(spike_accel_w9_smoke PRIVATE ${SPIKE_ACCEL_LIBRARIES})
+endif()
+
+install(TARGETS spike_accel_demo spike_accel_w9_smoke
         RUNTIME DESTINATION /opt
 )
 install(PROGRAMS scripts/run_on_board.sh

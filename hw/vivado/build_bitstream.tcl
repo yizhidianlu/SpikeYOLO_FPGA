@@ -27,27 +27,35 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 } else {
     set _xlnx_ip ""
 }
-set _roe_defs [get_ipdefs -quiet -filter {NAME =~ *roe_framer*}]
-if {[llength $_roe_defs] > 0 && $_xlnx_ip ne ""} {
-    puts "INFO: Detected partial roe_framer IP in catalog (repo=$_xlnx_ip)"
-    puts "      Disabling to avoid auto_utils.tcl-missing error at launch_runs."
-    foreach _idef $_roe_defs {
-        if {[catch {update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip} _err]} {
-            puts "WARN: could not disable $_idef: $_err"
-        } else {
-            puts "INFO: disabled $_idef"
+# M2-W2 quirk sync (Remote M2_W2_TIMING_CLOSED.md): hdmi_gt_controller has
+# the same family-missing-bd.tcl symptom as roe_framer in some 2024.1 installs.
+# Cover both via wildcard match.
+set _broken_ip_filters {*roe_framer* *hdmi_gt_controller*}
+foreach _pat $_broken_ip_filters {
+    set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
+    if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
+        puts "INFO: Detected partial IPs matching $_pat in catalog (repo=$_xlnx_ip)"
+        foreach _idef $_defs {
+            if {[catch {update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip} _err]} {
+                puts "WARN: could not disable $_idef: $_err"
+            } else {
+                puts "INFO: disabled $_idef"
+            }
         }
     }
 }
-unset -nocomplain _roe_defs _idef _err _xlnx_ip
+unset -nocomplain _broken_ip_filters _pat _defs _idef _err _xlnx_ip
 # ==============================================================================
 
 # IPCACHE multi-thread check appears to crash silently in some 2024.1 installs.
-# Disable IP cache + single-thread launch_runs (see Remote run_step6_bt_patched).
+# Disable IP cache + serialize tool threading (M2-W2 sync from Remote: even
+# launch_runs -jobs 1 isn't enough on a fresh BD — the IPCACHE runCacheChecks()
+# threadPool finishes Work() can still crash; general.maxThreads 1 fully fixes it).
 catch { set_param ip.useCacheStrategy 0 }
 catch { set_param ip.checkLicense 0 }
 catch { set_param ip.useIpCache 0 }
 catch { set_param project.disableIPCache 1 }
+catch { set_param general.maxThreads 1 }
 
 # ===== Synth =====
 launch_runs synth_1 -jobs 1

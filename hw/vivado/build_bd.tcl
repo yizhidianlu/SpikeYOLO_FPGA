@@ -63,7 +63,18 @@ if {[file isdirectory $DIGILENT_BOARDS]} {
 }
 
 create_project -force $PROJECT $OUT_DIR -part $PART
-set_property board_part $BOARD_PART [current_project]
+# board_part version probe (M2-W2 quirk sync): older Digilent vivado-boards
+# submodules ship :1.0, newer ones ship :1.2. Try the declared revision first,
+# fall back to the other. Remote previously worked around this via string-map
+# in run_step5_bd_patched.tcl; this in-tree probe makes the wrapper redundant.
+if {[catch {set_property board_part $BOARD_PART [current_project]} _bp_err]} {
+    set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.2}]
+    if {$_alt_bp eq $BOARD_PART} { set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.0}] }
+    puts "INFO: board_part $BOARD_PART not in catalog, trying $_alt_bp"
+    set_property board_part $_alt_bp [current_project]
+    set BOARD_PART $_alt_bp
+}
+unset -nocomplain _bp_err _alt_bp
 
 # Compose the ip_repo search path: HLS build dir (B1 dev workflow), the
 # checked-in spike_accel drop point (post B1 hand-off), and Digilent's

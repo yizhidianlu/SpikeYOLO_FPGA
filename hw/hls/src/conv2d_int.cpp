@@ -97,17 +97,17 @@ void sa_conv2d_int(
             for (int co = co_lo; co < co_hi; co++) {
                 for (int hy = 0; hy < H_out; hy++) {
                     for (int wx = 0; wx < W_out; wx++) {
-                        /* v6 R2 fix (URGENT_ASK_16): PIPELINE II 1 -> 2
-                         * v5 UNROLL=4 was ignored (HLS 214-187 variable trip).
-                         * II=2 gives Vitis 2x scheduling slack to share MAC
-                         * resources across cycles; saves 10-20% LUT per
-                         * Remote estimate. Still well under the 5 ms/inference
-                         * budget for M3 30 FPS target. */
-                        SA_PIPELINE_II(2)
+                        /* v7 R2 fix (URGENT_ASK_17): Move PIPELINE from wx
+                         * (was II=147 forced by memory deps, blocking pragma
+                         * directives v3-v6) to inner ci loop. Now Vitis
+                         * schedules ci with II=1, requiring only K*K = 9 mul
+                         * concurrent (vs C_in_g*K*K up to 576 before).
+                         * Expected: LUT 60K -> ~25-30K (fits 53.2K cap with
+                         * headroom). Throughput: per-pixel cycles = C_in_g
+                         * instead of 147 (mostly faster for small C_in_g). */
                         sa_i32_t acc = 0;
                         for (int ci = 0; ci < C_in_g; ci++) {
-                            /* SA_UNROLL_F(4) ignored in v5 - keep as comment
-                             * for future re-attempt with fixed trip count. */
+                            SA_PIPELINE_II(1)
                             for (int ky = 0; ky < K; ky++) {
                                 for (int kx = 0; kx < K; kx++) {
                                     const int h_in = hy * stride + ky - pad;

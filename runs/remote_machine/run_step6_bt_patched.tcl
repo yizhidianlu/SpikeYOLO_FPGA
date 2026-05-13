@@ -38,6 +38,18 @@ catch { set_param ip.checkLicense 0 }
 catch { set_param ip.useIpCache 0 }
 catch { set_param project.disableIPCache 1 }
 
+# Reset prior runs so a re-invocation (post source-update) starts clean.
+# Sub-IP synth runs (system_*_synth_1) must be reset individually — reset_run
+# synth_1 does NOT cascade down. Without this, stale sub-IP output (e.g.
+# spike_accel from a prior csynth) persists and the new HLS pragmas have no
+# visible effect.
+catch { reset_run impl_1 }
+catch { reset_run synth_1 }
+foreach _sub [get_runs -filter {NAME =~ system_*_synth_1}] {
+    catch { reset_run $_sub }
+}
+unset -nocomplain _sub
+
 # ===== Synth =====
 launch_runs synth_1 -jobs 1
 wait_on_run synth_1

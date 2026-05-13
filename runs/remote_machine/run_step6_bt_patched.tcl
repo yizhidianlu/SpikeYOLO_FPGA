@@ -17,11 +17,16 @@ file mkdir $REPORTS
 
 open_project [file join $OUT_DIR ${PROJECT}.xpr]
 
-# Disable broken roe_framer IP catalog entry (auto_utils.tcl missing in this install).
-set _roe_defs [get_ipdefs -quiet -filter {NAME =~ *roe_framer*}]
-if {[llength $_roe_defs] > 0} {
-    puts "INFO: Disabling partial roe_framer IPs to avoid auto_utils.tcl missing error"
-    foreach _idef $_roe_defs {
+# Disable broken IP catalog entries with missing helper files in this install.
+# - roe_framer (auto_utils.tcl missing)
+# - hdmi_gt_controller (bd.tcl missing) — appeared after BD rebuild for M2-W2 Path B
+set _bad_ipdefs [concat \
+    [get_ipdefs -quiet -filter {NAME =~ *roe_framer*}] \
+    [get_ipdefs -quiet -filter {NAME =~ *hdmi_gt_controller*}] \
+]
+if {[llength $_bad_ipdefs] > 0} {
+    puts "INFO: Disabling partial IPs (missing helper files in this install)"
+    foreach _idef $_bad_ipdefs {
         if {[catch {update_ip_catalog -disable_ip $_idef -repo_path $XLNX_IP} _err]} {
             puts "WARN: could not disable $_idef: $_err"
         } else {
@@ -29,14 +34,21 @@ if {[llength $_roe_defs] > 0} {
         }
     }
 }
-unset -nocomplain _roe_defs _idef _err
+unset -nocomplain _bad_ipdefs _idef _err
 
 # Workaround: IPCACHE multi-thread check appears to crash silently in this
 # Vivado 2024.1 install. Disable IP cache + single-thread launch.
+# v7 path: in-place reuse of existing runs only used post-BD-rebuild cache.
+# Path B (rebuild_bd from create_project -force): synth_1/impl_1 are fresh,
+# so IPCACHE runCacheChecks needs to scan all 7 IPs from scratch; the
+# multi-thread pool dies silently at finishWork() ~8 threads on this install.
+# Forcing general.maxThreads 1 serializes the cache check entirely.
 catch { set_param ip.useCacheStrategy 0 }
 catch { set_param ip.checkLicense 0 }
 catch { set_param ip.useIpCache 0 }
 catch { set_param project.disableIPCache 1 }
+catch { set_param general.maxThreads 1 }
+catch { set_param synth.elaboration.rodinMoreOptions {-no_smart_synth} }
 
 # Reset prior runs so a re-invocation (post source-update) starts clean.
 # Sub-IP synth runs (system_*_synth_1) must be reset individually — reset_run

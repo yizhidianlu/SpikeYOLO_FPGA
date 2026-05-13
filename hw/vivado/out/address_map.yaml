@@ -5,13 +5,3 @@ vivado_version: "2024.1"
 bitstream: out/system.bit
 hwh: out/system.hwh
 peripherals:
-  SEG_axi_dma_feat_Reg:
-    base: 0x41E00000
-    size: 0x00010000
-  SEG_spike_accel_0_Reg:
-    base: 0x40000000
-    size: 0x00010000
-memory:
-  ddr3:
-    total_mb: 1024
-    reserved_for_cma: 256

@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2024.1 (win64) Build 5076996 Wed May 22 18:37:14 MDT 2024
-| Date         : Wed May 13 21:55:48 2026
+| Date         : Wed May 13 23:17:13 2026
 | Host         : YizhiDianLu running 64-bit major release  (build 9200)
 | Command      : report_timing_summary -file C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/reports/timing_summary.rpt
 | Design       : system_wrapper
@@ -142,10 +142,10 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-     -0.557      -13.811                     79               134880        0.021        0.000                      0               134880        3.750        0.000                       0                 52830  
+      0.067        0.000                      0               134426        0.009        0.000                      0               134426        4.250        0.000                       0                 52574  
 
 
-Timing constraints are not met.
+All user specified timing constraints are met.
 
 
 ------------------------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ Timing constraints are not met.
 
 Clock       Waveform(ns)         Period(ns)      Frequency(MHz)
 -----       ------------         ----------      --------------
-clk_fpga_0  {0.000 5.000}        10.000          100.000         
+clk_fpga_0  {0.000 5.500}        11.000          90.909          
 clk_fpga_1  {0.000 3.500}        7.000           142.857         
 
 
@@ -166,7 +166,7 @@ clk_fpga_1  {0.000 3.500}        7.000           142.857
 
 Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-clk_fpga_0         -0.557      -13.811                     79               134880        0.021        0.000                      0               134880        3.750        0.000                       0                 52830  
+clk_fpga_0          0.067        0.000                      0               134426        0.009        0.000                      0               134426        4.250        0.000                       0                 52574  
 
 
 ------------------------------------------------------------------------------------------------
@@ -197,31 +197,31 @@ Path Group    From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing 
 From Clock:  clk_fpga_0
   To Clock:  clk_fpga_0
 
-Setup :           79  Failing Endpoints,  Worst Slack       -0.557ns,  Total Violation      -13.811ns
-Hold  :            0  Failing Endpoints,  Worst Slack        0.021ns,  Total Violation        0.000ns
-PW    :            0  Failing Endpoints,  Worst Slack        3.750ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack        0.067ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.009ns,  Total Violation        0.000ns
+PW    :            0  Failing Endpoints,  Worst Slack        4.250ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
 
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (VIOLATED) :        -0.557ns  (required time - arrival time)
-  Source:                 system_i/spike_accel_0/inst/gmem4_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/CLKARDCLK
-                            (rising edge-triggered cell RAMB18E1 clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/mem_reg/DIBDI[13]
-                            (rising edge-triggered cell RAMB18E1 clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.067ns  (required time - arrival time)
+  Source:                 system_i/spike_accel_0/inst/gmem0_m_axi_U/load_unit_0/bus_wide_gen.data_valid_reg/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.500ns period=11.000ns})
+  Destination:            system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/ENARDEN
+                            (rising edge-triggered cell RAMB18E1 clocked by clk_fpga_0  {rise@0.000ns fall@5.500ns period=11.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        10.030ns  (logic 4.803ns (47.888%)  route 5.227ns (52.112%))
-  Logic Levels:           14  (CARRY4=7 LUT3=1 LUT5=4 LUT6=2)
-  Clock Path Skew:        -0.132ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.775ns = ( 12.775 - 10.000 ) 
-    Source Clock Delay      (SCD):    3.136ns
-    Clock Pessimism Removal (CPR):    0.230ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+  Requirement:            11.000ns  (clk_fpga_0 rise@11.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        10.013ns  (logic 1.926ns (19.235%)  route 8.087ns (80.764%))
+  Logic Levels:           10  (LUT2=1 LUT3=1 LUT4=1 LUT5=1 LUT6=6)
+  Clock Path Skew:        -0.309ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.754ns = ( 13.754 - 11.000 ) 
+    Source Clock Delay      (SCD):    3.192ns
+    Clock Pessimism Removal (CPR):    0.129ns
+  Clock Uncertainty:      0.169ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
+    Total Input Jitter      (TIJ):    0.330ns
     Discrete Jitter          (DJ):    0.000ns
     Phase Error              (PE):    0.000ns
 
@@ -232,66 +232,50 @@ Slack (VIOLATED) :        -0.557ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  system_i/ps_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    system_i/ps_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  system_i/ps_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=52853, routed)       1.842     3.136    system_i/spike_accel_0/inst/gmem4_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/ap_clk
-    RAMB18_X4Y16         RAMB18E1                                     r  system_i/spike_accel_0/inst/gmem4_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/CLKARDCLK
+                         net (fo=52597, routed)       1.898     3.192    system_i/spike_accel_0/inst/gmem0_m_axi_U/load_unit_0/ap_clk
+    SLICE_X67Y117        FDRE                                         r  system_i/spike_accel_0/inst/gmem0_m_axi_U/load_unit_0/bus_wide_gen.data_valid_reg/C
   -------------------------------------------------------------------    -------------------
-    RAMB18_X4Y16         RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[5])
-                                                      2.454     5.590 r  system_i/spike_accel_0/inst/gmem4_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/DOADO[5]
-                         net (fo=71, routed)          1.289     6.880    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/gmem4_addr_52_read_reg_849_reg[31]_0[5]
-    SLICE_X78Y41         LUT3 (Prop_lut3_I2_O)        0.124     7.004 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_979/O
-                         net (fo=2, routed)           0.502     7.506    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_979_n_2
-    SLICE_X78Y41         LUT5 (Prop_lut5_I1_O)        0.124     7.630 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_795/O
-                         net (fo=2, routed)           0.661     8.291    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/gmem4_addr_52_read_reg_849_reg[6]_0[2]
-    SLICE_X75Y41         LUT6 (Prop_lut6_I0_O)        0.124     8.415 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_799/O
-                         net (fo=1, routed)           0.000     8.415    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684_n_549
-    SLICE_X75Y41         CARRY4 (Prop_carry4_S[2]_CO[3])
-                                                      0.398     8.813 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_596/CO[3]
-                         net (fo=1, routed)           0.000     8.813    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_596_n_2
-    SLICE_X75Y42         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.114     8.927 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_569/CO[3]
-                         net (fo=1, routed)           0.000     8.927    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_569_n_2
-    SLICE_X75Y43         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.114     9.041 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_553/CO[3]
-                         net (fo=1, routed)           0.000     9.041    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_553_n_2
-    SLICE_X75Y44         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.114     9.155 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_680/CO[3]
-                         net (fo=1, routed)           0.000     9.155    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_680_n_2
-    SLICE_X75Y45         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.114     9.269 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_665/CO[3]
-                         net (fo=1, routed)           0.000     9.269    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_665_n_2
-    SLICE_X75Y46         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.114     9.383 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_644/CO[3]
-                         net (fo=1, routed)           0.000     9.383    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_436[0]
-    SLICE_X75Y47         CARRY4 (Prop_carry4_CI_O[1])
-                                                      0.334     9.717 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_95_2_VITIS_LOOP_96_s_fu_1030/mem_reg_i_627/O[1]
-                         net (fo=1, routed)           0.434    10.151    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_234_0[1]
-    SLICE_X73Y47         LUT5 (Prop_lut5_I0_O)        0.303    10.454 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_432/O
-                         net (fo=1, routed)           0.462    10.916    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169_m_axi_gmem4_WDATA[29]
-    SLICE_X73Y48         LUT5 (Prop_lut5_I3_O)        0.124    11.040 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_241/O
-                         net (fo=1, routed)           0.478    11.518    system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_241_n_2
-    SLICE_X66Y48         LUT6 (Prop_lut6_I1_O)        0.124    11.642 r  system_i/spike_accel_0/inst/grp_sa_spike_sppf_1_fu_684/grp_sa_ms_standard_conv_inplace_2_fu_249/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_169/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_98__0/O
-                         net (fo=1, routed)           0.714    12.356    system_i/spike_accel_0/inst/grp_sa_ms_downsampling_199_1_fu_628/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_199/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_53
-    SLICE_X63Y48         LUT5 (Prop_lut5_I2_O)        0.124    12.480 r  system_i/spike_accel_0/inst/grp_sa_ms_downsampling_199_1_fu_628/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_199/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mem_reg_i_22__0/O
-                         net (fo=1, routed)           0.686    13.166    system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/din[29]
-    RAMB18_X3Y19         RAMB18E1                                     r  system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/mem_reg/DIBDI[13]
+    SLICE_X67Y117        FDRE (Prop_fdre_C_Q)         0.456     3.648 r  system_i/spike_accel_0/inst/gmem0_m_axi_U/load_unit_0/bus_wide_gen.data_valid_reg/Q
+                         net (fo=81, routed)          1.267     4.915    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mul_8s_8s_16_4_1_U403/gmem0_RVALID
+    SLICE_X80Y115        LUT4 (Prop_lut4_I0_O)        0.152     5.067 f  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mul_8s_8s_16_4_1_U403/gmem2_addr_7_reg_8161[62]_i_4/O
+                         net (fo=4, routed)           0.837     5.904    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mul_8s_8s_16_4_1_U405/buff1_reg_0
+    SLICE_X81Y117        LUT6 (Prop_lut6_I2_O)        0.326     6.230 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mul_8s_8s_16_4_1_U405/gmem2_addr_7_reg_8161[62]_i_1/O
+                         net (fo=88, routed)          1.437     7.667    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/ce358_out
+    SLICE_X66Y113        LUT6 (Prop_lut6_I1_O)        0.124     7.791 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg[5][0]_srl6_i_60/O
+                         net (fo=2, routed)           0.316     8.107    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg[5][0]_srl6_i_60_n_2
+    SLICE_X64Y112        LUT5 (Prop_lut5_I4_O)        0.124     8.231 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_14/O
+                         net (fo=1, routed)           0.643     8.873    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_14_n_2
+    SLICE_X64Y111        LUT6 (Prop_lut6_I0_O)        0.124     8.997 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_13/O
+                         net (fo=1, routed)           1.043    10.040    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97_m_axi_gmem2_RREADY
+    SLICE_X67Y100        LUT3 (Prop_lut3_I2_O)        0.124    10.164 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_11/O
+                         net (fo=1, routed)           0.558    10.722    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/grp_sa_conv2d_int_43_74_429_1_fu_366_m_axi_gmem2_RREADY
+    SLICE_X64Y98         LUT6 (Prop_lut6_I3_O)        0.124    10.846 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_8__0/O
+                         net (fo=1, routed)           0.302    11.149    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666_m_axi_gmem2_RREADY
+    SLICE_X64Y96         LUT6 (Prop_lut6_I1_O)        0.124    11.273 r  system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/mem_reg_i_5__1/O
+                         net (fo=2, routed)           0.173    11.446    system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg_0
+    SLICE_X64Y96         LUT6 (Prop_lut6_I0_O)        0.124    11.570 r  system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg_i_4__1/O
+                         net (fo=20, routed)          0.883    12.452    system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/pop
+    SLICE_X59Y88         LUT2 (Prop_lut2_I0_O)        0.124    12.576 r  system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg_i_1__0/O
+                         net (fo=1, routed)           0.628    13.205    system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg_i_1__0_n_2
+    RAMB18_X3Y34         RAMB18E1                                     r  system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/ENARDEN
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  system_i/ps_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    system_i/ps_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  system_i/ps_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=52853, routed)       1.596    12.775    system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/ap_clk
-    RAMB18_X3Y19         RAMB18E1                                     r  system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/mem_reg/CLKBWRCLK
-                         clock pessimism              0.230    13.004    
-                         clock uncertainty           -0.154    12.850    
-    RAMB18_X3Y19         RAMB18E1 (Setup_ramb18e1_CLKBWRCLK_DIBDI[13])
-                                                     -0.241    12.609    system_i/spike_accel_0/inst/gmem4_m_axi_U/store_unit/buff_wdata/U_fifo_mem/mem_reg
+                                                     11.000    11.000 r  
+    PS7_X0Y0             PS7                          0.000    11.000 r  system_i/ps_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    12.088    system_i/ps_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    12.179 r  system_i/ps_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=52597, routed)       1.575    13.754    system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/ap_clk
+    RAMB18_X3Y34         RAMB18E1                                     r  system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg/CLKARDCLK
+                         clock pessimism              0.129    13.883    
+                         clock uncertainty           -0.169    13.714    
+    RAMB18_X3Y34         RAMB18E1 (Setup_ramb18e1_CLKARDCLK_ENARDEN)
+                                                     -0.443    13.271    system_i/spike_accel_0/inst/gmem2_m_axi_U/load_unit_0/buff_rdata/U_fifo_mem/mem_reg
   -------------------------------------------------------------------
-                         required time                         12.609    
-                         arrival time                         -13.166    
+                         required time                         13.271    
+                         arrival time                         -13.205    
   -------------------------------------------------------------------
-                         slack                                 -0.557    
+                         slack                                  0.067    
 
 
 
@@ -299,20 +283,20 @@ Slack (VIOLATED) :        -0.557ns  (required time - arrival time)
 
 Min Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             0.021ns  (arrival time - required time)
-  Source:                 system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/sig_xfer_addr_reg_reg[30]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/INFERRED_GEN.data_reg[3][24]_srl4/D
-                            (rising edge-triggered cell SRL16E clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.009ns  (arrival time - required time)
+  Source:                 system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory/xpm_memory_base_inst/gen_rd_b.gen_rd_b_synth_template.gen_rf_narrow_reg.doutb_reg_reg[73]/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.500ns period=11.000ns})
+  Destination:            system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/gen_pipe[1].pipe_reg[1][73]/D
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.500ns period=11.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.379ns  (logic 0.164ns (43.311%)  route 0.215ns (56.689%))
+  Data Path Delay:        0.264ns  (logic 0.164ns (62.011%)  route 0.100ns (37.989%))
   Logic Levels:           0  
-  Clock Path Skew:        0.263ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.268ns
-    Source Clock Delay      (SCD):    0.966ns
-    Clock Pessimism Removal (CPR):    0.039ns
+  Clock Path Skew:        0.181ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.191ns
+    Source Clock Delay      (SCD):    0.975ns
+    Clock Pessimism Removal (CPR):    0.035ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -321,12 +305,12 @@ Slack (MET) :             0.021ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  system_i/ps_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    system_i/ps_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  system_i/ps_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=52853, routed)       0.630     0.966    system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/m_axi_s2mm_aclk
-    SLICE_X50Y134        FDRE                                         r  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/sig_xfer_addr_reg_reg[30]/C
+                         net (fo=52597, routed)       0.639     0.975    system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory/xpm_memory_base_inst/clka
+    SLICE_X36Y100        FDRE                                         r  system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory/xpm_memory_base_inst/gen_rd_b.gen_rd_b_synth_template.gen_rf_narrow_reg.doutb_reg_reg[73]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X50Y134        FDRE (Prop_fdre_C_Q)         0.164     1.130 r  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/sig_xfer_addr_reg_reg[30]/Q
-                         net (fo=1, routed)           0.215     1.345    system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/in[30]
-    SLICE_X46Y132        SRL16E                                       r  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/INFERRED_GEN.data_reg[3][24]_srl4/D
+    SLICE_X36Y100        FDRE (Prop_fdre_C_Q)         0.164     1.139 r  system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory/xpm_memory_base_inst/gen_rd_b.gen_rd_b_synth_template.gen_rf_narrow_reg.doutb_reg_reg[73]/Q
+                         net (fo=1, routed)           0.100     1.239    system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/s_sc_payld[12]
+    SLICE_X39Y99         FDRE                                         r  system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/gen_pipe[1].pipe_reg[1][73]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -334,16 +318,15 @@ Slack (MET) :             0.021ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  system_i/ps_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    system_i/ps_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  system_i/ps_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=52853, routed)       0.902     1.268    system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/m_axi_s2mm_aclk
-    SLICE_X46Y132        SRL16E                                       r  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/INFERRED_GEN.data_reg[3][24]_srl4/CLK
-                         clock pessimism             -0.039     1.229    
-    SLICE_X46Y132        SRL16E (Hold_srl16e_CLK_D)
-                                                      0.094     1.323    system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/I_ADDR_CNTL/GEN_ADDR_FIFO.I_ADDR_QUAL_FIFO/USE_SRL_FIFO.I_SYNC_FIFO/I_SRL_FIFO_RBU_F/DYNSHREG_F_I/INFERRED_GEN.data_reg[3][24]_srl4
+                         net (fo=52597, routed)       0.825     1.191    system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/aclk
+    SLICE_X39Y99         FDRE                                         r  system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/gen_pipe[1].pipe_reg[1][73]/C
+                         clock pessimism             -0.035     1.156    
+    SLICE_X39Y99         FDRE (Hold_fdre_C_D)         0.075     1.231    system_i/ic_data_hp1/inst/switchboards/aw_switchboard/inst/gen_mi[0].inst_opipe_payld/gen_pipe[1].pipe_reg[1][73]
   -------------------------------------------------------------------
-                         required time                         -1.323    
-                         arrival time                           1.345    
+                         required time                         -1.231    
+                         arrival time                           1.239    
   -------------------------------------------------------------------
-                         slack                                  0.021    
+                         slack                                  0.009    
 
 
 
@@ -352,14 +335,14 @@ Slack (MET) :             0.021ns  (arrival time - required time)
 Pulse Width Checks
 --------------------------------------------------------------------------------------
 Clock Name:         clk_fpga_0
-Waveform(ns):       { 0.000 5.000 }
-Period(ns):         10.000
+Waveform(ns):       { 0.000 5.500 }
+Period(ns):         11.000
 Sources:            { system_i/ps_0/inst/PS7_i/FCLKCLK[0] }
 
 Check Type        Corner  Lib Pin      Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location       Pin
-Min Period        n/a     DSP48E1/CLK  n/a            3.884         10.000      6.116      DSP48_X3Y44    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/empty_196_reg_7522_reg/CLK
-Low Pulse Width   Slow    RAMD32/CLK   n/a            1.250         5.000       3.750      SLICE_X50Y128  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst/xpm_fifo_base_inst/gen_sdpram.xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_0_15_0_5/RAMA/CLK
-High Pulse Width  Slow    RAMD32/CLK   n/a            1.250         5.000       3.750      SLICE_X50Y128  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst/xpm_fifo_base_inst/gen_sdpram.xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_0_15_0_5/RAMA/CLK
+Min Period        n/a     DSP48E1/CLK  n/a            3.884         11.000      7.116      DSP48_X4Y46    system_i/spike_accel_0/inst/grp_sa_conv2d_bn_40_71_118_240_333_426_1_fu_666/grp_sa_conv2d_int_43_74_429_1_fu_366/grp_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99_fu_97/empty_196_reg_7522_reg/CLK
+Low Pulse Width   Slow    RAMD32/CLK   n/a            1.250         5.500       4.250      SLICE_X46Y114  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst/xpm_fifo_base_inst/gen_sdpram.xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_0_15_0_5/RAMA/CLK
+High Pulse Width  Slow    RAMD32/CLK   n/a            1.250         5.500       4.250      SLICE_X46Y114  system_i/axi_dma_feat/U0/I_PRMRY_DATAMOVER/GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER/GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst/xpm_fifo_base_inst/gen_sdpram.xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_0_15_0_5/RAMA/CLK
 
 
 

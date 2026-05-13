@@ -65,6 +65,16 @@ void sa_conv2d_bn(
     SA_AXI_LITE(groups)     SA_AXI_LITE(first_layer)
     SA_AXI_LITE_RETURN
 
+    /* R2 (Z-7020 LUT budget) fix v2 per URGENT_ASK_12 (2026-05-13).
+     * v1 added ALLOCATION to conv2d_int.cpp but had ZERO effect on fu_658,
+     * because Vitis HLS 2024.1 inlines sa_conv2d_int *into* sa_conv2d_bn
+     * before applying ALLOCATION scope - the pragma in the inlined-away
+     * function gets dropped. Per Remote diagnosis, fu_658 IS sa_conv2d_bn
+     * (`grp_sa_conv2d_bn_40_71_118_240_333_426_1`), so the pragma must live
+     * in *this* function body to bind. */
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
+
     /* Stage 1: integer conv. Output is [T_in, C_out, H_out, W_out] int32. */
     sa_conv2d_int(x, tmp_acc, w,
                   T_in, C_in, C_out, H, W,

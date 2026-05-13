@@ -182,6 +182,14 @@ void sa_tiny_fpga_top(
     SA_AXI_LITE(layer_id)
     SA_AXI_LITE_RETURN
 
+    /* R2 (Z-7020 LUT budget) fix v2 belt-and-suspenders per URGENT_ASK_12.
+     * Top-level ALLOCATION caps mul/add count across ALL inlined sub-calls
+     * (including those whose own ALLOCATION pragma got dropped during inline
+     * scope folding). Catches mul ops that escape conv2d_bn's pragma scope
+     * (e.g. ms_all_conv_block 8.7K LUT, spike_sppf 7.7K LUT contributors). */
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
+
     /* Tiny_fpga geometry constants (mirrors snn_yolov8_tiny_fpga.yaml). */
     const int T = SA_T_STEPS;          /* 1 */
     const int H_STEM_IN = SA_IMG_H;    /* 256 */

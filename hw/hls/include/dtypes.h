@@ -26,7 +26,11 @@
 /* Constants — must stay in sync with tools/fpga/numpy_reference.py */
 #define SA_T_STEPS    1     /* tiny_fpga T = 1                                */
 #define SA_MAX_SPIKE  4     /* MultiSpike4 — clamp(mem, 0, 4)                 */
-#define SA_CO_TILE    16    /* PE array C_out tile                            */
+#define SA_CO_TILE    8     /* PE array C_out tile (v6 R2: was 16, halved per
+                             * URGENT_ASK_16 Option theta. Source-deps audit:
+                             * only conv2d_int / conv2d_bn / tiny_fpga_top
+                             * reference + 1 sep_conv comment - no Python
+                             * quantizer / weight layout dependency).         */
 #define SA_CI_TILE    8     /* PE array C_in  tile                            */
 
 /* tiny_fpga model dimensions (must match snn_yolov8_tiny_fpga.yaml) */

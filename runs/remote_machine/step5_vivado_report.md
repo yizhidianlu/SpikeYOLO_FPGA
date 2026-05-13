@@ -1,45 +1,62 @@
-# Step 5 — Vivado BD + bitstream (5 attempts, all BLOCKED)
+# Step 5+6 — Vivado BD + impl (BD/synth OK, impl FAILED R2)
 
-## Status: BLOCKED — `build_bd.tcl` wires `vdma_disp → rgb2dvi.s_axis_video` but rgb2dvi has no AXI-Stream port (URGENT_ASK_8)
+## Status
 
-Past two prior blockers (board_part missing, IP catalog discovery) but hit a deeper design-level bug in the HDMI section.
-
-## Attempts
-
-| # | Fix applied | New error |
+| Phase | Status | Wall time |
 |---|---|---|
-| 1 | vanilla | `[Board 49-71]` zybo-z7-20:part0:1.0 not found |
-| 2 | Main `ff78be1` (vivado-boards submodule + board.repoPaths) | same [Board 49-71] (file_version = 1.2, not 1.0) |
-| 3 | Remote wrapper :1.0 → :1.2 + .xo placed | `[BD 5-390]` xilinx.com:hls:sa_tiny_fpga_top:1.0 not found |
-| 4 | Remote unzipped .xo to ip dir | (CWD bug — vivado didn't even run) |
-| 5 | `cd /d` absolute path | HAS_HLS_IP=0 (.xo removed during extract); **+ [BD 5-106] rgb2dvi.s_axis_video pin doesn't exist** |
+| BD construction (build_bd.tcl)  | **OK**  | ~30 s |
+| IP generation (sub-IP synths)   | **OK**  | ~3-5 min (parallel) |
+| Main `synth_1`                  | **OK**  | 19 min 09 s |
+| Implementation `impl_1`         | **FAIL** (R2)  | 5 min 48 s before place_design abort |
+| Bitstream `write_bitstream`     | not reached | n/a |
 
-## Latest error (verbatim)
+`hw/vivado/out/system.bit` does **not** exist.
+
+## Issues that blocked attempts 1-7
+
+| # | Fix applied | Result |
+|---|---|---|
+| 1 | vanilla | board_part :1.0 not found |
+| 2 | Main ff78be1 (vivado-boards submodule + board.repoPaths) | board_part :1.0 still not found (file_version = 1.2) |
+| 3 | Remote `:1.0 → :1.2` patched wrapper | xilinx.com:hls:sa_tiny_fpga_top:1.0 not found (.xo not recognized) |
+| 4 | Extract .zip to ip_repo/spike_accel/sa_tiny_fpga_top/ | CWD bug (cd hw\vivado failed) |
+| 5 | `cd /d` absolute | HAS_HLS_IP=0 (.xo file removed); + rgb2dvi s_axis_video pin missing |
+| 6 | Main d8ffdd8 (Option γ HDMI dropped) | HLS-est m_axi 0 → URGENT_ASK_9 → REGRESSION |
+| 7 | Main e340928 (macro shadow fix, port → _port) + re-csynth | m_axi works! BD OK! impl place_design fails R2 |
+
+## Workarounds Remote applied (still in `runs/remote_machine/`)
+
+- `run_step5_bd_patched.tcl` — string-maps build_bd.tcl `:1.0` → `:1.2`
+- `run_step6_bt_patched.tcl` — corrected `update_ip_catalog -disable_ip ... -repo_path ...` (Main's d8ffdd8 used wrong flag `-delete_ipdef`); + `-jobs 1` + `set_param ip.useIpCache 0` to dodge IPCACHE thread crash
+- `diag_get_board_parts.tcl` — empirical VLNV discovery
+
+## Headline result: R2 fires hard with empirical data
 
 ```
-WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins rgb2dvi_0/s_axis_video'
-ERROR: [BD 5-106] Arguments to the connect_bd_intf_net command cannot be empty.
-ERROR: [Common 17-39] 'connect_bd_intf_net' failed due to earlier errors.
+[Place 30-487] The packing of instances into the device could not be obeyed.
+  total slices: 13300
+  available  : 4741 (post-PS reserve)
+  required   : 10614  (224% of available)
 
-    while executing
-"connect_bd_intf_net -intf_net vdma_to_rgb2dvi \
-    [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
-    [get_bd_intf_pins rgb2dvi_0/s_axis_video]"
+Control sets: 1590
+LUTs: 54339 combined / 65250 total (cap 53200)
+FFs : 60999 (cap 106400, 57%)
 ```
 
-Verified against `hw/vivado/ip_repo/digilent/vivado-library/ip/rgb2dvi/component.xml`: rgb2dvi v1.4 exposes only `TMDS` interface plus parallel-RGB inputs (`vid_pData`, `vid_pVDE`, `vid_pHSync`, `vid_pVSync`, `PixelClk`, `SerialClk`). No `s_axis_video`.
+See `risk_R2_resource.md` for analysis + recommended handlers (PE shrink 16×8 → 8×8, or time-multiplex). No retry per protocol; awaiting B1 architectural fix.
 
-## Diagnosis
+## What did succeed (preserved)
 
-`build_bd.tcl` lines 215-217 assume rgb2dvi takes AXI-Stream video — wrong. Needs a `v_axis_to_video_out:4.0` + `v_tc:6.2` (Video Timing Controller) bridge between VDMA and rgb2dvi. See URGENT_ASK_8 §"Required design fix" for the wiring.
+- **Step 1 csim 10/10 PASS** at `0b3df61` (byte-identical end-to-end)
+- **Step 3 m_axi-correct IP** at `1ff4ae8` (5 m_axi_gmem* masters present)
+- **Vivado BD constructed** (`hw/vivado/out/system.bd` saved, system.hwh exported)
+- **synth_1 completed** (~19 min) — proves all upstream is sound; only place fails
+- **synth_1 post-synth checkpoint** at `hw/vivado/out/spike_zybo.runs/synth_1/system_wrapper.dcp`
 
-## Outputs preserved
+## Step 6 status
 
-- `hw/vivado/ip_repo/spike_accel/sa_tiny_fpga_top.xo` (156 KB zip — file-exists check OK)
-- `hw/vivado/ip_repo/spike_accel/sa_tiny_fpga_top/` (extracted IP — Vivado catalog OK)
-- `runs/remote_machine/run_step5_bd_patched.tcl` (BOARD_PART :1.0 → :1.2 wrapper)
-- `runs/remote_machine/diag_get_board_parts.tcl` (verified VLNV)
+Skipped. No .bit / .hwh final products. Push of intermediate artifacts (.xo, .zip, reports) is up-to-date at HEAD.
 
 ## Next step
 
-Awaiting Main / B2 patch per URGENT_ASK_8 Option α (insert v_axis_to_video_out + v_tc) or Option γ (drop HDMI for now). Step 6 (push) and Step 5 final reports remain queued.
+Awaiting Main's R2 handler (PE shrink or time-multiplex) per `risk_R2_resource.md`. Continuing AUTOPOLL loop.

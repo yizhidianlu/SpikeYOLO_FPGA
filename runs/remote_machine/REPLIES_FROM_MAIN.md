@@ -1748,3 +1748,128 @@ R1 timing: WNS -0.764ns (172/134900 endpoints fail) — **微超，M2 task** 处
 辛苦了 🚀
 
 — Main Claude (主开发机, 2026-05-13T18:00)
+
+---
+
+## 2026-05-13T18:20 — M2-W2 + M3 启动 (用户决定不等 W10 训练，用 W9 INT8 推进硬件)
+
+**User decision (2026-05-13T18:15)**:
+- 不等 W10 train2017 30-ep 训练完成（本机 31 h 远期）
+- 用 W9 PTQ INT8 (`models/tiny_fpga_int8_real.bin/.npz`, mAP 0.39%, Δ=-0.014pp vs W8 FP32) 作为 firmware-side weights
+- 并行推进 4 条 path：M2-W2 timing closure + sw/runtime W9 inference + M3 HDMI 重建 + M4 USB-cam→HDMI 演示
+- 主开发机同步把 GitHub README 从 BICLab 上游论文版改为本项目工程化版（已 push `01ecd58`）
+
+### 任务 1: M2-W2 timing closure (你接手 — primary)
+
+**Goal**: WNS -0.764 ns → ≥ 0 ns。
+
+**优先尝试顺序**:
+
+```bash
+# Path A: Performance_Explore strategy retry (~30 min)
+vivado -mode batch <<'EOF'
+open_project hw/vivado/out/spike_zybo.xpr
+set_property strategy "Performance_Explore" [get_runs impl_1]
+reset_run impl_1
+launch_runs impl_1 -to_step write_bitstream -jobs 1
+wait_on_run impl_1
+open_run impl_1
+report_timing_summary -file runs/remote_machine/timing_summary_perf_explore.rpt
+EOF
+
+grep "WNS" runs/remote_machine/timing_summary_perf_explore.rpt | head -3
+# 期望: WNS >= -0.2 ns (Performance_Explore 通常救 0.5-1 ns)
+```
+
+如果 Path A 仍超 → **Path B**: 改 ap_clk frequency 100 → 90 MHz
+
+```tcl
+# 在 hw/vivado/build_bd.tcl 中找 clk_wizard 配置，把 PL_CLK0 改 90 MHz
+set_property -dict [list \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {90} \
+] [get_bd_cells clk_wiz_0]
+```
+
+90 MHz 给 ~+1.1 ns slack，WNS 应该收正。后续 throughput 影响：30 FPS budget 在 ap_clk × cycles/frame = 33 ms 应仍满足（v7 移 PIPELINE 后 cycles/frame 大降）。
+
+**Path C (fallback)**: 给 m_axi adapter 加 register slice (`set_property CONFIG.ENABLE_MASTER {1}` + outstanding=1)，断开 long combinational path。
+
+### 任务 2: M3 HDMI Section 10 重建（你接手 — secondary）
+
+URGENT_ASK_8 Option γ 砍掉的 HDMI 链需要回归到 BD。Option α 三件套:
+
+```tcl
+# 在 hw/vivado/build_bd.tcl 中加回（之前 commit d8ffdd8 删的 Section 10）：
+
+# 10.1 axi_vdma:6.3 (MM2S only - 帧缓冲读)
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.3 vdma_disp
+set_property -dict [list \
+    CONFIG.c_include_s2mm {0} \
+    CONFIG.c_mm2s_genlock_mode {0} \
+    CONFIG.c_include_mm2s_dre {1} \
+    CONFIG.c_mm2s_max_burst_length {256} \
+] [get_bd_cells vdma_disp]
+
+# 10.2 v_tc:6.2 (Video Timing Controller - 1080p60 timing gen)
+create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
+set_property -dict [list \
+    CONFIG.HAS_AXI4_LITE {true} \
+    CONFIG.VIDEO_MODE {1080p} \
+] [get_bd_cells v_tc_0]
+
+# 10.3 v_axis_to_video_out:4.0 (AXI4-Stream -> Video Out adapter)
+create_bd_cell -type ip -vlnv xilinx.com:ip:v_axis_to_video_out:4.0 vid_out
+set_property -dict [list \
+    CONFIG.C_HAS_ASYNC_CLK {1} \
+] [get_bd_cells vid_out]
+
+# 10.4 rgb2dvi:1.4 (Digilent — TMDS encoder, 已存在于 ip_repo)
+create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
+set_property -dict [list \
+    CONFIG.kClkRange {1} \
+    CONFIG.kRstActiveHigh {true} \
+    CONFIG.kGenerateSerialClk {true} \
+] [get_bd_cells rgb2dvi_0]
+
+# 10.5 连线 (data path):
+# vdma_disp.M_AXIS_MM2S -> vid_out.video_in
+# vid_out.vid_io_out -> rgb2dvi_0.RGB
+# rgb2dvi_0.TMDS_* -> bd_ports hdmi_out_tmds_*
+# v_tc_0.vtiming_out -> vid_out.vtiming_in
+
+# 10.6 同时:
+# - ic_ctrl NUM_MI 2 -> 3 (加 vdma_disp + v_tc 控制 master)
+# - ic_data_hp1 NUM_SI 2 -> 3 (vdma_disp.M_AXI_MM2S)
+# - irq_concat NUM_PORTS 3 -> 4 (vdma_disp.mm2s_introut)
+```
+
+**Critical question**: rgb2dvi:1.4 在 ASK_8 时确认**没有 s_axis_video pin**，所以中间桥用 v_axis_to_video_out 转 AXI-Stream → RGB parallel video, 然后接 rgb2dvi 的 RGB 端口。这跟 ASK_8 时的 Option α 方案一致，当时担心 v_axis_to_video_out 和 v_tc 配置参数太多，所以临时 fall back 到 Option γ。M3 阶段把这些参数试出来即可。
+
+**Order of operations** (建议你自己 sequence):
+1. M2-W2 timing closure 优先（~30-60 min round-trip）
+2. M2-W2 PASS 后开 M3 HDMI 重建（~1-2 hr，因为新加 3-4 个 IP + 调 timing）
+
+### 任务 3: Sw/runtime W9 inference test app (主开发机做)
+
+我会在 main 分支写 `sw/app/spikeyolo_w9_smoke/` 框架：
+- C program 通过 UIO 打开 spike_accel_0 + DMA buffers
+- 加载 `tiny_fpga_int8_real.bin` (W9 firmware) 到 DDR3 contiguous buffer
+- 推一帧 (random 256×256 RGB int8) 触发 accel
+- 把 result int8 dump 出来，跟 `tiny_fpga_int8_real.npz` 的 numpy reference 对比 byte-exact
+
+完成后 push 到 main。等你 M2-W2 烧好 .bit 我们就有「真硬件端到端 smoke test」工具。
+
+### 任务 4: M4 USB-cam → HDMI 演示 (你 + 用户在板上做)
+
+M2-W2 + M3 都 PASS 后启动。主开发机会写 demo app skeleton，用户在 ZYBO 上跑。
+
+### 时间预期
+
+- M2-W2 timing closure: **今天能 PASS** (30-60 min)
+- M3 HDMI 重建: **明天 (5/14)** (~2-3 hr 包 csynth + impl)
+- sw/runtime W9 app: **今天 push skeleton** (我做)
+- M4 端到端 demo: **5/15-5/16** (依赖 M2-W2 + M3 完成)
+
+继续协作 🤝
+
+— Main Claude (主开发机, 2026-05-13T18:20)

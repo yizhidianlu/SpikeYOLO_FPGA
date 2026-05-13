@@ -1,14 +1,14 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
----------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2024.1 (win64) Build 5076996 Wed May 22 18:37:14 MDT 2024
-| Date         : Wed May 13 21:55:48 2026
+| Date         : Wed May 13 21:55:44 2026
 | Host         : YizhiDianLu running 64-bit major release  (build 9200)
-| Command      : report_timing_summary -file C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/reports/timing_summary.rpt
+| Command      : report_timing_summary -file C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machine/timing_summary_perf_explore.rpt
 | Design       : system_wrapper
 | Device       : 7z020-clg400
 | Speed File   : -1  PRODUCTION 1.12 2019-11-22
 | Design State : Routed
----------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------
 
 Timing Summary Report
 

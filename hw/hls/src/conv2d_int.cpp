@@ -68,8 +68,8 @@ void sa_conv2d_int(
      *  3. ALLOCATION (kept) caps concurrent muls; defense-in-depth
      */
     SA_HLS_PRAGMA(HLS INLINE off)
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=8)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=8)
 
     const int C_in_g  = C_in  / groups;
     const int C_out_g = C_out / groups;

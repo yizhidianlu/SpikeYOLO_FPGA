@@ -72,8 +72,8 @@ void sa_conv2d_bn(
      * function gets dropped. Per Remote diagnosis, fu_658 IS sa_conv2d_bn
      * (`grp_sa_conv2d_bn_40_71_118_240_333_426_1`), so the pragma must live
      * in *this* function body to bind. */
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=16)
-    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=16)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=mul limit=8)
+    SA_HLS_PRAGMA(HLS ALLOCATION operation instances=add limit=8)
 
     /* Stage 1: integer conv. Output is [T_in, C_out, H_out, W_out] int32. */
     sa_conv2d_int(x, tmp_acc, w,

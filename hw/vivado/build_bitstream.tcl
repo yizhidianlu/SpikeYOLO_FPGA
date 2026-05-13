@@ -9,6 +9,27 @@ file mkdir $REPORTS
 
 open_project [file join $OUT_DIR ${PROJECT}.xpr]
 
+# ===== Workaround for URGENT_ASK_11 ============================================
+# Some Vivado 2024.1 installs ship a partial roe_framer IP whose
+# `data/rsb/rules/roe_framer/bd.tcl` startup rule sources a missing
+# `data/ip/xilinx/roe_framer_v3_0/automation/auto_utils.tcl`. The rule's
+# outer guard is `if {[llength [get_ipdefs *roe_framer*]] > 0}`, so removing
+# the partial roe_framer IP defs from the catalog before any launch_runs
+# call prevents the failing source. Only takes effect if the partial install
+# is detected; clean installs short-circuit harmlessly.
+set _roe_defs [get_ipdefs -quiet -filter {NAME =~ *roe_framer*}]
+if {[llength $_roe_defs] > 0} {
+    puts "INFO: Detected partial roe_framer IP in catalog — removing to avoid"
+    puts "      auto_utils.tcl-missing error at launch_runs startup."
+    foreach _idef $_roe_defs {
+        if {[catch {update_ip_catalog -delete_ipdef $_idef} _err]} {
+            puts "WARN: could not delete $_idef: $_err"
+        }
+    }
+}
+unset -nocomplain _roe_defs _idef _err
+# ==============================================================================
+
 # ===== Synth =====
 launch_runs synth_1 -jobs 8
 wait_on_run synth_1

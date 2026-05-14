@@ -115,29 +115,37 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 } else {
     set _xlnx_ip ""
 }
-# v4 fix (URGENT_ASK_21): v3 wildcards (*microblaze* etc.) matched multiple
-# catalog entries (microblaze, microblaze_riscv, mdm_microblaze_riscv,
-# microblaze_mcs, ...) and disabling all of them corrupted BD-rule init
-# state — init.tcl became unreadable and 8 NEW rules failed.
-# Use exact VLNV strings of the IP defs whose helper TCLs are missing.
-# Each is disabled independently in catch, so an install that doesn't
-# ship a given IP (different version, different layout) just skips it.
-set _broken_ip_vlnvs {
-    xilinx.com:ip:roe_framer:3.0
-    xilinx.com:ip:hdmi_gt_controller:1.0
-    xilinx.com:ip:l_ethernet:3.2
-    xilinx.com:ip:microblaze:11.0
+# v6 fix (URGENT_ASK_23): switch from hardcoded VLNV (with version pinning)
+# to NAME-equality match. v4 used VLNVs like xilinx.com:ip:microblaze:11.0
+# but missed microblaze_riscv:1.0 (a separate IP). Listing each new broken
+# IP by exact NAME (and letting `get_ipdefs NAME == X` resolve to the
+# actual ipdef object) avoids both:
+#   - v3 wildcard pollution (*microblaze* matched 6+ entries)
+#   - v4 version-pinning misses (next-version IP would silently skip)
+# Adding a new broken IP is now a single line in _broken_ip_names.
+set _broken_ip_names {
+    roe_framer
+    hdmi_gt_controller
+    l_ethernet
+    microblaze
+    microblaze_riscv
 }
-foreach _vlnv $_broken_ip_vlnvs {
-    if {$_xlnx_ip ne ""} {
-        if {[catch {update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip} _err]} {
-            puts "INFO: $_vlnv not in catalog / already disabled — skipping ($_err)"
+foreach _name $_broken_ip_names {
+    if {$_xlnx_ip eq ""} { continue }
+    set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]
+    if {[llength $_ipdefs] == 0} {
+        puts "INFO: IP NAME=$_name not in catalog — skipping"
+        continue
+    }
+    foreach _ipdef $_ipdefs {
+        if {[catch {update_ip_catalog -disable_ip $_ipdef -repo_path $_xlnx_ip} _err]} {
+            puts "WARN: could not disable $_ipdef: $_err"
         } else {
-            puts "INFO: Disabled broken IP $_vlnv"
+            puts "INFO: Disabled broken IP $_ipdef"
         }
     }
 }
-unset -nocomplain _broken_ip_vlnvs _vlnv _xlnx_ip _err
+unset -nocomplain _broken_ip_names _name _ipdefs _ipdef _err _xlnx_ip
 
 # M3 HDMI: in-tree Verilog adapter that replaces v_axis_to_video_out:4.0
 # (which is shipped only with the Video & Image Processing IP Suite).

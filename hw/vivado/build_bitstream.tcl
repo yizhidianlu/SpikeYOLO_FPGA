@@ -27,31 +27,36 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 } else {
     set _xlnx_ip ""
 }
-# Install-quirk disable list (kept in sync with build_bd.tcl). Some Vivado
-# 2024.1 installs ship partial IP packages whose bd_rule helper TCLs
-# reference missing files; this list disables them in catalog before
-# launch_runs so the IPCACHE walk doesn't trip on them.
+# Install-quirk disable list (kept in sync with build_bd.tcl).
 #
-# v4 (URGENT_ASK_21): switched from NAME wildcards to exact VLNV strings.
-# Wildcard *microblaze* matched 6+ entries (microblaze, microblaze_riscv,
-# mdm_microblaze_riscv, microblaze_mcs, ...) and disabling them all
-# corrupted BD rule init. Each exact VLNV is one entry.
-set _broken_ip_vlnvs {
-    xilinx.com:ip:roe_framer:3.0
-    xilinx.com:ip:hdmi_gt_controller:1.0
-    xilinx.com:ip:l_ethernet:3.2
-    xilinx.com:ip:microblaze:11.0
+# v6 (URGENT_ASK_23): NAME-equality match. v3 wildcard *microblaze* polluted
+# 8 unrelated rules; v4 hardcoded VLNV (microblaze:11.0) missed sibling
+# microblaze_riscv:1.0. Listing each broken IP by exact NAME and resolving
+# to the actual ipdef object via `get_ipdefs NAME == X` avoids both.
+# Adding a new broken IP here is a single line.
+set _broken_ip_names {
+    roe_framer
+    hdmi_gt_controller
+    l_ethernet
+    microblaze
+    microblaze_riscv
 }
-foreach _vlnv $_broken_ip_vlnvs {
-    if {$_xlnx_ip ne ""} {
-        if {[catch {update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip} _err]} {
-            puts "INFO: $_vlnv not in catalog / already disabled — skipping ($_err)"
+foreach _name $_broken_ip_names {
+    if {$_xlnx_ip eq ""} { continue }
+    set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]
+    if {[llength $_ipdefs] == 0} {
+        puts "INFO: IP NAME=$_name not in catalog — skipping"
+        continue
+    }
+    foreach _ipdef $_ipdefs {
+        if {[catch {update_ip_catalog -disable_ip $_ipdef -repo_path $_xlnx_ip} _err]} {
+            puts "WARN: could not disable $_ipdef: $_err"
         } else {
-            puts "INFO: Disabled broken IP $_vlnv"
+            puts "INFO: Disabled broken IP $_ipdef"
         }
     }
 }
-unset -nocomplain _broken_ip_vlnvs _vlnv _xlnx_ip _err
+unset -nocomplain _broken_ip_names _name _ipdefs _ipdef _err _xlnx_ip
 # ==============================================================================
 
 # IPCACHE multi-thread check appears to crash silently in some 2024.1 installs.

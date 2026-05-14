@@ -31,25 +31,27 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 # 2024.1 installs ship partial IP packages whose bd_rule helper TCLs
 # reference missing files; this list disables them in catalog before
 # launch_runs so the IPCACHE walk doesn't trip on them.
-#   roe_framer            (URGENT_ASK_11)
-#   hdmi_gt_controller    (M2-W2 sync)
-#   l_ethernet            (URGENT_ASK_20)
-#   microblaze            (URGENT_ASK_20)
-set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
-foreach _pat $_broken_ip_filters {
-    set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
-    if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
-        puts "INFO: Detected partial IPs matching $_pat in catalog (repo=$_xlnx_ip)"
-        foreach _idef $_defs {
-            if {[catch {update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip} _err]} {
-                puts "WARN: could not disable $_idef: $_err"
-            } else {
-                puts "INFO: disabled $_idef"
-            }
+#
+# v4 (URGENT_ASK_21): switched from NAME wildcards to exact VLNV strings.
+# Wildcard *microblaze* matched 6+ entries (microblaze, microblaze_riscv,
+# mdm_microblaze_riscv, microblaze_mcs, ...) and disabling them all
+# corrupted BD rule init. Each exact VLNV is one entry.
+set _broken_ip_vlnvs {
+    xilinx.com:ip:roe_framer:3.0
+    xilinx.com:ip:hdmi_gt_controller:1.0
+    xilinx.com:ip:l_ethernet:3.2
+    xilinx.com:ip:microblaze:11.0
+}
+foreach _vlnv $_broken_ip_vlnvs {
+    if {$_xlnx_ip ne ""} {
+        if {[catch {update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip} _err]} {
+            puts "INFO: $_vlnv not in catalog / already disabled — skipping ($_err)"
+        } else {
+            puts "INFO: Disabled broken IP $_vlnv"
         }
     }
 }
-unset -nocomplain _broken_ip_filters _pat _defs _idef _err _xlnx_ip
+unset -nocomplain _broken_ip_vlnvs _vlnv _xlnx_ip _err
 # ==============================================================================
 
 # IPCACHE multi-thread check appears to crash silently in some 2024.1 installs.

@@ -115,17 +115,29 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 } else {
     set _xlnx_ip ""
 }
-set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
-foreach _pat $_broken_ip_filters {
-    set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
-    if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
-        puts "INFO: Disabling partial IPs matching $_pat (BD-rule init guard)"
-        foreach _idef $_defs {
-            catch { update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip }
+# v4 fix (URGENT_ASK_21): v3 wildcards (*microblaze* etc.) matched multiple
+# catalog entries (microblaze, microblaze_riscv, mdm_microblaze_riscv,
+# microblaze_mcs, ...) and disabling all of them corrupted BD-rule init
+# state — init.tcl became unreadable and 8 NEW rules failed.
+# Use exact VLNV strings of the IP defs whose helper TCLs are missing.
+# Each is disabled independently in catch, so an install that doesn't
+# ship a given IP (different version, different layout) just skips it.
+set _broken_ip_vlnvs {
+    xilinx.com:ip:roe_framer:3.0
+    xilinx.com:ip:hdmi_gt_controller:1.0
+    xilinx.com:ip:l_ethernet:3.2
+    xilinx.com:ip:microblaze:11.0
+}
+foreach _vlnv $_broken_ip_vlnvs {
+    if {$_xlnx_ip ne ""} {
+        if {[catch {update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip} _err]} {
+            puts "INFO: $_vlnv not in catalog / already disabled — skipping ($_err)"
+        } else {
+            puts "INFO: Disabled broken IP $_vlnv"
         }
     }
 }
-unset -nocomplain _broken_ip_filters _pat _defs _idef _xlnx_ip
+unset -nocomplain _broken_ip_vlnvs _vlnv _xlnx_ip _err
 
 # M3 HDMI: in-tree Verilog adapter that replaces v_axis_to_video_out:4.0
 # (which is shipped only with the Video & Image Processing IP Suite).

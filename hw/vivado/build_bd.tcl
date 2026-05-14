@@ -270,14 +270,22 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.3 vdma_disp
 # axis_to_video_bridge's RGB888 contract. Default is 32 (matches the 64-bit
 # m_axi_mm2s data path in 4-byte chunks); leaving it 32 made BD validator
 # reject the connection with "TDATA_NUM_BYTES does not match (3 vs 4)".
+#
+# v10 (URGENT_ASK_27 Option delta): R2 margin too tight (~120 slices over
+# on Area_Explore best). Shrink VDMA itself to recover:
+#   c_num_fstores       3 -> 1   (no triple-buffer; OK for initial demo)
+#   c_include_mm2s_dre  1 -> 0   (DRE adds ~150 LUT; SW guarantees alignment)
+#   c_mm2s_max_burst    256 -> 128 (halves burst-FIFO depth)
+# Combined expected savings: ~250-400 slices.
 set_property -dict [list \
     CONFIG.c_include_mm2s           {1} \
     CONFIG.c_include_s2mm           {0} \
     CONFIG.c_mm2s_genlock_mode      {0} \
-    CONFIG.c_include_mm2s_dre       {1} \
+    CONFIG.c_include_mm2s_dre       {0} \
+    CONFIG.c_num_fstores            {1} \
     CONFIG.c_m_axi_mm2s_data_width  {64} \
     CONFIG.c_mm2s_axis_data_width   {24} \
-    CONFIG.c_mm2s_max_burst_length  {256} \
+    CONFIG.c_mm2s_max_burst_length  {128} \
 ] [get_bd_cells vdma_disp]
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
@@ -324,9 +332,11 @@ set_property -dict [list CONFIG.NUM_SI {3} CONFIG.NUM_MI {1}] [get_bd_cells ic_d
 # ============================================================================
 # 6. IRQ concatenation -> PS IRQ_F2P
 # ============================================================================
-# In0=spike_accel.interrupt, In1=dma_mm2s, In2=dma_s2mm, In3=vdma_mm2s (M3).
+# v10 (URGENT_ASK_27 Option delta): drop vdma IRQ - M4 demo SW polls VDMA
+# status registers rather than using vdma_mm2s_introut. Saves ~10-20 slices.
+# In0=spike_accel.interrupt, In1=dma_mm2s, In2=dma_s2mm.
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 irq_concat
-set_property -dict [list CONFIG.NUM_PORTS {4}] [get_bd_cells irq_concat]
+set_property -dict [list CONFIG.NUM_PORTS {3}] [get_bd_cells irq_concat]
 
 # ============================================================================
 # 7. Resets — system processor reset for each clock domain
@@ -487,7 +497,8 @@ if {$HAS_HLS_IP} {
 }
 catch {connect_bd_net [get_bd_pins axi_dma_feat/mm2s_introut] [get_bd_pins irq_concat/In1]}
 catch {connect_bd_net [get_bd_pins axi_dma_feat/s2mm_introut] [get_bd_pins irq_concat/In2]}
-catch {connect_bd_net [get_bd_pins vdma_disp/mm2s_introut]    [get_bd_pins irq_concat/In3]}
+# v10 (URGENT_ASK_27 Option delta): vdma IRQ wire removed - SW polls status.
+# catch {connect_bd_net [get_bd_pins vdma_disp/mm2s_introut] [get_bd_pins irq_concat/In3]}
 connect_bd_net [get_bd_pins irq_concat/dout] [get_bd_pins ps_0/IRQ_F2P]
 
 # ============================================================================

@@ -13,8 +13,8 @@ set REMOTE   "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machin
 open_project [file join $OUT_DIR ${PROJECT}.xpr]
 
 # Strategy switch (writes back to .xpr metadata).
-set_property strategy Area_ExploreSequential [get_runs impl_1]
-puts "INFO: impl_1 strategy set to Area_ExploreSequential (M3 R2 gap was 120 slices)"
+set_property strategy Area_Explore [get_runs impl_1]
+puts "INFO: impl_1 strategy set to Area_Explore (M3 v10 — best 120-over result)"
 
 # IPCACHE workarounds (consistent with baseline wrapper).
 catch { set_param ip.useCacheStrategy 0 }

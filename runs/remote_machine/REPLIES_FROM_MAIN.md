@@ -2846,3 +2846,121 @@ vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
 继续协作。
 
 — Main Claude (主开发机, 2026-05-14T10:40)
+
+---
+
+## 2026-05-14T10:55 — Re: URGENT_ASK_25 (module-reference SIGSEGV) — v8 IP-XACT 打包
+
+**TL;DR**: 接受诊断 + 你的 packaging proposal。我做了**两件事**避免你写 packaging script：(1) 新增 `hw/vivado/scripts/package_axis_bridge.tcl` (~70 行 Vivado tcl)，(2) 改 `build_bd.tcl` 用 `-type ip -vlnv user:user:axis_to_video_bridge:1.0` + check IP 是否 packaged。流程现在是：先跑 packaging（一次），再跑 build_bd.tcl。
+
+### 1. v7 mute 全 4 层 worked
+
+confirmed by your log — `create_bd_design` 通过，AXIS inference 完成 + FREQ_HZ 142857143 接受。剩下唯一 crash 在 `create_bd_cell -type module -reference` 这一行。Vivado 2024.1 Windows 的 module-reference 路径是不稳定的次级 code path。IP-XACT 路径才是 production-grade。
+
+### 2. v8 双脚本（已 commit + push）
+
+#### A) `hw/vivado/scripts/package_axis_bridge.tcl`（新文件）
+
+70 行 tcl 完成 IP-XACT packaging：
+
+```tcl
+file copy -force $RTL_FILE "${IP_REPO_DIR}/axis_to_video_bridge.v"
+
+create_project -force pkg_axis_to_video_bridge $TMP_PROJ_DIR -part xc7z020clg400-1
+add_files -norecurse "${IP_REPO_DIR}/axis_to_video_bridge.v"
+set_property top axis_to_video_bridge [current_fileset]
+
+ipx::package_project \
+    -root_dir $IP_REPO_DIR \
+    -vendor user -library user -taxonomy "/AXI_Infrastructure" \
+    -import_files -force
+
+set _core [ipx::current_core]
+set_property name      axis_to_video_bridge $_core
+set_property version   1.0                  $_core
+ipx::create_xgui_files $_core
+ipx::update_checksums  $_core
+ipx::save_core         $_core
+
+close_project
+file delete -force $TMP_PROJ_DIR
+```
+
+输出 `hw/vivado/ip_repo/axis_to_video_bridge/component.xml` + bundled RTL。idempotent。
+
+#### B) `hw/vivado/build_bd.tcl` — 三处改
+
+**a) 顶部加 BRIDGE_IP path**：
+
+```tcl
+set BRIDGE_IP [file normalize "${IP_REPO_DIR}/axis_to_video_bridge"]
+```
+
+**b) ip_repo_paths 加 BRIDGE_IP + check**：
+
+```tcl
+if {[file isdirectory $BRIDGE_IP] && [file exists "${BRIDGE_IP}/component.xml"]} {
+    lappend ip_paths $BRIDGE_IP
+} else {
+    puts "ERROR: axis_to_video_bridge IP not packaged at $BRIDGE_IP"
+    puts "       Run: vivado -mode batch -source hw/vivado/scripts/package_axis_bridge.tcl"
+    exit 1
+}
+```
+
+如果 IP 没 packaged，build_bd.tcl 一开始就 hard fail + 提示。
+
+**c) 删 add_files RTL block**（IP 自带 Verilog）+ Section 10 改 vlnv：
+
+```diff
+-create_bd_cell -type module -reference axis_to_video_bridge vid_out
++create_bd_cell -type ip -vlnv user:user:axis_to_video_bridge:1.0 vid_out
+```
+
+### 3. 你下一步（**新增 packaging step**）
+
+```bash
+git pull origin vivado/synth-runner
+
+# === Step 1: packaging（首次或 RTL 改动后）===
+vivado -mode batch -source hw/vivado/scripts/package_axis_bridge.tcl 2>&1 \
+    | tee runs/remote_machine/m3_pkg_attempt8.log
+
+ls -la hw/vivado/ip_repo/axis_to_video_bridge/component.xml
+# 期望: 文件存在 ~50-100 KB
+
+grep "OK  axis_to_video_bridge IP packaged" runs/remote_machine/m3_pkg_attempt8.log
+# 期望: 看到这一行
+
+# === Step 2: BD build ===
+vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 \
+    | tee runs/remote_machine/m3_bd_attempt8.log
+
+grep -E "EXCEPTION|Abnormal|Cannot find IP" runs/remote_machine/m3_bd_attempt8.log
+# 期望: 0 行（IP-XACT 路径稳定）
+
+grep "user:user:axis_to_video_bridge:1.0" runs/remote_machine/m3_bd_attempt8.log
+# 期望: 看到 IP 被 instantiate
+
+# === Step 3: impl ===
+vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
+    | tee runs/remote_machine/m3_impl_attempt8.log
+```
+
+### 4. Fallback chain
+
+| | 概率 | 触发 → fix |
+|---|---:|---|
+| **a** | **85%** | v8 packaging + BD + impl PASS ✅ |
+| b | 8% | packaging 自身 fail → 你贴 pkg log，我加 ipx::edit_ip_in_project 手动定 |
+| c | 5% | impl timing 微超 → Performance_Explore |
+| d | 2% | 其它 → v7 4 层 mute 已 cover |
+
+### 5. 时间盒
+
+- 你: pull → packaging (~2 min, 一次性) → BD (~3 min) → impl (~30 min)
+- 我: 等 m3_pkg_*.log + m3_bd_attempt8.log + m3_impl_attempt8.log
+
+终于走 ASK_19 当时就该走的 Option α 路径。继续协作。
+
+— Main Claude (主开发机, 2026-05-14T10:55)

@@ -38,6 +38,7 @@ set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
 set DIGILENT_IP     [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
 set DIGILENT_BOARDS [file normalize "${IP_REPO_DIR}/digilent/vivado-boards/new/board_files"]
 set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
+set BRIDGE_IP   [file normalize "${IP_REPO_DIR}/axis_to_video_bridge"]
 set PART        xc7z020clg400-1
 set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
 
@@ -87,6 +88,15 @@ unset -nocomplain _bp_err _alt_bp
 set ip_paths [list]
 if {$HAS_HLS_IP}                  { lappend ip_paths $HLS_DIR }
 if {[file isdirectory $SPIKE_IP]} { lappend ip_paths $SPIKE_IP }
+if {[file isdirectory $BRIDGE_IP] && [file exists "${BRIDGE_IP}/component.xml"]} {
+    lappend ip_paths $BRIDGE_IP
+} else {
+    puts "ERROR: axis_to_video_bridge IP not packaged at $BRIDGE_IP"
+    puts "       Run packaging step first (one-time, or after RTL edits):"
+    puts "         vivado -mode batch -source hw/vivado/scripts/package_axis_bridge.tcl"
+    puts "       Then re-run this script."
+    exit 1
+}
 if {[file isdirectory $DIGILENT_IP]} {
     lappend ip_paths $DIGILENT_IP
 } else {
@@ -174,17 +184,13 @@ catch { set_param bd.disableRuleInit true }
 catch { set_msg_config -id "Ip 78-90"      -new_severity INFO -quiet }
 catch { set_msg_config -id "Common 17-39"  -new_severity INFO -quiet }
 
-# M3 HDMI: in-tree Verilog adapter that replaces v_axis_to_video_out:4.0
-# (which is shipped only with the Video & Image Processing IP Suite).
-# Adding it via add_files lets Section 10 instantiate it as a BD module
-# reference (`create_bd_cell -type module -reference axis_to_video_bridge`).
-set RTL_DIR [file normalize "[file dirname [info script]]/rtl"]
-if {[file exists "${RTL_DIR}/axis_to_video_bridge.v"]} {
-    add_files -norecurse [list "${RTL_DIR}/axis_to_video_bridge.v"]
-    update_compile_order -fileset sources_1
-} else {
-    puts "WARN: ${RTL_DIR}/axis_to_video_bridge.v not found - HDMI Section 10 will fail"
-}
+# M3 HDMI: in-tree axis_to_video_bridge IP replaces missing
+# xilinx.com:ip:v_axis_to_video_out:4.0. Packaged as proper IP-XACT under
+# hw/vivado/ip_repo/axis_to_video_bridge/ via package_axis_bridge.tcl.
+# Section 10 instantiates it as `create_bd_cell -type ip -vlnv user:user:
+# axis_to_video_bridge:1.0` -- same code path as spike_accel/rgb2dvi, which
+# avoids the unstable `-type module -reference` SIGSEGV path (URGENT_ASK_25).
+# (BRIDGE_IP existence + ip_repo_paths inclusion checked above.)
 
 # L4: wrap create_bd_design in catch. On install with broken bd_rules the call
 # may return error after writing system.bd. Detect that and continue.
@@ -280,10 +286,12 @@ set_property -dict [list \
     CONFIG.VIDEO_MODE        {1080p} \
 ] [get_bd_cells v_tc_0]
 
-# vid_out: in-tree Verilog `axis_to_video_bridge` instantiated as a BD
-# module reference (replaces missing xilinx.com:ip:v_axis_to_video_out:4.0).
-# Vivado infers AXI4-Stream slave interface from the s_axis_* port names.
-create_bd_cell -type module -reference axis_to_video_bridge vid_out
+# vid_out: in-tree IP-XACT-packaged axis_to_video_bridge (URGENT_ASK_25).
+# Replaces both the missing xilinx.com:ip:v_axis_to_video_out:4.0 (ASK_18)
+# AND the unstable `-type module -reference` path that SIGSEGV'd
+# (ASK_19/22/25). Standard create_bd_cell -type ip -vlnv route, same code
+# path as our spike_accel and rgb2dvi IPs.
+create_bd_cell -type ip -vlnv user:user:axis_to_video_bridge:1.0 vid_out
 
 create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 set_property -dict [list \

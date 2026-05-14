@@ -44,8 +44,14 @@ module axis_to_video_bridge #(
     // -reference` cell. Embedding ASSOCIATED_BUSIF + FREQ_HZ via
     // X_INTERFACE_PARAMETER on the clock port short-circuits the problematic
     // null-deref path. Standard UG994 pattern for module-reference IP.
+    // FREQ_HZ matches what Zynq-7020 PLL actually produces for FCLK_CLK1
+    // (URGENT_ASK_22 fix v5): PS PLL with 50 MHz reference can't synthesise
+    // exact 148.5 MHz. Closest stable lock is 50 * 20/7 = 142,857,143 Hz
+    // (3.8% under HDMI 1080p60 nominal — most consumer displays tolerate).
+    // Declared FREQ_HZ must match the actual physical clock rate or the BD
+    // validator throws "FREQ_HZ does not match" on the AXIS connection.
     (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 s_axis_aclk CLK" *)
-    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 148500000" *)
+    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 142857143" *)
     input  wire                              s_axis_aclk,
     (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 s_axis_aresetn RST" *)
     (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
@@ -64,12 +70,14 @@ module axis_to_video_bridge #(
     (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TLAST" *)
     input  wire                              s_axis_tlast,   // EOL (unused)
 
-    // Video timing inputs (driven by v_tc vtiming_out bus, individual pins)
-    input  wire                              vtiming_active_video,
+    // Video timing inputs from v_tc:6.2 (URGENT_ASK_22 fix v5):
+    // v_tc:6.2 only emits 4 discrete blanking/sync pins (hsync_out / vsync_out
+    // / hblank_out / vblank_out). There is NO active_video output — we derive
+    // it inside the bridge as `~(hblank | vblank)`.
     input  wire                              vtiming_hsync,
     input  wire                              vtiming_vsync,
-    input  wire                              vtiming_hblank, // unused, kept for IP compat
-    input  wire                              vtiming_vblank, // unused, kept for IP compat
+    input  wire                              vtiming_hblank,
+    input  wire                              vtiming_vblank,
 
     // Parallel video outputs (consumed by rgb2dvi RGB port)
     output reg  [C_AXIS_TDATA_WIDTH-1:0]     vid_data,
@@ -78,10 +86,13 @@ module axis_to_video_bridge #(
     output reg                               vid_vsync
 );
 
-    // tready opens whenever v_tc says we are inside the active video region;
-    // VDMA self-paces to the pixel clock so this naturally throttles the
-    // stream during hblank/vblank.
-    assign s_axis_tready = vtiming_active_video;
+    // Active-video derivation (URGENT_ASK_22): v_tc:6.2 doesn't expose an
+    // explicit active_video output, so synthesise it from the blanking pair.
+    wire derived_active_video = ~(vtiming_hblank | vtiming_vblank);
+
+    // tready opens whenever we're in the active video region; VDMA self-paces
+    // to the pixel clock so this naturally throttles the stream during blank.
+    assign s_axis_tready = derived_active_video;
 
     // Single-stage pipeline: register everything to the same pixel clock so
     // rgb2dvi sees clean transitions and HDMI tx PLL can lock cleanly.
@@ -92,12 +103,12 @@ module axis_to_video_bridge #(
             vid_hsync        <= 1'b0;
             vid_vsync        <= 1'b0;
         end else begin
-            vid_active_video <= vtiming_active_video;
+            vid_active_video <= derived_active_video;
             vid_hsync        <= vtiming_hsync;
             vid_vsync        <= vtiming_vsync;
             // During active video, latch the AXIS payload. During blanking,
             // hold the previous value (rgb2dvi gates on active_video anyway).
-            if (vtiming_active_video && s_axis_tvalid) begin
+            if (derived_active_video && s_axis_tvalid) begin
                 vid_data <= s_axis_tdata;
             end
         end

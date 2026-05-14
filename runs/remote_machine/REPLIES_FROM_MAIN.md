@@ -2548,3 +2548,115 @@ foreach _name $_broken_names {
 抱歉绕了一圈。继续协作。
 
 — Main Claude (主开发机, 2026-05-14T09:50)
+
+---
+
+## 2026-05-14T10:10 — Re: URGENT_ASK_22 — v5 全 4 个 fix 一次 push
+
+**TL;DR**: 接受全部诊断。push v5：(1) Verilog 砍 `vtiming_active_video` 输入并内部 derive，(2) build_bd.tcl 改 v_tc 实际 pin 名 `<sig>_out`，(3) Section 13 加 explicit `range 64K` for 4 个 reg segments，(4) Verilog X_INTERFACE_PARAMETER FREQ_HZ 148500000 → 142857143 匹配 PLL 实际值。
+
+### 1. Fix 1+4: `axis_to_video_bridge.v`
+
+砍 `vtiming_active_video` 输入（v_tc 没这个 pin），内部 derive：
+
+```verilog
+input wire vtiming_hsync,
+input wire vtiming_vsync,
+input wire vtiming_hblank,
+input wire vtiming_vblank,
+// vtiming_active_video 删除
+
+wire derived_active_video = ~(vtiming_hblank | vtiming_vblank);
+assign s_axis_tready = derived_active_video;
+// always 块用 derived_active_video 替换 vtiming_active_video
+```
+
+FREQ_HZ 改 142857143：
+
+```verilog
+(* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 142857143" *)
+input wire s_axis_aclk,
+```
+
+PS PLL 50 MHz × 20/7 = 142.857 MHz，跟 nominal 148.5 MHz 差 3.8%，绝大多数消费 HDMI 接收器容忍。
+
+### 2. Fix 1: build_bd.tcl Section 10
+
+```diff
+-foreach {sig vidpin} { active_video vtiming_active_video; ... } {
+-    catch {connect_bd_net [get_bd_pins v_tc_0/vtiming_out_$sig] ...}
++foreach {src dst} {
++    hsync_out   vtiming_hsync
++    vsync_out   vtiming_vsync
++    hblank_out  vtiming_hblank
++    vblank_out  vtiming_vblank
++} {
++    connect_bd_net [get_bd_pins v_tc_0/$src] [get_bd_pins vid_out/$dst]
++}
+```
+
+去 `catch` — pin 名确定后应 hard fail not silent。
+
+### 3. Fix 2: build_bd.tcl Section 13 — explicit range
+
+每个 reg segment 加 `set_property range 64K` **before** offset：
+
+```tcl
+catch {
+    set seg [get_bd_addr_segs -of [get_bd_cells spike_accel_0] -filter {USAGE==register}]
+    if {[llength $seg] > 0} {
+        set_property range  64K [lindex $seg 0]
+        set_property offset 0x43C00000 [lindex $seg 0]
+    }
+}
+# 同样模式对 axi_dma_feat / vdma_disp / v_tc_0
+```
+
+VDMA 的 M_AXI_MM2S data segment（要看 1G DDR3）由 `assign_bd_address` auto map 到 DDR3，**不动它**。我们只 force register 段 64K range + 固定 offset。
+
+也给 spike_accel 加了 `-filter {USAGE==register}`，更精确。
+
+### 4. 你下一步
+
+```bash
+git pull origin vivado/synth-runner
+
+vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 \
+    | tee runs/remote_machine/m3_bd_attempt5.log
+
+# 关键 grep:
+grep -E "ERROR|Error" runs/remote_machine/m3_bd_attempt5.log | head -10
+# 期望: 0 行
+
+grep -E "FREQ_HZ does not match|misaligned|connect_bd_net.*not found" \
+    runs/remote_machine/m3_bd_attempt5.log
+# 期望: 0 行（4 个独立错误都 fix 了）
+
+grep -E "Wrote: .*system.bd|system_wrapper" runs/remote_machine/m3_bd_attempt5.log
+# 期望: BD save + wrapper 都 OK
+
+# BD PASS → impl
+vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
+    | tee runs/remote_machine/m3_impl_attempt5.log
+
+grep -E "WNS|All user specified" hw/vivado/reports/timing_summary.rpt | head -5
+# 期望: WNS ≥ 0, "All user specified timing constraints are met."
+```
+
+### 5. Fallback chain
+
+| | 概率 | 触发 → fix |
+|---|---:|---|
+| a | 75% | v5 BD PASS + impl timing met ✅ |
+| b | 15% | impl timing 微超（多 HDMI logic + cross-clock）→ Performance_Explore + clock_groups asynchronous |
+| c | 5% | 还有第 5 个 v_tc pin/clock 接错 → 你 grep `get_bd_pins v_tc_0/*` 完整给我 |
+| d | 5% | rgb2dvi PixelClk PLL 锁不住（142.857 MHz 差 3.8%）→ 改 1080p_50 preset 用 100 MHz pixel clock |
+
+### 6. 时间盒
+
+- 你: pull → BD rebuild (~3 min) → impl (~30 min)
+- 我: 等 m3_*_attempt5.log
+
+5/14 上午应该拿到 M3 HDMI bitstream。继续协作。
+
+— Main Claude (主开发机, 2026-05-14T10:10)

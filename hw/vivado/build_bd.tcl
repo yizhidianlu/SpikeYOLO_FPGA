@@ -340,19 +340,17 @@ connect_bd_intf_net -intf_net vdma_axis_to_vid_out \
     [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
     [get_bd_intf_pins vid_out/s_axis]
 
-# v_tc.vtiming_out interface -> vid_out discrete vtiming_* pins. Vivado
-# expands v_tc's vtiming_out video_timing interface into individual sub-pins
-# named `vtiming_out_<signal>` accessible via get_bd_pins.
-foreach {sig vidpin} {
-    active_video  vtiming_active_video
-    hsync         vtiming_hsync
-    vsync         vtiming_vsync
-    hblank        vtiming_hblank
-    vblank        vtiming_vblank
+# v_tc:6.2 -> vid_out discrete pins (URGENT_ASK_22 fix v5):
+# v_tc's actual top-level pins are `<sig>_out` (not `vtiming_out_<sig>`),
+# and there is NO active_video output. The bridge derives active_video
+# from the blanking pair, so we wire only 4 discrete signals here.
+foreach {src dst} {
+    hsync_out   vtiming_hsync
+    vsync_out   vtiming_vsync
+    hblank_out  vtiming_hblank
+    vblank_out  vtiming_vblank
 } {
-    catch {connect_bd_net \
-        [get_bd_pins v_tc_0/vtiming_out_$sig] \
-        [get_bd_pins vid_out/$vidpin]}
+    connect_bd_net [get_bd_pins v_tc_0/$src] [get_bd_pins vid_out/$dst]
 }
 
 # vid_out -> rgb2dvi: parallel RGB data + sync signals (discrete pins).
@@ -436,27 +434,44 @@ connect_bd_net [get_bd_pins irq_concat/dout] [get_bd_pins ps_0/IRQ_F2P]
 # 13. Address assignments — keep in sync with hw/vivado/out/address_map.yaml
 # ============================================================================
 assign_bd_address
+# URGENT_ASK_22 fix v5: explicitly set range BEFORE offset for each
+# register-mapped peripheral. Vivado defaults a control-register segment
+# to 1G range which is misaligned at 0x43C00000 (max range there is 4M).
+# 64K is plenty for these IPs' control reg files. VDMA's M_AXI_MM2S
+# data segment (which DOES want full DDR3 range) is separate and gets
+# auto-assigned to the DDR3 mapping by assign_bd_address — we don't
+# touch it here.
 catch {
     # Pin spike_accel control regs to the canonical base (0x43C00000)
-    set seg [get_bd_addr_segs -of [get_bd_cells spike_accel_0]]
+    set seg [get_bd_addr_segs -of [get_bd_cells spike_accel_0] -filter {USAGE==register}]
     if {[llength $seg] > 0} {
+        set_property range  64K [lindex $seg 0]
         set_property offset 0x43C00000 [lindex $seg 0]
     }
 }
 catch {
     # AXI DMA  0x40400000
     set seg [get_bd_addr_segs -of [get_bd_cells axi_dma_feat] -filter {USAGE==register}]
-    if {[llength $seg] > 0} { set_property offset 0x40400000 [lindex $seg 0] }
+    if {[llength $seg] > 0} {
+        set_property range  64K [lindex $seg 0]
+        set_property offset 0x40400000 [lindex $seg 0]
+    }
 }
 catch {
-    # VDMA  0x43000000  (M3 HDMI rebuild — matches address_map.yaml + uio_config.dts)
+    # VDMA control 0x43000000 (M3 HDMI rebuild — matches address_map.yaml + uio_config.dts)
     set seg [get_bd_addr_segs -of [get_bd_cells vdma_disp] -filter {USAGE==register}]
-    if {[llength $seg] > 0} { set_property offset 0x43000000 [lindex $seg 0] }
+    if {[llength $seg] > 0} {
+        set_property range  64K [lindex $seg 0]
+        set_property offset 0x43000000 [lindex $seg 0]
+    }
 }
 catch {
-    # v_tc_0 0x43C10000  (next free slot above spike_accel)
+    # v_tc_0 0x43C10000 (next free slot above spike_accel)
     set seg [get_bd_addr_segs -of [get_bd_cells v_tc_0] -filter {USAGE==register}]
-    if {[llength $seg] > 0} { set_property offset 0x43C10000 [lindex $seg 0] }
+    if {[llength $seg] > 0} {
+        set_property range  64K [lindex $seg 0]
+        set_property offset 0x43C10000 [lindex $seg 0]
+    }
 }
 
 # ============================================================================

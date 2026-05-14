@@ -182,23 +182,14 @@ set_property -dict [list \
 ] [get_bd_cells vdma_disp]
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
+# v_tc:6.2 quirk (URGENT_ASK_19 side): GEN_* timing params are gated behind
+# enable_generation + a custom video format select. Easier to use the
+# VIDEO_MODE preset for 1080p60. Detection disabled (we only generate).
 set_property -dict [list \
-    CONFIG.HAS_AXI4_LITE {true} \
-    CONFIG.GEN_F0_VSYNC_HSTART {1920} \
-    CONFIG.GEN_F0_VSYNC_HEND   {1920} \
-    CONFIG.GEN_F0_VFRAME_SIZE  {1125} \
-    CONFIG.GEN_F0_VSYNC_VSTART {1083} \
-    CONFIG.GEN_F0_VSYNC_VEND   {1088} \
-    CONFIG.GEN_F1_VSYNC_HSTART {1920} \
-    CONFIG.GEN_F1_VSYNC_HEND   {1920} \
-    CONFIG.GEN_F1_VFRAME_SIZE  {1125} \
-    CONFIG.GEN_F1_VSYNC_VSTART {1083} \
-    CONFIG.GEN_F1_VSYNC_VEND   {1088} \
-    CONFIG.GEN_HACTIVE_SIZE    {1920} \
-    CONFIG.GEN_HFRAME_SIZE     {2200} \
-    CONFIG.GEN_HSYNC_START     {2008} \
-    CONFIG.GEN_HSYNC_END       {2052} \
-    CONFIG.GEN_VACTIVE_SIZE    {1080} \
+    CONFIG.HAS_AXI4_LITE     {true} \
+    CONFIG.enable_generation {true} \
+    CONFIG.enable_detection  {false} \
+    CONFIG.VIDEO_MODE        {1080p} \
 ] [get_bd_cells v_tc_0]
 
 # vid_out: in-tree Verilog `axis_to_video_bridge` instantiated as a BD

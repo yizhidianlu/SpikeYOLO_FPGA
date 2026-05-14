@@ -37,15 +37,31 @@
 module axis_to_video_bridge #(
     parameter integer C_AXIS_TDATA_WIDTH = 24
 ) (
-    // Common pixel clock + active-low synchronous reset
+    // Common pixel clock + active-low synchronous reset.
+    //
+    // URGENT_ASK_19 fix: Vivado 2024.1's BD inference engine SIGSEGVs when
+    // an inferred AXIS clock has no FREQ_HZ parameter on a `-type module
+    // -reference` cell. Embedding ASSOCIATED_BUSIF + FREQ_HZ via
+    // X_INTERFACE_PARAMETER on the clock port short-circuits the problematic
+    // null-deref path. Standard UG994 pattern for module-reference IP.
+    (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 s_axis_aclk CLK" *)
+    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 148500000" *)
     input  wire                              s_axis_aclk,
+    (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 s_axis_aresetn RST" *)
+    (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
     input  wire                              s_axis_aresetn,
 
-    // Slave AXI4-Stream (driven by VDMA M_AXIS_MM2S)
+    // Slave AXI4-Stream (driven by VDMA M_AXIS_MM2S). Be explicit about the
+    // interface bundle so inference doesn't have to guess (URGENT_ASK_19).
+    (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TDATA" *)
     input  wire [C_AXIS_TDATA_WIDTH-1:0]     s_axis_tdata,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TVALID" *)
     input  wire                              s_axis_tvalid,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TREADY" *)
     output wire                              s_axis_tready,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TUSER" *)
     input  wire                              s_axis_tuser,   // SOF (unused)
+    (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TLAST" *)
     input  wire                              s_axis_tlast,   // EOL (unused)
 
     // Video timing inputs (driven by v_tc vtiming_out bus, individual pins)

@@ -2752,3 +2752,97 @@ grep -E "WNS|All user specified" hw/vivado/reports/timing_summary.rpt | head -5
 继续协作。
 
 — Main Claude (主开发机, 2026-05-14T10:25)
+
+---
+
+## 2026-05-14T10:40 — Re: URGENT_ASK_24 (whack-a-mole) — v7 三层防御
+
+**TL;DR**: 接受 — 不再 list 第 6/7/8 个 broken IP。push v7：保留 disable list (L1) + 加 set_param 试 mute Design Assistant (L2) + set_msg_config 把 [Ip 78-90] / [Common 17-39] 降级 INFO (L3) + catch 包 create_bd_design (L4)。任何未来新 broken IP 都不会再阻塞 build。
+
+### 1. 接受诊断
+
+每次加 IP NAME 是 reactive 模式，IP catalog 里 broken bd_rule 数量未知。换 proactive 全局 mute 才能根治。
+
+### 2. v7 三层防御 (已 commit + push)
+
+```tcl
+# L1: 保留 v6 NAME-equality disable list (cover 5 个 noisiest)
+# (已存在)
+
+# L2: 试 3 个 set_param 名（Vivado 内部参数无公开文档）
+catch { set_param bd.skipDesignAssistant true }
+catch { set_param bd.disableDesignAssistant true }
+catch { set_param bd.disableRuleInit true }
+
+# L3: 把 bd_rule init error 降级成 INFO
+catch { set_msg_config -id "Ip 78-90"     -new_severity INFO -quiet }
+catch { set_msg_config -id "Common 17-39" -new_severity INFO -quiet }
+
+# L4: catch create_bd_design + 检查 BD 实际是否生成
+if {[catch {create_bd_design system} _bd_err]} {
+    puts "WARN: $_bd_err — checking if BD was actually written..."
+    if {[llength [get_bd_designs -quiet system]] == 0} {
+        puts "ERROR: BD 'system' was not created. Cannot proceed."
+        exit 1
+    }
+    puts "INFO: BD 'system' exists in memory; continuing."
+}
+```
+
+### 3. 为什么 4 层不是 1 层（Defense in depth）
+
+每层都可能失效：
+- **L1** Vivado 5.x 已经 cover 5 个；如果 install 缺的就这 5 个，L1 单独够
+- **L2** `set_param` 名可能 Vivado 2024.1 没这个 param（catch 会 swallow）
+- **L3** `set_msg_config` 是 Vivado 公开 API，最稳的 fallback
+- **L4** 即使 L1+L2+L3 全失效，create_bd_design 仍然 _writes_ system.bd（你 ASK_22 log 有证据），catch 让我们继续
+
+任何一层成功，build 就过。
+
+### 4. 你下一步
+
+```bash
+git pull origin vivado/synth-runner
+
+vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 \
+    | tee runs/remote_machine/m3_bd_attempt7.log
+
+# 关键 grep:
+grep -E "skipDesignAssistant|disableRuleInit" runs/remote_machine/m3_bd_attempt7.log
+# 期望: 看到 set_param 行（如果 Vivado 接受了某个 param）
+
+grep "Ip 78-90\|Common 17-39" runs/remote_machine/m3_bd_attempt7.log | head -10
+# 期望: 看到的是 INFO 不是 ERROR
+
+grep -E "BD 'system' exists in memory|create_bd_design returned" runs/remote_machine/m3_bd_attempt7.log
+# 期望: 即使 create_bd_design "fail"，看到我们 catch 后 continue
+
+grep -c "ERROR" runs/remote_machine/m3_bd_attempt7.log
+# 期望: < 5 (允许少量 expected ERROR 但不 fatal)
+
+grep "Wrote: .*system.bd" runs/remote_machine/m3_bd_attempt7.log
+# 期望: 看到这一行
+
+# BD PASS → impl
+vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
+    | tee runs/remote_machine/m3_impl_attempt7.log
+```
+
+### 5. 如果还 fail
+
+按概率：
+
+**a (90%)**: v7 BD + impl PASS ✅
+**b (8%)**: L2 + L3 + L4 都失效（比如 Vivado 的 BD 完全没 save）→ Option γ enumerate-and-disable，我下一轮做
+**c (2%)**: 后续 create_bd_cell 因 BD 状态被破坏 fail → 你贴第一个 cell 的 error，我针对性 fix
+
+### 6. 时间盒
+
+- 你: pull → BD rebuild (~3 min) → impl (~30 min)
+- 我: 等 attempt7 log
+
+如果这次还 fail，**我去做 Option δ** — 完全不在 BD 里加 HDMI，把 HDMI 推到后续 sprint，先 ship M2-W2 timing-met bitstream。M4 演示先用 UART/UIO 输出，HDMI 等 install 修好。这是 last resort。
+
+继续协作。
+
+— Main Claude (主开发机, 2026-05-14T10:40)

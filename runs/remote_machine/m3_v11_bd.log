@@ -1,0 +1,462 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Thu May 14 23:29:50 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source hw/vivado/build_bd.tcl
+# set PROJECT     spike_zybo
+# set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
+# set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
+# set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
+# set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
+# set DIGILENT_IP     [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+# set DIGILENT_BOARDS [file normalize "${IP_REPO_DIR}/digilent/vivado-boards/new/board_files"]
+# set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
+# set BRIDGE_IP   [file normalize "${IP_REPO_DIR}/axis_to_video_bridge"]
+# set PART        xc7z020clg400-1
+# set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
+# if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
+#     ![file exists "${SPIKE_IP}/sa_tiny_fpga_top.xo"]} {
+#     puts "WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/."
+#     puts "      Generating BD with a placeholder IP. Re-run after .xo is built."
+#     set HAS_HLS_IP 0
+# } else {
+#     set HAS_HLS_IP 1
+# }
+# file mkdir $OUT_DIR
+# if {[file isdirectory $DIGILENT_BOARDS]} {
+#     set_param board.repoPaths [list $DIGILENT_BOARDS]
+#     puts "INFO: board.repoPaths = $DIGILENT_BOARDS"
+# } else {
+#     puts "ERROR: vivado-boards not found at $DIGILENT_BOARDS"
+#     puts "       Run hw/vivado/scripts/setup_ip_repo.sh first (it now fetches both"
+#     puts "       vivado-library and vivado-boards as submodules)."
+#     exit 1
+# }
+INFO: board.repoPaths = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-boards/new/board_files
+# create_project -force $PROJECT $OUT_DIR -part $PART
+create_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 705.414 ; gain = 276.949
+# if {[catch {set_property board_part $BOARD_PART [current_project]} _bp_err]} {
+#     set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.2}]
+#     if {$_alt_bp eq $BOARD_PART} { set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.0}] }
+#     puts "INFO: board_part $BOARD_PART not in catalog, trying $_alt_bp"
+#     set_property board_part $_alt_bp [current_project]
+#     set BOARD_PART $_alt_bp
+# }
+INFO: board_part digilentinc.com:zybo-z7-20:part0:1.0 not in catalog, trying digilentinc.com:zybo-z7-20:part0:1.2
+# unset -nocomplain _bp_err _alt_bp
+# set ip_paths [list]
+# if {$HAS_HLS_IP}                  { lappend ip_paths $HLS_DIR }
+# if {[file isdirectory $SPIKE_IP]} { lappend ip_paths $SPIKE_IP }
+# if {[file isdirectory $BRIDGE_IP] && [file exists "${BRIDGE_IP}/component.xml"]} {
+#     lappend ip_paths $BRIDGE_IP
+# } else {
+#     puts "ERROR: axis_to_video_bridge IP not packaged at $BRIDGE_IP"
+#     puts "       Run packaging step first (one-time, or after RTL edits):"
+#     puts "         vivado -mode batch -source hw/vivado/scripts/package_axis_bridge.tcl"
+#     puts "       Then re-run this script."
+#     exit 1
+# }
+# if {[file isdirectory $DIGILENT_IP]} {
+#     lappend ip_paths $DIGILENT_IP
+# } else {
+#     puts "WARN: Digilent vivado-library not found at $DIGILENT_IP"
+#     puts "      run hw/vivado/scripts/setup_ip_repo.sh before re-trying."
+# }
+# if {[llength $ip_paths] > 0} {
+#     set_property ip_repo_paths $ip_paths [current_project]
+#     update_ip_catalog
+# }
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+# if {[info exists ::env(XILINX_VIVADO)]} {
+#     set _xlnx_ip [file join $::env(XILINX_VIVADO) data ip]
+# } else {
+#     set _xlnx_ip ""
+# }
+# set _broken_ip_names {
+#     roe_framer
+#     hdmi_gt_controller
+#     l_ethernet
+#     microblaze
+#     microblaze_riscv
+# }
+# foreach _name $_broken_ip_names {
+#     if {$_xlnx_ip eq ""} { continue }
+#     set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]
+#     if {[llength $_ipdefs] == 0} {
+#         puts "INFO: IP NAME=$_name not in catalog â€? skipping"
+#         continue
+#     }
+#     foreach _ipdef $_ipdefs {
+#         if {[catch {update_ip_catalog -disable_ip $_ipdef -repo_path $_xlnx_ip} _err]} {
+#             puts "WARN: could not disable $_ipdef: $_err"
+#         } else {
+#             puts "INFO: Disabled broken IP $_ipdef"
+#         }
+#     }
+# }
+INFO: IP NAME=roe_framer not in catalog â€? skipping
+INFO: IP NAME=hdmi_gt_controller not in catalog â€? skipping
+INFO: IP NAME=l_ethernet not in catalog â€? skipping
+INFO: IP NAME=microblaze not in catalog â€? skipping
+INFO: IP NAME=microblaze_riscv not in catalog â€? skipping
+# unset -nocomplain _broken_ip_names _name _ipdefs _ipdef _err _xlnx_ip
+# catch { set_param bd.skipDesignAssistant true }
+# catch { set_param bd.disableDesignAssistant true }
+# catch { set_param bd.disableRuleInit true }
+# catch { set_msg_config -id "Ip 78-90"      -new_severity INFO -quiet }
+# catch { set_msg_config -id "Common 17-39"  -new_severity INFO -quiet }
+# if {[catch {create_bd_design system} _bd_err]} {
+#     puts "WARN: create_bd_design returned: $_bd_err"
+#     puts "      Likely benign Design Assistant rule init noise from the partial"
+#     puts "      Vivado install. Trying to proceed if a BD was actually created..."
+#     if {[llength [get_bd_designs -quiet system]] == 0} {
+#         puts "ERROR: BD 'system' was not created. Cannot proceed."
+#         exit 1
+#     }
+#     puts "INFO: BD 'system' exists in memory; continuing with cell creation."
+# }
+Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
+# unset -nocomplain _bd_err
+# create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 ps_0
+# apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 \
+#     -config {make_external "FIXED_IO, DDR" apply_board_preset "1"} \
+#     [get_bd_cells ps_0]
+# set_property -dict [list \
+#     CONFIG.PCW_USE_M_AXI_GP0           {1} \
+#     CONFIG.PCW_USE_S_AXI_HP0           {1} \
+#     CONFIG.PCW_USE_S_AXI_HP1           {1} \
+#     CONFIG.PCW_USE_FABRIC_INTERRUPT    {1} \
+#     CONFIG.PCW_IRQ_F2P_INTR            {1} \
+#     CONFIG.PCW_EN_CLK1_PORT            {1} \
+#     CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {90} \
+#     CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {148.5} \
+# ] [get_bd_cells ps_0]
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+# if {$HAS_HLS_IP} {
+#     create_bd_cell -type ip -vlnv xilinx.com:hls:sa_tiny_fpga_top:1.0 spike_accel_0
+# } else {
+#     # Placeholder concat block keeps the BD structurally valid for M2 dry-run.
+#     create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 spike_accel_0
+# }
+# create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_feat
+# set_property -dict [list \
+#     CONFIG.c_include_sg             {0} \
+#     CONFIG.c_sg_length_width        {26} \
+#     CONFIG.c_m_axi_mm2s_data_width  {64} \
+#     CONFIG.c_m_axi_s2mm_data_width  {64} \
+# ] [get_bd_cells axi_dma_feat]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.3 vdma_disp
+# set_property -dict [list \
+#     CONFIG.c_include_mm2s           {1} \
+#     CONFIG.c_include_s2mm           {0} \
+#     CONFIG.c_mm2s_genlock_mode      {0} \
+#     CONFIG.c_include_mm2s_dre       {0} \
+#     CONFIG.c_num_fstores            {1} \
+#     CONFIG.c_m_axi_mm2s_data_width  {32} \
+#     CONFIG.c_mm2s_axis_data_width   {24} \
+#     CONFIG.c_mm2s_max_burst_length  {128} \
+# ] [get_bd_cells vdma_disp]
+CRITICAL WARNING: [BD 41-1276] Cannot set the parameter c_mm2s_axis_data_width on /vdma_disp. Parameter does not exist
+# create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
+# set_property -dict [list \
+#     CONFIG.HAS_AXI4_LITE        {true} \
+#     CONFIG.enable_generation    {true} \
+#     CONFIG.enable_detection     {false} \
+#     CONFIG.VIDEO_MODE           {1080p} \
+#     CONFIG.GEN_F1_VIDEO_FORMAT  {0} \
+#     CONFIG.GEN_INTERLACED       {false} \
+# ] [get_bd_cells v_tc_0]
+CRITICAL WARNING: [BD 41-1276] Cannot set the parameter GEN_F1_VIDEO_FORMAT on /v_tc_0. Parameter does not exist
+# create_bd_cell -type ip -vlnv user:user:axis_to_video_bridge:1.0 vid_out
+# create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
+# set_property -dict [list \
+#     CONFIG.kClkRange          {1} \
+#     CONFIG.kRstActiveHigh     {true} \
+#     CONFIG.kGenerateSerialClk {true} \
+# ] [get_bd_cells rgb2dvi_0]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_ctrl
+# set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {4}] [get_bd_cells ic_ctrl]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp0
+# set_property -dict [list CONFIG.NUM_SI {5} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp0]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp1
+# set_property -dict [list CONFIG.NUM_SI {3} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp1]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 irq_concat
+# set_property -dict [list CONFIG.NUM_PORTS {3}] [get_bd_cells irq_concat]
+# create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_clk0
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+# create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_clk1
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+# connect_bd_net [get_bd_pins ps_0/FCLK_CLK0]        [get_bd_pins rst_clk0/slowest_sync_clk]
+# connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N]    [get_bd_pins rst_clk0/ext_reset_in]
+# connect_bd_net [get_bd_pins ps_0/FCLK_CLK1]        [get_bd_pins rst_clk1/slowest_sync_clk]
+# connect_bd_net [get_bd_pins ps_0/FCLK_RESET0_N]    [get_bd_pins rst_clk1/ext_reset_in]
+# connect_bd_intf_net -intf_net ps_to_ic_ctrl \
+#     [get_bd_intf_pins ps_0/M_AXI_GP0] \
+#     [get_bd_intf_pins ic_ctrl/S00_AXI]
+# if {$HAS_HLS_IP} {
+#     connect_bd_intf_net -intf_net ctrl_to_spike \
+#         [get_bd_intf_pins ic_ctrl/M00_AXI] \
+#         [get_bd_intf_pins spike_accel_0/s_axi_control]
+# }
+# connect_bd_intf_net -intf_net ctrl_to_dma \
+#     [get_bd_intf_pins ic_ctrl/M01_AXI] \
+#     [get_bd_intf_pins axi_dma_feat/S_AXI_LITE]
+# connect_bd_intf_net -intf_net ctrl_to_vdma \
+#     [get_bd_intf_pins ic_ctrl/M02_AXI] \
+#     [get_bd_intf_pins vdma_disp/S_AXI_LITE]
+# connect_bd_intf_net -intf_net ctrl_to_v_tc \
+#     [get_bd_intf_pins ic_ctrl/M03_AXI] \
+#     [get_bd_intf_pins v_tc_0/ctrl]
+# if {$HAS_HLS_IP} {
+#     # 5 master ports gmem0..gmem4 mapped onto S00..S04 of ic_data_hp0.
+#     for {set i 0} {$i < 5} {incr i} {
+#         set s [format "S%02d_AXI" $i]
+#         connect_bd_intf_net -intf_net "spike_to_hp0_$i" \
+#             [get_bd_intf_pins spike_accel_0/m_axi_gmem$i] \
+#             [get_bd_intf_pins ic_data_hp0/$s]
+#     }
+# }
+# connect_bd_intf_net -intf_net ic_data_hp0_to_ps \
+#     [get_bd_intf_pins ic_data_hp0/M00_AXI] \
+#     [get_bd_intf_pins ps_0/S_AXI_HP0]
+# connect_bd_intf_net -intf_net dma_mm2s_to_hp1 \
+#     [get_bd_intf_pins axi_dma_feat/M_AXI_MM2S] \
+#     [get_bd_intf_pins ic_data_hp1/S00_AXI]
+# connect_bd_intf_net -intf_net dma_s2mm_to_hp1 \
+#     [get_bd_intf_pins axi_dma_feat/M_AXI_S2MM] \
+#     [get_bd_intf_pins ic_data_hp1/S01_AXI]
+# connect_bd_intf_net -intf_net vdma_mm2s_to_hp1 \
+#     [get_bd_intf_pins vdma_disp/M_AXI_MM2S] \
+#     [get_bd_intf_pins ic_data_hp1/S02_AXI]
+# connect_bd_intf_net -intf_net ic_data_hp1_to_ps \
+#     [get_bd_intf_pins ic_data_hp1/M00_AXI] \
+#     [get_bd_intf_pins ps_0/S_AXI_HP1]
+# connect_bd_intf_net -intf_net vdma_axis_to_vid_out \
+#     [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
+#     [get_bd_intf_pins vid_out/s_axis]
+# foreach {src dst} {
+#     hsync_out   vtiming_hsync
+#     vsync_out   vtiming_vsync
+#     hblank_out  vtiming_hblank
+#     vblank_out  vtiming_vblank
+# } {
+#     connect_bd_net [get_bd_pins v_tc_0/$src] [get_bd_pins vid_out/$dst]
+# }
+WARNING: [BD 41-1306] The connection to interface pin </v_tc_0/hsync_out> is being overridden by the user with net <v_tc_0_hsync_out>. This pin will not be connected as a part of interface connection <vtiming_out>.
+WARNING: [BD 41-1306] The connection to interface pin </v_tc_0/vsync_out> is being overridden by the user with net <v_tc_0_vsync_out>. This pin will not be connected as a part of interface connection <vtiming_out>.
+WARNING: [BD 41-1306] The connection to interface pin </v_tc_0/hblank_out> is being overridden by the user with net <v_tc_0_hblank_out>. This pin will not be connected as a part of interface connection <vtiming_out>.
+WARNING: [BD 41-1306] The connection to interface pin </v_tc_0/vblank_out> is being overridden by the user with net <v_tc_0_vblank_out>. This pin will not be connected as a part of interface connection <vtiming_out>.
+# connect_bd_net [get_bd_pins vid_out/vid_data]          [get_bd_pins rgb2dvi_0/vid_pData]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/vid_pData> is being overridden by the user with net <vid_out_vid_data>. This pin will not be connected as a part of interface connection <RGB>.
+# connect_bd_net [get_bd_pins vid_out/vid_active_video]  [get_bd_pins rgb2dvi_0/vid_pVDE]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/vid_pVDE> is being overridden by the user with net <vid_out_vid_active_video>. This pin will not be connected as a part of interface connection <RGB>.
+# connect_bd_net [get_bd_pins vid_out/vid_hsync]         [get_bd_pins rgb2dvi_0/vid_pHSync]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/vid_pHSync> is being overridden by the user with net <vid_out_vid_hsync>. This pin will not be connected as a part of interface connection <RGB>.
+# connect_bd_net [get_bd_pins vid_out/vid_vsync]         [get_bd_pins rgb2dvi_0/vid_pVSync]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/vid_pVSync> is being overridden by the user with net <vid_out_vid_vsync>. This pin will not be connected as a part of interface connection <RGB>.
+# create_bd_port -dir O                hdmi_tx_clk_p
+# create_bd_port -dir O                hdmi_tx_clk_n
+# create_bd_port -dir O -from 2 -to 0  hdmi_tx_data_p
+# create_bd_port -dir O -from 2 -to 0  hdmi_tx_data_n
+# connect_bd_net [get_bd_ports hdmi_tx_clk_p]   [get_bd_pins rgb2dvi_0/TMDS_Clk_p]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/TMDS_Clk_p> is being overridden by the user with net <rgb2dvi_0_TMDS_Clk_p>. This pin will not be connected as a part of interface connection <TMDS>.
+# connect_bd_net [get_bd_ports hdmi_tx_clk_n]   [get_bd_pins rgb2dvi_0/TMDS_Clk_n]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/TMDS_Clk_n> is being overridden by the user with net <rgb2dvi_0_TMDS_Clk_n>. This pin will not be connected as a part of interface connection <TMDS>.
+# connect_bd_net [get_bd_ports hdmi_tx_data_p]  [get_bd_pins rgb2dvi_0/TMDS_Data_p]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/TMDS_Data_p> is being overridden by the user with net <rgb2dvi_0_TMDS_Data_p>. This pin will not be connected as a part of interface connection <TMDS>.
+# connect_bd_net [get_bd_ports hdmi_tx_data_n]  [get_bd_pins rgb2dvi_0/TMDS_Data_n]
+WARNING: [BD 41-1306] The connection to interface pin </rgb2dvi_0/TMDS_Data_n> is being overridden by the user with net <rgb2dvi_0_TMDS_Data_n>. This pin will not be connected as a part of interface connection <TMDS>.
+# connect_bd_net [get_bd_pins ps_0/FCLK_CLK1]            [get_bd_pins rgb2dvi_0/PixelClk]
+# connect_bd_net [get_bd_pins rst_clk1/peripheral_reset] [get_bd_pins rgb2dvi_0/aRst]
+# foreach pin {
+#     ps_0/M_AXI_GP0_ACLK
+#     ps_0/S_AXI_HP0_ACLK
+#     ps_0/S_AXI_HP1_ACLK
+#     ic_ctrl/aclk
+#     ic_data_hp0/aclk
+#     ic_data_hp1/aclk
+#     axi_dma_feat/s_axi_lite_aclk
+#     axi_dma_feat/m_axi_mm2s_aclk
+#     axi_dma_feat/m_axi_s2mm_aclk
+#     vdma_disp/s_axi_lite_aclk
+#     vdma_disp/m_axi_mm2s_aclk
+#     v_tc_0/s_axi_aclk
+# } {
+#     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins $pin]}
+# }
+# foreach pin {
+#     ic_ctrl/aresetn
+#     ic_data_hp0/aresetn
+#     ic_data_hp1/aresetn
+#     axi_dma_feat/axi_resetn
+#     vdma_disp/axi_resetn
+#     v_tc_0/s_axi_aresetn
+# } {
+#     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins $pin]}
+# }
+# if {$HAS_HLS_IP} {
+#     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins spike_accel_0/ap_clk]}
+#     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins spike_accel_0/ap_rst_n]}
+# }
+# catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins vdma_disp/m_axis_mm2s_aclk]}
+# catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins v_tc_0/clk]}
+# catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins vid_out/s_axis_aclk]}
+# catch {connect_bd_net [get_bd_pins rst_clk1/peripheral_aresetn] [get_bd_pins v_tc_0/resetn]}
+# catch {connect_bd_net [get_bd_pins rst_clk1/peripheral_aresetn] [get_bd_pins vid_out/s_axis_aresetn]}
+# if {$HAS_HLS_IP} {
+#     catch {connect_bd_net [get_bd_pins spike_accel_0/interrupt] [get_bd_pins irq_concat/In0]}
+# }
+# catch {connect_bd_net [get_bd_pins axi_dma_feat/mm2s_introut] [get_bd_pins irq_concat/In1]}
+# catch {connect_bd_net [get_bd_pins axi_dma_feat/s2mm_introut] [get_bd_pins irq_concat/In2]}
+# connect_bd_net [get_bd_pins irq_concat/dout] [get_bd_pins ps_0/IRQ_F2P]
+# assign_bd_address
+INFO: [BD 41-3093] Triggering Legacy Auto Assign Algorithm
+Slave segment '/ps_0/S_AXI_HP1/HP1_DDR_LOWOCM' is being assigned into address space '/axi_dma_feat/Data_MM2S' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP1/HP1_DDR_LOWOCM' is being assigned into address space '/axi_dma_feat/Data_S2MM' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP0/HP0_DDR_LOWOCM' is being assigned into address space '/spike_accel_0/Data_m_axi_gmem0' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP0/HP0_DDR_LOWOCM' is being assigned into address space '/spike_accel_0/Data_m_axi_gmem1' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP0/HP0_DDR_LOWOCM' is being assigned into address space '/spike_accel_0/Data_m_axi_gmem2' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP0/HP0_DDR_LOWOCM' is being assigned into address space '/spike_accel_0/Data_m_axi_gmem3' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP0/HP0_DDR_LOWOCM' is being assigned into address space '/spike_accel_0/Data_m_axi_gmem4' at <0x0000_0000 [ 1G ]>.
+Slave segment '/ps_0/S_AXI_HP1/HP1_DDR_LOWOCM' is being assigned into address space '/vdma_disp/Data_MM2S' at <0x0000_0000 [ 1G ]>.
+Slave segment '/axi_dma_feat/S_AXI_LITE/Reg' is being assigned into address space '/ps_0/Data' at <0x41E0_0000 [ 64K ]>.
+Slave segment '/spike_accel_0/s_axi_control/Reg' is being assigned into address space '/ps_0/Data' at <0x4000_0000 [ 64K ]>.
+Slave segment '/v_tc_0/ctrl/Reg' is being assigned into address space '/ps_0/Data' at <0x44A0_0000 [ 64K ]>.
+Slave segment '/vdma_disp/S_AXI_LITE/Reg' is being assigned into address space '/ps_0/Data' at <0x44A1_0000 [ 64K ]>.
+# catch {
+#     # Pin spike_accel control regs to the canonical base (0x43C00000)
+#     set seg [get_bd_addr_segs -of [get_bd_cells spike_accel_0] -filter {USAGE==register}]
+#     if {[llength $seg] > 0} {
+#         set_property range  64K [lindex $seg 0]
+#         set_property offset 0x43C00000 [lindex $seg 0]
+#     }
+# }
+# catch {
+#     # AXI DMA  0x40400000
+#     set seg [get_bd_addr_segs -of [get_bd_cells axi_dma_feat] -filter {USAGE==register}]
+#     if {[llength $seg] > 0} {
+#         set_property range  64K [lindex $seg 0]
+#         set_property offset 0x40400000 [lindex $seg 0]
+#     }
+# }
+# catch {
+#     # VDMA control 0x43000000 (M3 HDMI rebuild â€? matches address_map.yaml + uio_config.dts)
+#     set seg [get_bd_addr_segs -of [get_bd_cells vdma_disp] -filter {USAGE==register}]
+#     if {[llength $seg] > 0} {
+#         set_property range  64K [lindex $seg 0]
+#         set_property offset 0x43000000 [lindex $seg 0]
+#     }
+# }
+# catch {
+#     # v_tc_0 0x43C10000 (next free slot above spike_accel)
+#     set seg [get_bd_addr_segs -of [get_bd_cells v_tc_0] -filter {USAGE==register}]
+#     if {[llength $seg] > 0} {
+#         set_property range  64K [lindex $seg 0]
+#         set_property offset 0x43C10000 [lindex $seg 0]
+#     }
+# }
+# save_bd_design
+Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
+# write_bd_tcl -force [file join $OUT_DIR system_bd_dump.tcl]
+WARNING: [BD 41-2937] The design that will be created by this Tcl script contains the following user IPs:
+/spike_accel_0, /vid_out, /rgb2dvi_0
+Please add the following user repository(s):
+c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel
+c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge
+c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library
+before sourcing this Tcl script or use write_project_tcl.
+INFO: [BD 5-148] Tcl file written out <C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/system_bd_dump.tcl>.
+
+CRITICAL WARNING: [BD 5-339] The block design <system> has not been validated, therefore, a block design created using this Tcl file
+<C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/system_bd_dump.tcl> may result in errors during validation.
+# make_wrapper -files [get_files system.bd] -top
+WARNING: [BD 41-702] Propagation TCL tries to overwrite USER strength parameter C_M_AXI_S2MM_DATA_WIDTH(64) on '/axi_dma_feat' with propagated value(32). Command ignored
+WARNING: [BD 41-702] Propagation TCL tries to overwrite USER strength parameter C_M_AXI_S2MM_DATA_WIDTH(64) on '/axi_dma_feat' with propagated value(32). Command ignored
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+INFO: [BD 5-943] Reserving offset range <0x4000_0000 [ 64K ]> from slave interface '/ic_ctrl/S00_AXI' to master interface '/ic_ctrl/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x41E0_0000 [ 64K ]> from slave interface '/ic_ctrl/S00_AXI' to master interface '/ic_ctrl/M01_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x44A1_0000 [ 64K ]> from slave interface '/ic_ctrl/S00_AXI' to master interface '/ic_ctrl/M02_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x44A0_0000 [ 64K ]> from slave interface '/ic_ctrl/S00_AXI' to master interface '/ic_ctrl/M03_AXI'. This will be used by smartconnect on path for routing.
+INFO: [xilinx.com:ip:smartconnect:1.0-1] system_ic_ctrl_0: SmartConnect system_ic_ctrl_0 is in Low-Area Mode.
+WARNING: [xilinx.com:ip:smartconnect:1.0-1] system_ic_ctrl_0: IP system_ic_ctrl_0 is configured in Low-area mode as all propagated traffic is low-bandwidth (AXI4LITE). SI S00_AXI has property HAS_BURST == 1. WRAP bursts are not supported in Low-area mode and will result in DECERR if received.
+WARNING: [xilinx.com:ip:smartconnect:1.0-1] system_ic_ctrl_0: If WRAP transactions are required then turn off Low-area mode using ADVANCED_PROPERTIES. Execute following: set_property CONFIG.ADVANCED_PROPERTIES {__experimental_features__ {disable_low_area_mode 1}} [get_bd_cells /system_ic_ctrl_0]
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp0/S00_AXI' to master interface '/ic_data_hp0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp0/S01_AXI' to master interface '/ic_data_hp0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp0/S02_AXI' to master interface '/ic_data_hp0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp0/S03_AXI' to master interface '/ic_data_hp0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp0/S04_AXI' to master interface '/ic_data_hp0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [xilinx.com:ip:smartconnect:1.0-1] system_ic_data_hp0_0: SmartConnect system_ic_data_hp0_0 is in High-performance Mode.
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp1/S00_AXI' to master interface '/ic_data_hp1/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp1/S01_AXI' to master interface '/ic_data_hp1/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x0000_0000 [ 1G ]> from slave interface '/ic_data_hp1/S02_AXI' to master interface '/ic_data_hp1/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [xilinx.com:ip:smartconnect:1.0-1] system_ic_data_hp1_0: SmartConnect system_ic_data_hp1_0 is in High-performance Mode.
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+WARNING: [BD 41-702] Propagation TCL tries to overwrite USER strength parameter C_M_AXI_S2MM_DATA_WIDTH(64) on '/axi_dma_feat' with propagated value(32). Command ignored
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /vdma_disp 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
+WARNING: [xilinx.com:ip:axi_vdma:6.3-166] /vdma_disp 
+                    To get the better performance, ensure AXI Memory Map clock frequency is greater than equal to AXI Streaming clock frequency.
+CRITICAL WARNING: [xilinx.com:ip:axi_dma:7.1-11] /axi_dma_feat
+                   #################################### 
+                   S_AXIS_S2MM interface is unconnected
+                   ####################################
+CRITICAL WARNING: [BD 41-237] Bus Interface property TDATA_NUM_BYTES does not match between /vid_out/s_axis(3) and /vdma_disp/M_AXIS_MM2S(4)
+Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/synth/system.v
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/sim/system.v
+Verilog Output written to : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/hdl/system_wrapper.v
+make_wrapper: Time (s): cpu = 00:00:17 ; elapsed = 00:00:22 . Memory (MB): peak = 1354.137 ; gain = 512.676
+# add_files -norecurse [file join $OUT_DIR ${PROJECT}.gen sources_1 bd system hdl system_wrapper.v]
+# update_compile_order
+# read_xdc [file join $CONSTR_DIR zybo_z7_20.xdc]
+# puts "============================================================"
+============================================================
+# puts "build_bd.tcl OK â€? BD saved to ${OUT_DIR}/system.bd"
+build_bd.tcl OK â€? BD saved to C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/system.bd
+# puts "Next: vivado -mode batch -source build_bitstream.tcl"
+Next: vivado -mode batch -source build_bitstream.tcl
+# puts "============================================================"
+============================================================
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 23:30:39 2026...

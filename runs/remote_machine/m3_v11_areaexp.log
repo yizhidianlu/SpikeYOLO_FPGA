@@ -1,0 +1,1025 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Thu May 14 23:30:42 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source runs/remote_machine/run_step6_timing_perf_explore.tcl
+# set PROJECT spike_zybo
+# set HW_VIVADO_DIR "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado"
+# set OUT_DIR  "$HW_VIVADO_DIR/out"
+# set REPORTS  "$HW_VIVADO_DIR/reports"
+# set REMOTE   "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machine"
+# open_project [file join $OUT_DIR ${PROJECT}.xpr]
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+open_project: Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 743.367 ; gain = 314.371
+# set_property strategy Area_Explore [get_runs impl_1]
+# puts "INFO: impl_1 strategy set to Area_Explore (M3 v10 â€? best 120-over result)"
+INFO: impl_1 strategy set to Area_Explore (M3 v10 â€? best 120-over result)
+# catch { set_param ip.useCacheStrategy 0 }
+# catch { set_param ip.checkLicense 0 }
+# catch { set_param ip.useIpCache 0 }
+# catch { set_param project.disableIPCache 1 }
+# catch { reset_run impl_1 }
+# launch_runs impl_1 -to_step write_bitstream -jobs 1
+INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/synth/system.v
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/sim/system.v
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/hdl/system_wrapper.v
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_GP0'. A default connection has been created.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP0'. A default connection has been created.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP1'. A default connection has been created.
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block spike_accel_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_dma_feat .
+WARNING: [IP_Flow 19-4994] Overwriting existing constraint file 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0_ooc.xdc'
+INFO: [BD 41-1029] Generation completed for the IP Integrator block vdma_disp .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block v_tc_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block vid_out .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rgb2dvi_0 .
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(153) to pin: '/s00_nodes/S_SC_AR_payld'(149) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(153) to pin: '/s00_nodes/S_SC_AW_payld'(149) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(12) to pin: '/m00_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(58) to pin: '/m00_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(12) to pin: '/m01_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(58) to pin: '/m01_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(12) to pin: '/m02_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(58) to pin: '/m02_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_b_node/s_sc_payld'(12) to pin: '/m03_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_r_node/s_sc_payld'(58) to pin: '/m03_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(149) to pin: '/m00_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(149) to pin: '/m00_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(149) to pin: '/m01_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(149) to pin: '/m01_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(149) to pin: '/m02_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(149) to pin: '/m02_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_ar_payld'(149) to pin: '/m03_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_aw_payld'(149) to pin: '/m03_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(10) to pin: '/s00_nodes/M_SC_B_payld'(12) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(56) to pin: '/s00_nodes/M_SC_R_payld'(58) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(153) to pin: '/s00_nodes/S_SC_AR_payld'(149) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(153) to pin: '/s00_nodes/S_SC_AW_payld'(149) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(12) to pin: '/m00_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(58) to pin: '/m00_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(12) to pin: '/m01_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(58) to pin: '/m01_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(12) to pin: '/m02_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(58) to pin: '/m02_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_b_node/s_sc_payld'(12) to pin: '/m03_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_r_node/s_sc_payld'(58) to pin: '/m03_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(149) to pin: '/m00_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(149) to pin: '/m00_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(149) to pin: '/m01_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(149) to pin: '/m01_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(149) to pin: '/m02_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(149) to pin: '/m02_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_ar_payld'(149) to pin: '/m03_nodes/M_SC_AR_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_aw_payld'(149) to pin: '/m03_nodes/M_SC_AW_payld'(153) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(10) to pin: '/s00_nodes/M_SC_B_payld'(12) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(56) to pin: '/s00_nodes/M_SC_R_payld'(58) - Only lower order bits will be connected.
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/hw_handoff/system_ic_ctrl_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/synth/system_ic_ctrl_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_ctrl .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/hw_handoff/system_ic_data_hp0_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/synth/system_ic_data_hp0_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_data_hp0 .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/hw_handoff/system_ic_data_hp1_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/synth/system_ic_data_hp1_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_data_hp1 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block irq_concat .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rst_clk0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rst_clk1 .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/hw_handoff/system.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/synth/system.hwdef
+INFO: [IP_Flow 19-6930] IPCACHE: runCacheChecks() number of threads = 8
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_axi_dma_feat_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_ctrl_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rgb2dvi_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_spike_accel_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_v_tc_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vdma_disp_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vid_out_0
+INFO: [IP_Flow 19-8020] IPCACHE: runCacheChecks() calling threadPool finishWork()
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_axi_dma_feat_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_ctrl_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_data_hp0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_data_hp1_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rgb2dvi_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rst_clk0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rst_clk1_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_spike_accel_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_v_tc_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_vdma_disp_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_vid_out_0
+
+[Thu May 14 23:31:57 2026] Launched system_spike_accel_0_0_synth_1, system_v_tc_0_0_synth_1, system_vid_out_0_synth_1, system_ps_0_0_synth_1, system_axi_dma_feat_0_synth_1, system_vdma_disp_0_synth_1, system_ic_data_hp1_0_synth_1, system_ic_data_hp0_0_synth_1, system_rst_clk0_0_synth_1, system_rst_clk1_0_synth_1, system_rgb2dvi_0_0_synth_1, system_ic_ctrl_0_synth_1, synth_1...
+Run output will be captured here:
+system_spike_accel_0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_spike_accel_0_0_synth_1/runme.log
+system_v_tc_0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_v_tc_0_0_synth_1/runme.log
+system_vid_out_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_vid_out_0_synth_1/runme.log
+system_ps_0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_ps_0_0_synth_1/runme.log
+system_axi_dma_feat_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_axi_dma_feat_0_synth_1/runme.log
+system_vdma_disp_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_vdma_disp_0_synth_1/runme.log
+system_ic_data_hp1_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_ic_data_hp1_0_synth_1/runme.log
+system_ic_data_hp0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_ic_data_hp0_0_synth_1/runme.log
+system_rst_clk0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_rst_clk0_0_synth_1/runme.log
+system_rst_clk1_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_rst_clk1_0_synth_1/runme.log
+system_rgb2dvi_0_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_rgb2dvi_0_0_synth_1/runme.log
+system_ic_ctrl_0_synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/system_ic_ctrl_0_synth_1/runme.log
+synth_1: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/synth_1/runme.log
+[Thu May 14 23:31:57 2026] Launched impl_1...
+Run output will be captured here: C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/impl_1/runme.log
+launch_runs: Time (s): cpu = 00:00:36 ; elapsed = 00:00:56 . Memory (MB): peak = 1261.461 ; gain = 518.094
+# wait_on_run impl_1
+[Thu May 14 23:31:57 2026] Waiting for impl_1 to finish...
+
+*** Running vivado
+    with args -log system_wrapper.vdi -applog -m64 -product Vivado -messageDb vivado.pb -mode batch -source system_wrapper.tcl -notrace
+
+
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Thu May 14 23:53:03 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source system_wrapper.tcl -notrace
+create_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 629.875 ; gain = 199.359
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+WARNING: [IP_Flow 19-4995] The host OS only allows 260 characters in a normal path. The IP cache path is more than 80 characters. If you experience issues with IP caching, please consider changing the IP cache to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter. 
+Current IP cache path is C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.cache/ip 
+add_files: Time (s): cpu = 00:00:07 ; elapsed = 00:00:09 . Memory (MB): peak = 811.402 ; gain = 105.914
+Command: link_design -top system_wrapper -part xc7z020clg400-1
+Design is defaulting to srcset: sources_1
+Design is defaulting to constrset: constrs_1
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+INFO: [Device 21-9227] Part: xc7z020clg400-1 does not have CEAM library.
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.dcp' for cell 'system_i/axi_dma_feat'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/system_ic_ctrl_0.dcp' for cell 'system_i/ic_ctrl'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/system_ic_data_hp0_0.dcp' for cell 'system_i/ic_data_hp0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/system_ic_data_hp1_0.dcp' for cell 'system_i/ic_data_hp1'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ps_0_0/system_ps_0_0.dcp' for cell 'system_i/ps_0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rgb2dvi_0_0/system_rgb2dvi_0_0.dcp' for cell 'system_i/rgb2dvi_0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk0_0/system_rst_clk0_0.dcp' for cell 'system_i/rst_clk0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk1_0/system_rst_clk1_0.dcp' for cell 'system_i/rst_clk1'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_spike_accel_0_0/system_spike_accel_0_0.dcp' for cell 'system_i/spike_accel_0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0.dcp' for cell 'system_i/v_tc_0'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.dcp' for cell 'system_i/vdma_disp'
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vid_out_0/system_vid_out_0.dcp' for cell 'system_i/vid_out'
+Netlist sorting complete. Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 1580.586 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7776 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2024.1
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ps_0_0/system_ps_0_0.xdc] for cell 'system_i/ps_0/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ps_0_0/system_ps_0_0.xdc] for cell 'system_i/ps_0/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.xdc] for cell 'system_i/axi_dma_feat/U0'
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.xdc:52]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.xdc:56]
+WARNING: [Vivado_Tcl 4-919] Waiver ID 'CDC-1' -from list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.xdc:61]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0.xdc] for cell 'system_i/axi_dma_feat/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc] for cell 'system_i/vdma_disp/U0'
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:65]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:69]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:93]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:97]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:101]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:105]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:109]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:113]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:121]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:125]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:129]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:141]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:145]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:149]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:153]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:157]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:161]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:165]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:169]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:173]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:177]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:181]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:185]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:189]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:197]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:205]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:213]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:217]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:221]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-6' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc:225]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0.xdc] for cell 'system_i/vdma_disp/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rgb2dvi_0_0/src/rgb2dvi.xdc] for cell 'system_i/rgb2dvi_0/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rgb2dvi_0_0/src/rgb2dvi.xdc] for cell 'system_i/rgb2dvi_0/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_1/bd_1315_psr_aclk_0_board.xdc] for cell 'system_i/ic_ctrl/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_1/bd_1315_psr_aclk_0_board.xdc] for cell 'system_i/ic_ctrl/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_1/bd_1315_psr_aclk_0.xdc] for cell 'system_i/ic_ctrl/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_1/bd_1315_psr_aclk_0.xdc] for cell 'system_i/ic_ctrl/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_ar_node/inst'
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:49]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:52]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:55]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:59]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:66]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:70]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:82]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:85]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:88]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:91]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:94]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:97]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:100]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:104]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:107]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:110]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:113]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:116]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-13' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:122]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:125]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:128]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-13' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:131]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:134]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:137]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:140]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:143]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:146]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:149]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:152]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:155]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:158]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:161]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:164]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:167]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:171]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:174]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:178]
+WARNING: [Vivado_Tcl 4-935] Waiver ID 'CDC-1' is a duplicate and will not be added again. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:181]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-13' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc:184]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_12/bd_1315_arni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_r_node/inst'
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:49]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:52]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:55]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:59]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:66]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:70]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:82]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:85]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-4' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:88]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:91]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:94]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:97]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:100]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:104]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:107]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:110]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:113]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:116]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-13' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:122]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:125]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:128]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-13' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:131]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:134]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-10' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:137]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:140]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:143]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:146]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-2' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:149]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:152]
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:155]
+INFO: [Common 17-14] Message 'Vivado_Tcl 4-921' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:155]
+WARNING: [Vivado_Tcl 4-935] Waiver ID 'CDC-1' is a duplicate and will not be added again. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc:181]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_13/bd_1315_rni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_14/bd_1315_awni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_aw_node/inst'
+INFO: [Common 17-14] Message 'Vivado 12-180' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_14/bd_1315_awni_0_clocks.xdc:116]
+WARNING: [Vivado_Tcl 4-935] Waiver ID 'CDC-1' is a duplicate and will not be added again. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_14/bd_1315_awni_0_clocks.xdc:181]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_14/bd_1315_awni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_15/bd_1315_wni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_w_node/inst'
+WARNING: [Vivado_Tcl 4-935] Waiver ID 'CDC-1' is a duplicate and will not be added again. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_15/bd_1315_wni_0_clocks.xdc:181]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_15/bd_1315_wni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_16/bd_1315_bni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_b_node/inst'
+WARNING: [Vivado_Tcl 4-935] Waiver ID 'CDC-1' is a duplicate and will not be added again. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_16/bd_1315_bni_0_clocks.xdc:181]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_16/bd_1315_bni_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/switchboards/i_nodes/i_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_21/bd_1315_sarn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_21/bd_1315_sarn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_22/bd_1315_srn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_22/bd_1315_srn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_23/bd_1315_sawn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_23/bd_1315_sawn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_24/bd_1315_swn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_24/bd_1315_swn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_25/bd_1315_sbn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_25/bd_1315_sbn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/s00_nodes/s00_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_27/bd_1315_m00arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_27/bd_1315_m00arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_28/bd_1315_m00rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_28/bd_1315_m00rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_29/bd_1315_m00awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_29/bd_1315_m00awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_30/bd_1315_m00wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_30/bd_1315_m00wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_31/bd_1315_m00bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_31/bd_1315_m00bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m00_nodes/m00_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_34/bd_1315_m01arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_34/bd_1315_m01arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_35/bd_1315_m01rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_35/bd_1315_m01rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_36/bd_1315_m01awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_36/bd_1315_m01awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_37/bd_1315_m01wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_37/bd_1315_m01wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_38/bd_1315_m01bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_38/bd_1315_m01bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m01_nodes/m01_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_41/bd_1315_m02arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_41/bd_1315_m02arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_42/bd_1315_m02rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_42/bd_1315_m02rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_43/bd_1315_m02awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_43/bd_1315_m02awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_44/bd_1315_m02wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_44/bd_1315_m02wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_45/bd_1315_m02bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_45/bd_1315_m02bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m02_nodes/m02_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_48/bd_1315_m03arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_48/bd_1315_m03arn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_49/bd_1315_m03rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_49/bd_1315_m03rn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_50/bd_1315_m03awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_50/bd_1315_m03awn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_51/bd_1315_m03wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_51/bd_1315_m03wn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_52/bd_1315_m03bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/ip/ip_52/bd_1315_m03bn_0_clocks.xdc] for cell 'system_i/ic_ctrl/inst/m03_nodes/m03_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/smartconnect.xdc] for cell 'system_i/ic_ctrl/inst'
+WARNING: [Vivado_Tcl 4-919] Waiver ID 'CDC-1' -from list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/smartconnect.xdc:10]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/smartconnect.xdc] for cell 'system_i/ic_ctrl/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_1/bd_8fe8_psr_aclk_0_board.xdc] for cell 'system_i/ic_data_hp0/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_1/bd_8fe8_psr_aclk_0_board.xdc] for cell 'system_i/ic_data_hp0/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_1/bd_8fe8_psr_aclk_0.xdc] for cell 'system_i/ic_data_hp0/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_1/bd_8fe8_psr_aclk_0.xdc] for cell 'system_i/ic_data_hp0/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_11/bd_8fe8_sarn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s00_nodes/s00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_11/bd_8fe8_sarn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s00_nodes/s00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_12/bd_8fe8_srn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s00_nodes/s00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_12/bd_8fe8_srn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s00_nodes/s00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_17/bd_8fe8_sawn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_17/bd_8fe8_sawn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_18/bd_8fe8_swn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_18/bd_8fe8_swn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_19/bd_8fe8_sbn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_19/bd_8fe8_sbn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s01_nodes/s01_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_24/bd_8fe8_sarn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s02_nodes/s02_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_24/bd_8fe8_sarn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s02_nodes/s02_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_25/bd_8fe8_srn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s02_nodes/s02_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_25/bd_8fe8_srn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s02_nodes/s02_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_30/bd_8fe8_sarn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_30/bd_8fe8_sarn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_31/bd_8fe8_srn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_31/bd_8fe8_srn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_32/bd_8fe8_sawn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_32/bd_8fe8_sawn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_33/bd_8fe8_swn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_33/bd_8fe8_swn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_34/bd_8fe8_sbn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_34/bd_8fe8_sbn_1_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s03_nodes/s03_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_39/bd_8fe8_sarn_3_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_39/bd_8fe8_sarn_3_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_40/bd_8fe8_srn_3_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_40/bd_8fe8_srn_3_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_41/bd_8fe8_sawn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_41/bd_8fe8_sawn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_42/bd_8fe8_swn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_42/bd_8fe8_swn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_43/bd_8fe8_sbn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_43/bd_8fe8_sbn_2_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/s04_nodes/s04_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_45/bd_8fe8_m00arn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_45/bd_8fe8_m00arn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_46/bd_8fe8_m00rn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_46/bd_8fe8_m00rn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_47/bd_8fe8_m00awn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_47/bd_8fe8_m00awn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_48/bd_8fe8_m00wn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_48/bd_8fe8_m00wn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_49/bd_8fe8_m00bn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/ip/ip_49/bd_8fe8_m00bn_0_clocks.xdc] for cell 'system_i/ic_data_hp0/inst/m00_nodes/m00_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/smartconnect.xdc] for cell 'system_i/ic_data_hp0/inst'
+WARNING: [Vivado_Tcl 4-919] Waiver ID 'CDC-1' -from list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/smartconnect.xdc:1]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/smartconnect.xdc] for cell 'system_i/ic_data_hp0/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_1/bd_4fb9_psr_aclk_0_board.xdc] for cell 'system_i/ic_data_hp1/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_1/bd_4fb9_psr_aclk_0_board.xdc] for cell 'system_i/ic_data_hp1/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_1/bd_4fb9_psr_aclk_0.xdc] for cell 'system_i/ic_data_hp1/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_1/bd_4fb9_psr_aclk_0.xdc] for cell 'system_i/ic_data_hp1/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_11/bd_4fb9_sarn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s00_nodes/s00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_11/bd_4fb9_sarn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s00_nodes/s00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_12/bd_4fb9_srn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s00_nodes/s00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_12/bd_4fb9_srn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s00_nodes/s00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_17/bd_4fb9_sawn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_17/bd_4fb9_sawn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_18/bd_4fb9_swn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_18/bd_4fb9_swn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_19/bd_4fb9_sbn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_19/bd_4fb9_sbn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s01_nodes/s01_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_24/bd_4fb9_sarn_1_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s02_nodes/s02_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_24/bd_4fb9_sarn_1_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s02_nodes/s02_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_25/bd_4fb9_srn_1_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s02_nodes/s02_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_25/bd_4fb9_srn_1_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/s02_nodes/s02_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_27/bd_4fb9_m00arn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_ar_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_27/bd_4fb9_m00arn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_ar_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_28/bd_4fb9_m00rn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_r_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_28/bd_4fb9_m00rn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_r_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_29/bd_4fb9_m00awn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_aw_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_29/bd_4fb9_m00awn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_aw_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_30/bd_4fb9_m00wn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_w_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_30/bd_4fb9_m00wn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_w_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_31/bd_4fb9_m00bn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_b_node/inst'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/ip/ip_31/bd_4fb9_m00bn_0_clocks.xdc] for cell 'system_i/ic_data_hp1/inst/m00_nodes/m00_b_node/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/smartconnect.xdc] for cell 'system_i/ic_data_hp1/inst'
+WARNING: [Vivado_Tcl 4-919] Waiver ID 'CDC-1' -from list should not be empty. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/smartconnect.xdc:1]
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/smartconnect.xdc] for cell 'system_i/ic_data_hp1/inst'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk0_0/system_rst_clk0_0_board.xdc] for cell 'system_i/rst_clk0/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk0_0/system_rst_clk0_0_board.xdc] for cell 'system_i/rst_clk0/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk0_0/system_rst_clk0_0.xdc] for cell 'system_i/rst_clk0/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk0_0/system_rst_clk0_0.xdc] for cell 'system_i/rst_clk0/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk1_0/system_rst_clk1_0_board.xdc] for cell 'system_i/rst_clk1/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk1_0/system_rst_clk1_0_board.xdc] for cell 'system_i/rst_clk1/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk1_0/system_rst_clk1_0.xdc] for cell 'system_i/rst_clk1/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rst_clk1_0/system_rst_clk1_0.xdc] for cell 'system_i/rst_clk1/U0'
+Parsing XDC File [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc]
+WARNING: [Vivado 12-584] No ports matched 'sys_clk'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:11]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:11]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'sys_clk'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:12]
+CRITICAL WARNING: [Vivado 12-4739] create_clock:No valid object(s) found for '-objects [get_ports sys_clk]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:12]
+Resolution: Check if the specified object(s) exists in the current design. If it does, ensure that the correct design hierarchy was specified for the object. If you are working with clocks, make sure create_clock was used to create the clock object before it is referenced.
+WARNING: [Vivado 12-584] No ports matched 'sw[0]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:15]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:15]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'sw[1]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:16]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:16]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'sw[2]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:17]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:17]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'sw[3]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:18]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:18]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'led[0]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:21]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:21]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'led[1]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:22]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:22]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'led[2]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:23]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:23]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'led[3]'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:24]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:24]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+CRITICAL WARNING: [Vivado 12-1411] Cannot set LOC property of ports, the positive port (P-side) 'hdmi_tx_clk_p' of a differential pair cannot be placed on a negative package pin 'H17' (IOBS). [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:27]
+WARNING: [Vivado 12-584] No ports matched 'hdmi_tx_hpd'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:37]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:37]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'hdmi_tx_ddc_sda'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:38]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:38]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+WARNING: [Vivado 12-584] No ports matched 'hdmi_tx_ddc_scl'. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:39]
+CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:39]
+Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
+CRITICAL WARNING: [Netlist 29-177] Cannot set property 'BITSTREAM.CONFIG.SPI_BUSWIDTH' because the property does not exist. [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc:54]
+Resolution: Create this property using create_property command before setting it.
+Finished Parsing XDC File [C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/constraints/zybo_z7_20.xdc]
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0_clocks.xdc] for cell 'system_i/axi_dma_feat/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_axi_dma_feat_0/system_axi_dma_feat_0_clocks.xdc] for cell 'system_i/axi_dma_feat/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0_clocks.xdc] for cell 'system_i/vdma_disp/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0_clocks.xdc] for cell 'system_i/vdma_disp/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0_clocks.xdc] for cell 'system_i/v_tc_0/U0'
+INFO: [Timing 38-35] Done setting XDC timing constraints. [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0_clocks.xdc:2]
+INFO: [Timing 38-2] Deriving generated clocks [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0_clocks.xdc:2]
+get_clocks: Time (s): cpu = 00:00:12 ; elapsed = 00:00:10 . Memory (MB): peak = 2628.734 ; gain = 744.766
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0_clocks.xdc] for cell 'system_i/v_tc_0/U0'
+Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rgb2dvi_0_0/src/rgb2dvi_clocks.xdc] for cell 'system_i/rgb2dvi_0/U0'
+Finished Parsing XDC File [c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_rgb2dvi_0_0/src/rgb2dvi_clocks.xdc] for cell 'system_i/rgb2dvi_0/U0'
+INFO: [Project 1-1714] 211 XPM XDC files have been applied to the design.
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+INFO: [Project 1-1687] 2890 scoped IP constraints or related sub-commands were skipped due to synthesis logic optimizations usually triggered by constant connectivity or unconnected output pins. To review the skipped constraints and messages, run the command 'set_param netlist.IPMsgFiltering false' before opening the design.
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.038 . Memory (MB): peak = 2628.734 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 422 instances were transformed.
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 4 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 404 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 14 instances
+
+32 Infos, 123 Warnings, 15 Critical Warnings and 0 Errors encountered.
+link_design completed successfully
+link_design: Time (s): cpu = 00:00:45 ; elapsed = 00:00:47 . Memory (MB): peak = 2628.734 ; gain = 1817.332
+Command: opt_design -directive ExploreArea
+INFO: [Vivado_Tcl 4-136] Directive used for opt_design is: ExploreArea
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Project 1-461] DRC finished with 0 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:03 ; elapsed = 00:00:01 . Memory (MB): peak = 2628.734 ; gain = 0.000
+
+Starting Logic Optimization Task
+
+Phase 1 Initialization
+
+Phase 1.1 Core Generation And Design Setup
+Phase 1.1 Core Generation And Design Setup | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.046 . Memory (MB): peak = 2793.633 ; gain = 0.000
+
+Phase 1.2 Setup Constraints And Sort Netlist
+Phase 1.2 Setup Constraints And Sort Netlist | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.124 . Memory (MB): peak = 2793.633 ; gain = 0.000
+Phase 1 Initialization | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.137 . Memory (MB): peak = 2793.633 ; gain = 0.000
+
+Phase 2 Timer Update And Timing Data Collection
+
+Phase 2.1 Timer Update
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Phase 2.1 Timer Update | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:11 ; elapsed = 00:00:08 . Memory (MB): peak = 3211.270 ; gain = 417.637
+
+Phase 2.2 Timing Data Collection
+Phase 2.2 Timing Data Collection | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:11 ; elapsed = 00:00:08 . Memory (MB): peak = 3211.270 ; gain = 417.637
+Phase 2 Timer Update And Timing Data Collection | Checksum: a3e7f1fc
+
+Time (s): cpu = 00:00:11 ; elapsed = 00:00:08 . Memory (MB): peak = 3211.270 ; gain = 417.637
+
+Phase 3 Retarget
+INFO: [Opt 31-1834] Total Chains To Be Transformed Were: 0 AND Number of Transformed insts Created are: 0
+INFO: [Opt 31-1566] Pulled 39 inverters resulting in an inversion of 358 pins
+INFO: [Opt 31-138] Pushed 52 inverter(s) to 251 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 3 Retarget | Checksum: f371ad23
+
+Time (s): cpu = 00:00:14 ; elapsed = 00:00:10 . Memory (MB): peak = 3211.270 ; gain = 417.637
+Retarget | Checksum: f371ad23
+INFO: [Opt 31-389] Phase Retarget created 915 cells and removed 1556 cells
+INFO: [Opt 31-1021] In phase Retarget, 311 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 4 Constant propagation
+INFO: [Opt 31-138] Pushed 25 inverter(s) to 27 load pin(s).
+Phase 4 Constant propagation | Checksum: c6626f03
+
+Time (s): cpu = 00:00:24 ; elapsed = 00:00:21 . Memory (MB): peak = 3211.270 ; gain = 417.637
+Constant propagation | Checksum: c6626f03
+INFO: [Opt 31-389] Phase Constant propagation created 4105 cells and removed 26847 cells
+INFO: [Opt 31-1021] In phase Constant propagation, 640 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 5 Sweep
+Phase 5 Sweep | Checksum: 14f0f0e6c
+
+Time (s): cpu = 00:00:28 ; elapsed = 00:00:25 . Memory (MB): peak = 3211.270 ; gain = 417.637
+Sweep | Checksum: 14f0f0e6c
+INFO: [Opt 31-389] Phase Sweep created 0 cells and removed 1669 cells
+INFO: [Opt 31-1021] In phase Sweep, 355 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 6 BUFG optimization
+INFO: [Opt 31-194] Inserted BUFG system_i/rgb2dvi_0/U0/ClockGenInternal.ClockGenX/PixelClk_BUFG_inst to drive 8 load(s) on clock net system_i/rgb2dvi_0/U0/ClockGenInternal.ClockGenX/PixelClk_BUFG
+INFO: [Opt 31-194] Inserted BUFG system_i/rgb2dvi_0/U0/ClockGenInternal.ClockGenX/SerialClk_BUFG_inst to drive 8 load(s) on clock net system_i/rgb2dvi_0/U0/ClockGenInternal.ClockGenX/SerialClk_BUFG
+INFO: [Opt 31-193] Inserted 2 BUFG(s) on clock nets
+Phase 6 BUFG optimization | Checksum: a6f577db
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:26 . Memory (MB): peak = 3211.270 ; gain = 417.637
+BUFG optimization | Checksum: a6f577db
+INFO: [Opt 31-662] Phase BUFG optimization created 2 cells of which 2 are BUFGs and removed 0 cells.
+
+Phase 7 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 7 Shift Register Optimization | Checksum: a6f577db
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:26 . Memory (MB): peak = 3211.270 ; gain = 417.637
+Shift Register Optimization | Checksum: a6f577db
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+INFO: [Opt 31-1555] control_set_opt supports Versal devices only, and device 7z020 is unsupported
+
+Phase 8 Resynthesis
+!! WARNING !!
+"PYTHONPATH" variable is set greater than default max string limit of "519" characters.
+Please ignore this, if you have already made changes to your system registry to accept more than
+default limit of 519 characters.
+!! WARNING !!
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Opt 31-74] Optimized 105 modules.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_datamover_ibttcc'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_datamover_mssai_skid_buf'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_datamover_pcc'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_datamover_skid_buf'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_datamover_slice'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_dma_smple_sm'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_axi_dma_smple_sm_29'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_cntr_incr_decr_addn_f_14'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_sync_fifo_fg'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_sync_fifo_fg__parameterized1'.
+INFO: [Opt 31-75] Optimized module 'system_axi_dma_feat_0_xpm_counter_updn__parameterized2_23'.
+INFO: [Opt 31-75] Optimized module 'system_ic_ctrl_0_sc_node_v1_0_16_arb_alg_rr'.
+INFO: [Opt 31-75] Optimized module 'system_ic_ctrl_0_sc_util_v1_0_4_axi_reg_stall__parameterized0_17'.
+INFO: [Opt 31-75] Optimized module 'system_ic_ctrl_0_sc_util_v1_0_4_axi_splitter'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axi_reg_stall'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axi_reg_stall_113'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axi_reg_stall_143'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axi_reg_stall_187'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axi_reg_stall_213'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axic_reg_srl_fifo__parameterized2'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axic_reg_srl_fifo__parameterized4'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_axic_reg_srl_fifo__parameterized5_178'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_135'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_170'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_205'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_24'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_242'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_257'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_270'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_32'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_86'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp0_0_sc_util_v1_0_4_counter__parameterized1_94'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_114'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_115'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_13'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_43'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_44'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_63'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axi_reg_stall_64'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_axic_reg_srl_fifo__parameterized4'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_19'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_35'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_59'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_75'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_87'.
+INFO: [Opt 31-75] Optimized module 'system_ic_data_hp1_0_sc_util_v1_0_4_counter__parameterized1_9'.
+INFO: [Opt 31-75] Optimized module 'system_rgb2dvi_0_0_TMDS_Encoder'.
+INFO: [Opt 31-75] Optimized module 'system_rgb2dvi_0_0_TMDS_Encoder_1'.
+INFO: [Opt 31-75] Optimized module 'system_rgb2dvi_0_0_TMDS_Encoder_3'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_control_s_axi'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_flow_control_loop_pipe_sequential_init_1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_flow_control_loop_pipe_sequential_init_23'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_flow_control_loop_pipe_sequential_init_3'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem0_m_axi_burst_converter'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem0_m_axi_fifo__parameterized4'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem0_m_axi_reg_slice__parameterized0'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem1_m_axi_burst_converter'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem1_m_axi_fifo__parameterized1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem2_m_axi_fifo'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem3_m_axi_burst_converter'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem3_m_axi_burst_converter_335'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem3_m_axi_srl'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem3_m_axi_srl_330'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem4_m_axi_burst_converter_326'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem4_m_axi_fifo'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem4_m_axi_fifo_320'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem4_m_axi_mem__parameterized0'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_gmem4_m_axi_srl'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_1_Pipeline_VITIS_LOOP_116_7'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_145'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_24'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_4'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_82'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_116_7_217'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_116_7_30'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_bn_40_71_118_240_333_426_535_1_Pipeline_VITIS_LOOP_116_7_93'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_1_Pipeline_VITIS_LOOP_97_7_VITIS_LOOP_98_8_VITIS_LOOP_99'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_164'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_219'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_32'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_95'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_Pipeline_VITIS_LOOP_80_1_VITIS_LOOP_81_2_VITIS_LOO'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_conv2d_int_43_74_429_536_1_Pipeline_VITIS_LOOP_80_1_VITIS_LOOP_81_2_VITIS_LOO_37'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_all_conv_block_185_1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_all_conv_block_185_1_Pipeline_VITIS_LOOP_85_1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_all_conv_block_185_1_Pipeline_VITIS_LOOP_85_11'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_downsampling_199_1_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_standard_conv_inplace_1_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_standard_conv_inplace_2_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_ms_standard_conv_inplace_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_spike_sppf_1'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_spike_sppf_1_Pipeline_VITIS_LOOP_150_6_VITIS_LOOP_151_7'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_spike_sppf_1_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_sa_tiny_fpga_top_Pipeline_VITIS_LOOP_36_1_VITIS_LOOP_37_2'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_udiv_13ns_7ns_13_17_1_divider_267'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_udiv_7ns_2ns_7_11_seq_1_233'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_udiv_9ns_8ns_9_13_seq_1_divseq_181'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_udiv_9ns_8ns_9_13_seq_1_divseq_182'.
+INFO: [Opt 31-75] Optimized module 'system_spike_accel_0_0_sa_tiny_fpga_top_udiv_9ns_8ns_9_13_seq_1_divseq_237'.
+INFO: [Common 17-14] Message 'Opt 31-75' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Opt 31-1566] Pulled 1020 inverters resulting in an inversion of 1844 pins
+INFO: [Opt 31-138] Pushed 4 inverter(s) to 17 load pin(s).
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Phase 8 Resynthesis | Checksum: 1b5c92626
+
+Time (s): cpu = 00:01:11 ; elapsed = 00:01:49 . Memory (MB): peak = 3714.219 ; gain = 920.586
+Resynthesis | Checksum: 1b5c92626
+INFO: [Opt 31-389] Phase Resynthesis created 18795 cells and removed 20998 cells
+INFO: [Opt 31-1021] In phase Resynthesis, 684 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 9 Post Processing Netlist
+Phase 9 Post Processing Netlist | Checksum: 1b5c92626
+
+Time (s): cpu = 00:01:11 ; elapsed = 00:01:49 . Memory (MB): peak = 3714.219 ; gain = 920.586
+Post Processing Netlist | Checksum: 1b5c92626
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 0 cells
+INFO: [Opt 31-1021] In phase Post Processing Netlist, 281 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 10 Finalization
+
+Phase 10.1 Finalizing Design Cores and Updating Shapes
+Phase 10.1 Finalizing Design Cores and Updating Shapes | Checksum: fb07b023
+
+Time (s): cpu = 00:01:14 ; elapsed = 00:01:52 . Memory (MB): peak = 3714.219 ; gain = 920.586
+
+Phase 10.2 Verifying Netlist Connectivity
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.167 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 10.2 Verifying Netlist Connectivity | Checksum: fb07b023
+
+Time (s): cpu = 00:01:14 ; elapsed = 00:01:52 . Memory (MB): peak = 3714.219 ; gain = 920.586
+Phase 10 Finalization | Checksum: fb07b023
+
+Time (s): cpu = 00:01:14 ; elapsed = 00:01:52 . Memory (MB): peak = 3714.219 ; gain = 920.586
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |             915  |            1556  |                                            311  |
+|  Constant propagation         |            4105  |           26847  |                                            640  |
+|  Sweep                        |               0  |            1669  |                                            355  |
+|  BUFG optimization            |               2  |               0  |                                              0  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Resynthesis                  |           18795  |           20998  |                                            684  |
+|  Post Processing Netlist      |               0  |               0  |                                            281  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Ending Logic Optimization Task | Checksum: fb07b023
+
+Time (s): cpu = 00:01:14 ; elapsed = 00:01:52 . Memory (MB): peak = 3714.219 ; gain = 920.586
+
+Starting Netlist Obfuscation Task
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.038 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Ending Netlist Obfuscation Task | Checksum: fb07b023
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.052 . Memory (MB): peak = 3714.219 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Implementation
+167 Infos, 123 Warnings, 15 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:01:19 ; elapsed = 00:01:56 . Memory (MB): peak = 3714.219 ; gain = 1085.484
+INFO: [Vivado 12-24828] Executing command : report_drc -file system_wrapper_drc_opted.rpt -pb system_wrapper_drc_opted.pb -rpx system_wrapper_drc_opted.rpx
+Command: report_drc -file system_wrapper_drc_opted.rpt -pb system_wrapper_drc_opted.pb -rpx system_wrapper_drc_opted.rpx
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/impl_1/system_wrapper_drc_opted.rpt.
+report_drc completed successfully
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.019 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Writing XDEF routing.
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.221 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.013 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.270 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Write ShapeDB Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.285 . Memory (MB): peak = 3714.219 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.runs/impl_1/system_wrapper_opt.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:17 ; elapsed = 00:00:12 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Command: place_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-83] Releasing license: Implementation
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+Running DRC as a precondition to command place_design
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Place 30-611] Multithreading enabled for place_design using a maximum of 2 CPUs
+
+Starting Placer Task
+
+Phase 1 Placer Initialization
+
+Phase 1.1 Placer Initialization Netlist Sorting
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.036 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 1.1 Placer Initialization Netlist Sorting | Checksum: 9d15a340
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.061 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.036 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device | Checksum: ce37a3f9
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 1.3 Build Placer Netlist Model
+WARNING: [Place 30-34] Design utilization is very high. Please run report_utilization command to see design utilization.
+Phase 1.3 Build Placer Netlist Model | Checksum: 18b3e1a2f
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:23 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 1.4 Constrain Clocks/Macros
+Phase 1.4 Constrain Clocks/Macros | Checksum: 18b3e1a2f
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:23 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 1 Placer Initialization | Checksum: 18b3e1a2f
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:23 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 2 Global Placement
+
+Phase 2.1 Floorplanning
+Phase 2.1 Floorplanning | Checksum: 1092f752a
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:28 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 2.2 Update Timing before SLR Path Opt
+Phase 2.2 Update Timing before SLR Path Opt | Checksum: dddbc3f1
+
+Time (s): cpu = 00:00:43 ; elapsed = 00:00:32 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 2.3 Post-Processing in Floorplanning
+Phase 2.3 Post-Processing in Floorplanning | Checksum: dddbc3f1
+
+Time (s): cpu = 00:00:43 ; elapsed = 00:00:32 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 2.4 Global Placement Core
+
+Phase 2.4.1 UpdateTiming Before Physical Synthesis
+Phase 2.4.1 UpdateTiming Before Physical Synthesis | Checksum: 17d730ab1
+
+Time (s): cpu = 00:01:46 ; elapsed = 00:01:14 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 2.4.2 Physical Synthesis In Placer
+INFO: [Physopt 32-1035] Found 16 LUTNM shape to break, 3424 LUT instances to create LUTNM shape
+INFO: [Physopt 32-1044] Break lutnm for timing: one critical 14, two critical 2, total 0, new lutff created 0
+INFO: [Physopt 32-1138] End 1 Pass. Optimized 1380 nets or LUTs. Breaked 0 LUT, combined 1380 existing LUTs and moved 0 existing LUT
+INFO: [Physopt 32-65] No nets found for high-fanout optimization.
+INFO: [Physopt 32-232] Optimized 0 net. Created 0 new instance.
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-457] Pass 1. Identified 1 candidate cell for DSP register optimization.
+INFO: [Physopt 32-665] Processed cell system_i/spike_accel_0/inst/grp_sa_ms_all_conv_block_185_1_fu_481/grp_sa_ms_standard_conv_inplace_1_fu_570/grp_sa_conv2d_bn_40_71_118_240_333_426_535_1_fu_197/grp_sa_conv2d_int_43_74_429_536_1_fu_1003/mul_6ns_24ns_30_1_1_U57/tmp_product. 24 registers were pushed out.
+INFO: [Physopt 32-775] End 2 Pass. Optimized 1 net or cell. Created 24 new cells, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.060 . Memory (MB): peak = 3714.219 ; gain = 0.000
+INFO: [Physopt 32-1123] No candidate cells found for Shift Register to Pipeline optimization
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-1402] Pass 1: Identified 66 candidate cells for Shift Register optimization.
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.037 . Memory (MB): peak = 3714.219 ; gain = 0.000
+INFO: [Physopt 32-526] No candidate cells for BRAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-949] No candidate nets found for dynamic/static region interface net replication
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.037 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Summary of Physical Synthesis Optimizations
+============================================
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Optimization                                     |  Added Cells  |  Removed Cells  |  Optimized Cells/Nets  |  Dont Touch  |  Iterations  |  Elapsed   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  LUT Combining                                    |            0  |           1380  |                  1380  |           0  |           1  |  00:00:02  |
+|  Retime                                           |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Very High Fanout                                 |            0  |              0  |                     0  |           0  |           1  |  00:00:01  |
+|  DSP Register                                     |           24  |              0  |                     1  |           0  |           1  |  00:00:00  |
+|  Shift Register to Pipeline                       |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register                                   |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  BRAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  URAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Dynamic/Static Region Interface Net Replication  |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Total                                            |           24  |           1380  |                  1381  |           0  |           9  |  00:00:03  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Phase 2.4.2 Physical Synthesis In Placer | Checksum: 21ab177fa
+
+Time (s): cpu = 00:01:57 ; elapsed = 00:01:23 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 2.4 Global Placement Core | Checksum: 1bf2a61f0
+
+Time (s): cpu = 00:02:00 ; elapsed = 00:01:25 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 2 Global Placement | Checksum: 1bf2a61f0
+
+Time (s): cpu = 00:02:00 ; elapsed = 00:01:25 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3 Detail Placement
+
+Phase 3.1 Commit Multi Column Macros
+Phase 3.1 Commit Multi Column Macros | Checksum: 18661dae6
+
+Time (s): cpu = 00:02:07 ; elapsed = 00:01:30 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3.2 Commit Most Macros & LUTRAMs
+Phase 3.2 Commit Most Macros & LUTRAMs | Checksum: 27fcf61f9
+
+Time (s): cpu = 00:02:25 ; elapsed = 00:01:43 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3.3 Area Swap Optimization
+Phase 3.3 Area Swap Optimization | Checksum: 23ae44811
+
+Time (s): cpu = 00:02:25 ; elapsed = 00:01:44 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3.4 Pipeline Register Optimization
+Phase 3.4 Pipeline Register Optimization | Checksum: 1b640dbd0
+
+Time (s): cpu = 00:02:26 ; elapsed = 00:01:44 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3.5 Fast Optimization
+Phase 3.5 Fast Optimization | Checksum: 26f19158e
+
+Time (s): cpu = 00:02:42 ; elapsed = 00:01:55 . Memory (MB): peak = 3714.219 ; gain = 0.000
+
+Phase 3.6 Small Shape Detail Placement
+Phase 3.6 Small Shape Detail Placement | Checksum: 20c5427f4
+
+Time (s): cpu = 00:03:02 ; elapsed = 00:02:14 . Memory (MB): peak = 3714.219 ; gain = 0.000
+Phase 3 Detail Placement | Checksum: 20c5427f4
+
+Time (s): cpu = 00:03:02 ; elapsed = 00:02:14 . Memory (MB): peak = 3714.219 ; gain = 0.000
+ERROR: [Place 30-487] The packing of instances into the device could not be obeyed. There are a total of 13300 slices in the device, of which 7816 slices are available, however, the unplaced instances require 7869 slices. Please analyze your design to determine if the number of LUTs, FFs, and/or control sets can be reduced.
+
+Number of control sets and instances constrained to the design
+	Control sets: 1594
+	Luts: 43189 (combined) 51269 (total), available capacity: 53200 
+	Flip flops: 52361, available capacity: 106400
+	NOTE: each slice can only accommodate 1 unique control set so FFs cannot be packed to fully fill every slice
+
+
+ERROR: [Place 30-99] Placer failed with error: 'Detail Placement failed please check previous errors for details.'
+Please review all ERROR, CRITICAL WARNING, and WARNING messages during placement to understand the cause for failure.
+Ending Placer Task | Checksum: caa86672
+
+Time (s): cpu = 00:03:02 ; elapsed = 00:02:14 . Memory (MB): peak = 3714.219 ; gain = 0.000
+204 Infos, 124 Warnings, 15 Critical Warnings and 3 Errors encountered.
+place_design failed
+ERROR: [Common 17-69] Command failed: Placer could not place all instances
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 23:58:45 2026...
+[Thu May 14 23:58:46 2026] impl_1 finished
+ERROR: [Vivado 12-13638] Failed runs(s) : 'impl_1'
+wait_on_runs: Time (s): cpu = 00:00:10 ; elapsed = 00:26:49 . Memory (MB): peak = 1261.461 ; gain = 0.000
+ERROR: [Common 17-39] 'wait_on_runs' failed due to earlier errors.
+
+    while executing
+"wait_on_run impl_1"
+    (file "runs/remote_machine/run_step6_timing_perf_explore.tcl" line 30)
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 23:58:46 2026...

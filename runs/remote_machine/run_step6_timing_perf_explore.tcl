@@ -13,14 +13,40 @@ set REMOTE   "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machin
 open_project [file join $OUT_DIR ${PROJECT}.xpr]
 
 # Strategy switch (writes back to .xpr metadata).
-set_property strategy Area_Explore [get_runs impl_1]
-puts "INFO: impl_1 strategy set to Area_Explore (M3 v10 — best 120-over result)"
+set_property strategy Performance_Explore [get_runs impl_1]
+puts "INFO: impl_1 strategy set to Performance_Explore (M3 v12 timing close)"
 
 # IPCACHE workarounds (consistent with baseline wrapper).
 catch { set_param ip.useCacheStrategy 0 }
 catch { set_param ip.checkLicense 0 }
 catch { set_param ip.useIpCache 0 }
 catch { set_param project.disableIPCache 1 }
+catch { set_param general.maxThreads 1 }
+
+# Disable broken BD rules (M3 v3+ install-quirk family — same as
+# build_bd.tcl and build_bitstream.tcl). Rule init can re-fire when impl_1
+# is re-launched after a fresh BD rebuild.
+set _xlnx_ip "E:/Applaction/Xilinx/Vivado/2024.1/data/ip"
+set _broken_bd_rules {
+    xilinx.com:bd_rule:roe_framer:1.0
+    xilinx.com:bd_rule:hdmi_gt_controller:1.0
+    xilinx.com:bd_rule:l_ethernet:1.0
+    xilinx.com:bd_rule:microblaze:1.0
+    xilinx.com:bd_rule:microblaze_riscv:1.0
+    xilinx.com:bd_rule:versal_cips:1.0
+    xilinx.com:bd_rule:axi4:1.0
+    xilinx.com:bd_rule:axi_noc:1.0
+    xilinx.com:bd_rule:axi_noc2:1.0
+    xilinx.com:bd_rule:gt_tx_rx:1.0
+    xilinx.com:bd_rule:pcie4_uscale_plus:1.0
+    xilinx.com:bd_rule:pcie4c_uscale_plus:1.0
+    xilinx.com:bd_rule:qdma:1.0
+    xilinx.com:bd_rule:xdma:1.0
+}
+foreach _vlnv $_broken_bd_rules {
+    catch { update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip }
+}
+unset -nocomplain _xlnx_ip _broken_bd_rules _vlnv
 
 # Reset only impl_1 — synth_1 + sub-IP synth from v7 are still valid.
 catch { reset_run impl_1 }

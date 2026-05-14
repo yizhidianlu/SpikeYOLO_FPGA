@@ -1,0 +1,83 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Fri May 15 00:15:57 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source runs/remote_machine/run_step6_timing_perf_explore.tcl
+# set PROJECT spike_zybo
+# set HW_VIVADO_DIR "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado"
+# set OUT_DIR  "$HW_VIVADO_DIR/out"
+# set REPORTS  "$HW_VIVADO_DIR/reports"
+# set REMOTE   "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/runs/remote_machine"
+# open_project [file join $OUT_DIR ${PROJECT}.xpr]
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+open_project: Time (s): cpu = 00:00:14 ; elapsed = 00:00:18 . Memory (MB): peak = 751.688 ; gain = 322.316
+# set_property strategy Area_Explore [get_runs impl_1]
+# puts "INFO: impl_1 strategy set to Area_Explore (M3 v10 â€? best 120-over result)"
+INFO: impl_1 strategy set to Area_Explore (M3 v10 â€? best 120-over result)
+# catch { set_param ip.useCacheStrategy 0 }
+# catch { set_param ip.checkLicense 0 }
+# catch { set_param ip.useIpCache 0 }
+# catch { set_param project.disableIPCache 1 }
+# catch { set_param general.maxThreads 1 }
+# set _xlnx_ip "E:/Applaction/Xilinx/Vivado/2024.1/data/ip"
+# set _broken_bd_rules {
+#     xilinx.com:bd_rule:roe_framer:1.0
+#     xilinx.com:bd_rule:hdmi_gt_controller:1.0
+#     xilinx.com:bd_rule:l_ethernet:1.0
+#     xilinx.com:bd_rule:microblaze:1.0
+#     xilinx.com:bd_rule:microblaze_riscv:1.0
+#     xilinx.com:bd_rule:versal_cips:1.0
+#     xilinx.com:bd_rule:axi4:1.0
+#     xilinx.com:bd_rule:axi_noc:1.0
+#     xilinx.com:bd_rule:axi_noc2:1.0
+#     xilinx.com:bd_rule:gt_tx_rx:1.0
+#     xilinx.com:bd_rule:pcie4_uscale_plus:1.0
+#     xilinx.com:bd_rule:pcie4c_uscale_plus:1.0
+#     xilinx.com:bd_rule:qdma:1.0
+#     xilinx.com:bd_rule:xdma:1.0
+# }
+# foreach _vlnv $_broken_bd_rules {
+#     catch { update_ip_catalog -disable_ip $_vlnv -repo_path $_xlnx_ip }
+# }
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:roe_framer:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:hdmi_gt_controller:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:l_ethernet:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:microblaze:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:microblaze_riscv:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:versal_cips:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:axi4:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:axi_noc:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:axi_noc2:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:gt_tx_rx:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:pcie4_uscale_plus:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:pcie4c_uscale_plus:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:qdma:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+CRITICAL WARNING: [IP_Flow 19-4042] Failed to disable IP 'xilinx.com:bd_rule:xdma:1.0' in repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip' because the IP was not found in the repository.
+# unset -nocomplain _xlnx_ip _broken_bd_rules _vlnv
+# catch { reset_run impl_1 }
+# launch_runs impl_1 -to_step write_bitstream -jobs 1
+INFO: [IP_Flow 19-6930] IPCACHE: runCacheChecks() number of threads = 8
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_axi_dma_feat_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_ctrl_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rgb2dvi_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_spike_accel_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_v_tc_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vdma_disp_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vid_out_0
+INFO: [IP_Flow 19-8020] IPCACHE: runCacheChecks() calling threadPool finishWork()

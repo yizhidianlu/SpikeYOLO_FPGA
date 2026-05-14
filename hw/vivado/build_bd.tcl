@@ -283,20 +283,28 @@ set_property -dict [list \
     CONFIG.c_mm2s_genlock_mode      {0} \
     CONFIG.c_include_mm2s_dre       {0} \
     CONFIG.c_num_fstores            {1} \
-    CONFIG.c_m_axi_mm2s_data_width  {64} \
+    CONFIG.c_m_axi_mm2s_data_width  {32} \
     CONFIG.c_mm2s_axis_data_width   {24} \
     CONFIG.c_mm2s_max_burst_length  {128} \
 ] [get_bd_cells vdma_disp]
+# v11/Option ζ: HP1 M_AXI 64 -> 32 bit. Bandwidth check at 1080p30 target:
+#   1920*1080*30*3 = 187 MB/s required; HP1 32b @ 100 MHz axi ≈ 280-320 MB/s
+#   sustained → comfortable. 1080p60 (374 MB/s) would not fit; we are not
+#   targeting it. Saves ~100-150 slices in FIFO + addr arith + byte-enable.
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
 # v_tc:6.2 quirk (URGENT_ASK_19 side): GEN_* timing params are gated behind
 # enable_generation + a custom video format select. Easier to use the
 # VIDEO_MODE preset for 1080p60. Detection disabled (we only generate).
+# v11/Option η: explicitly null out the second-field / interlaced subblocks
+# so synthesis prunes them rather than leaving idle slices around.
 set_property -dict [list \
-    CONFIG.HAS_AXI4_LITE     {true} \
-    CONFIG.enable_generation {true} \
-    CONFIG.enable_detection  {false} \
-    CONFIG.VIDEO_MODE        {1080p} \
+    CONFIG.HAS_AXI4_LITE        {true} \
+    CONFIG.enable_generation    {true} \
+    CONFIG.enable_detection     {false} \
+    CONFIG.VIDEO_MODE           {1080p} \
+    CONFIG.GEN_F1_VIDEO_FORMAT  {0} \
+    CONFIG.GEN_INTERLACED       {false} \
 ] [get_bd_cells v_tc_0]
 
 # vid_out: in-tree IP-XACT-packaged axis_to_video_bridge (URGENT_ASK_25).

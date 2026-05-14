@@ -1,0 +1,122 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Thu May 14 09:42:38 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source runs/remote_machine/probe_v_tc_pins.tcl
+# set OUT_DIR "C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out"
+# open_project [file join $OUT_DIR spike_zybo.xpr]
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+open_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:14 . Memory (MB): peak = 694.609 ; gain = 264.918
+# open_bd_design C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.srcs/sources_1/bd/system/system.bd
+Reading block design file <C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.srcs/sources_1/bd/system/system.bd>...
+Adding component instance block -- xilinx.com:ip:processing_system7:5.5 - ps_0
+Adding component instance block -- xilinx.com:hls:sa_tiny_fpga_top:1.0 - spike_accel_0
+Adding component instance block -- xilinx.com:ip:axi_dma:7.1 - axi_dma_feat
+WARNING: [BD 41-1282] Parameter 'HAS_BURST' is not defined on '/axi_dma_feat/M_AXIS_MM2S'. Parameter ignored.
+WARNING: [BD 41-1282] Parameter 'HAS_BURST' is not defined on '/axi_dma_feat/M_AXIS_MM2S'. Parameter ignored.
+Adding component instance block -- xilinx.com:ip:axi_vdma:6.3 - vdma_disp
+Adding component instance block -- xilinx.com:ip:v_tc:6.2 - v_tc_0
+Adding component instance block -- xilinx.com:module_ref:axis_to_video_bridge:1.0 - vid_out
+Adding component instance block -- digilentinc.com:ip:rgb2dvi:1.4 - rgb2dvi_0
+Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - ic_ctrl
+Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - ic_data_hp0
+Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - ic_data_hp1
+Adding component instance block -- xilinx.com:ip:xlconcat:2.1 - irq_concat
+Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_clk0
+Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_clk1
+Successfully read diagram <system> from block design file <C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.srcs/sources_1/bd/system/system.bd>
+# puts "==v_tc_0 pins=="
+==v_tc_0 pins==
+# foreach p [get_bd_pins -of [get_bd_cells v_tc_0]] { puts $p }
+/v_tc_0/active_video_out
+/v_tc_0/clk
+/v_tc_0/clken
+/v_tc_0/fsync_in
+/v_tc_0/fsync_out
+/v_tc_0/gen_clken
+/v_tc_0/hblank_out
+/v_tc_0/hsync_out
+/v_tc_0/irq
+/v_tc_0/resetn
+/v_tc_0/s_axi_aclk
+/v_tc_0/s_axi_aclken
+/v_tc_0/s_axi_araddr
+/v_tc_0/s_axi_aresetn
+/v_tc_0/s_axi_arready
+/v_tc_0/s_axi_arvalid
+/v_tc_0/s_axi_awaddr
+/v_tc_0/s_axi_awready
+/v_tc_0/s_axi_awvalid
+/v_tc_0/s_axi_bready
+/v_tc_0/s_axi_bresp
+/v_tc_0/s_axi_bvalid
+/v_tc_0/s_axi_rdata
+/v_tc_0/s_axi_rready
+/v_tc_0/s_axi_rresp
+/v_tc_0/s_axi_rvalid
+/v_tc_0/s_axi_wdata
+/v_tc_0/s_axi_wready
+/v_tc_0/s_axi_wstrb
+/v_tc_0/s_axi_wvalid
+/v_tc_0/sof_state
+/v_tc_0/vblank_out
+/v_tc_0/vsync_out
+# puts "==v_tc_0 intf pins=="
+==v_tc_0 intf pins==
+# foreach p [get_bd_intf_pins -of [get_bd_cells v_tc_0]] { puts $p }
+/v_tc_0/ctrl
+/v_tc_0/vtiming_out
+# puts "==vid_out pins=="
+==vid_out pins==
+# foreach p [get_bd_pins -of [get_bd_cells vid_out]] { puts $p }
+/vid_out/s_axis_aclk
+/vid_out/s_axis_aresetn
+/vid_out/s_axis_tdata
+/vid_out/s_axis_tlast
+/vid_out/s_axis_tready
+/vid_out/s_axis_tuser
+/vid_out/s_axis_tvalid
+/vid_out/vid_active_video
+/vid_out/vid_data
+/vid_out/vid_hsync
+/vid_out/vid_vsync
+/vid_out/vtiming_active_video
+/vid_out/vtiming_hblank
+/vid_out/vtiming_hsync
+/vid_out/vtiming_vblank
+/vid_out/vtiming_vsync
+# puts "==rgb2dvi_0 pins=="
+==rgb2dvi_0 pins==
+# foreach p [get_bd_pins -of [get_bd_cells rgb2dvi_0]] { puts $p }
+/rgb2dvi_0/PixelClk
+/rgb2dvi_0/TMDS_Clk_n
+/rgb2dvi_0/TMDS_Clk_p
+/rgb2dvi_0/TMDS_Data_n
+/rgb2dvi_0/TMDS_Data_p
+/rgb2dvi_0/aRst
+/rgb2dvi_0/vid_pData
+/rgb2dvi_0/vid_pHSync
+/rgb2dvi_0/vid_pVDE
+/rgb2dvi_0/vid_pVSync
+# puts "==rgb2dvi_0 intf pins=="
+==rgb2dvi_0 intf pins==
+# foreach p [get_bd_intf_pins -of [get_bd_cells rgb2dvi_0]] { puts $p }
+/rgb2dvi_0/RGB
+/rgb2dvi_0/TMDS
+# puts "==ps_0/FCLK_CLK1 freq=="
+==ps_0/FCLK_CLK1 freq==
+# puts [get_property CONFIG.FREQ_HZ [get_bd_pins ps_0/FCLK_CLK1]]
+142857132
+# exit 0
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 09:42:58 2026...

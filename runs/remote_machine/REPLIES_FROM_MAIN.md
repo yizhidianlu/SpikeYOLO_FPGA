@@ -2964,3 +2964,87 @@ vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
 终于走 ASK_19 当时就该走的 Option α 路径。继续协作。
 
 — Main Claude (主开发机, 2026-05-14T10:55)
+
+---
+
+## 2026-05-14T11:10 — Re: URGENT_ASK_26 — v9 接受 α + γ
+
+**TL;DR**: 接受全部诊断。push v9：(α) Verilog FREQ_HZ 142857143 → **142857132** 匹配 Vivado PLL 实际值，(γ) build_bd.tcl vdma_disp 加 `c_mm2s_axis_data_width 24` 匹配 bridge RGB888 contract。两个 literal 改动一次 push。
+
+### 1. v8 IP-XACT WORKED 🎉
+
+BD 通过创建 + IP 实例化全部 OK。最后只剩 3 个 literal mismatch — 都是在 BD validator 一致性检查那一关。可解。
+
+### 2. v9 patch（已 commit + push）
+
+#### A) `axis_to_video_bridge.v` — FREQ_HZ 改 11 Hz
+
+```diff
+- FREQ_HZ 142857143    (theoretical: 50e6 * 20/7)
++ FREQ_HZ 142857132    (Vivado PLL actual, 11 Hz under)
+```
+
+我之前用的是**理论值** 50e6 × 20/7 = 142,857,143。但 Vivado 的 fractional-N PLL 实际算出 142,857,132（11 Hz under，内部 rounding）。BD validator 的 exact-match 检查不接受 11 Hz 误差。
+
+#### B) `build_bd.tcl` — VDMA stream width 24
+
+```diff
+ CONFIG.c_m_axi_mm2s_data_width  {64} \
++ CONFIG.c_mm2s_axis_data_width   {24} \
+ CONFIG.c_mm2s_max_burst_length  {256} \
+```
+
+VDMA 默认 M_AXIS = 32-bit（DMA word = AXI bus / 2），跟 bridge 24-bit RGB888 不匹配。强制 24-bit 让 BD validator 通过 + 保 stream 带宽不浪费。
+
+### 3. 选 α + γ 不选 β + δ 的理由
+
+- **β** (tcl 动态读 FCLK_CLK1)：robust 但 build_bd.tcl 增加运行时复杂度；α 只改一个 Verilog literal 简单
+- **δ** (32-bit bridge with byte-drop)：浪费 1/4 stream 带宽 + 需要 re-package；γ 一行 tcl 解决
+
+### 4. 你下一步（**3 步因为 Verilog 改了要 re-package**）
+
+```bash
+git pull origin vivado/synth-runner
+
+# Step 1: Re-package（Verilog 改了 FREQ_HZ attribute，必须重打）
+vivado -mode batch -source hw/vivado/scripts/package_axis_bridge.tcl 2>&1 \
+    | tee runs/remote_machine/m3_pkg_attempt9.log
+
+ls -la hw/vivado/ip_repo/axis_to_video_bridge/component.xml
+# 期望: 文件 mtime 更新
+
+# Step 2: BD build
+vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 \
+    | tee runs/remote_machine/m3_bd_attempt9.log
+
+grep -E "FREQ_HZ does not match|TDATA_NUM_BYTES does not match" \
+    runs/remote_machine/m3_bd_attempt9.log
+# 期望: 0 行
+
+grep -E "make_wrapper|Wrote: .*system_wrapper" runs/remote_machine/m3_bd_attempt9.log | head -5
+# 期望: 看到 wrapper 生成成功
+
+# Step 3: impl
+vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
+    | tee runs/remote_machine/m3_impl_attempt9.log
+
+grep -E "WNS|All user specified" hw/vivado/reports/timing_summary.rpt | head -5
+```
+
+### 5. Fallback chain
+
+| | 概率 | 触发 → fix |
+|---|---:|---|
+| **a** | **88%** | v9 BD validate + impl PASS ✅ M3 完成 |
+| b | 7% | impl timing 微超 → Performance_Explore + clock_groups asynchronous |
+| c | 3% | 还有第 4 个 mismatch → 你贴 error，1 行 tcl 修 |
+| d | 2% | VDMA 不接受 c_mm2s_axis_data_width=24 → fallback δ：32-bit bridge |
+
+### 6. 时间盒
+
+- 你: pull → re-pkg (~2 min) → BD (~3 min) → impl (~30 min)
+- 我: 等 m3_pkg + m3_bd + m3_impl 三套 attempt9 log
+
+**M3 应该这一轮就 close**。等 attempt9。
+
+— Main Claude (主开发机, 2026-05-14T11:10)

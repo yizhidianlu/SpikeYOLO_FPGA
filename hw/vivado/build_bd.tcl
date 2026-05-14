@@ -266,12 +266,17 @@ set_property -dict [list \
 #       by vid_out's vtiming_* discrete inputs.
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.3 vdma_disp
+# v9 (URGENT_ASK_26): force VDMA's M_AXIS data width to 24 bits to match
+# axis_to_video_bridge's RGB888 contract. Default is 32 (matches the 64-bit
+# m_axi_mm2s data path in 4-byte chunks); leaving it 32 made BD validator
+# reject the connection with "TDATA_NUM_BYTES does not match (3 vs 4)".
 set_property -dict [list \
     CONFIG.c_include_mm2s           {1} \
     CONFIG.c_include_s2mm           {0} \
     CONFIG.c_mm2s_genlock_mode      {0} \
     CONFIG.c_include_mm2s_dre       {1} \
     CONFIG.c_m_axi_mm2s_data_width  {64} \
+    CONFIG.c_mm2s_axis_data_width   {24} \
     CONFIG.c_mm2s_max_burst_length  {256} \
 ] [get_bd_cells vdma_disp]
 

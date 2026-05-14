@@ -44,14 +44,14 @@ module axis_to_video_bridge #(
     // -reference` cell. Embedding ASSOCIATED_BUSIF + FREQ_HZ via
     // X_INTERFACE_PARAMETER on the clock port short-circuits the problematic
     // null-deref path. Standard UG994 pattern for module-reference IP.
-    // FREQ_HZ matches what Zynq-7020 PLL actually produces for FCLK_CLK1
-    // (URGENT_ASK_22 fix v5): PS PLL with 50 MHz reference can't synthesise
-    // exact 148.5 MHz. Closest stable lock is 50 * 20/7 = 142,857,143 Hz
-    // (3.8% under HDMI 1080p60 nominal — most consumer displays tolerate).
-    // Declared FREQ_HZ must match the actual physical clock rate or the BD
-    // validator throws "FREQ_HZ does not match" on the AXIS connection.
+    // FREQ_HZ matches Vivado's actual PS PLL output for FCLK_CLK1 (v9
+    // URGENT_ASK_26): v5/v8 used theoretical 50e6*20/7 = 142_857_143, but
+    // Vivado's fractional-N PLL computes 142_857_132 (11 Hz under, internal
+    // rounding). The BD validator's exact-match check fails on /vid_out/s_axis
+    // vs /ps_0/FCLK_CLK1 with the theoretical value. Use Vivado's observed
+    // value instead.
     (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 s_axis_aclk CLK" *)
-    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 142857143" *)
+    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 142857132" *)
     input  wire                              s_axis_aclk,
     (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 s_axis_aresetn RST" *)
     (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)

@@ -3,7 +3,7 @@
   **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Wed May 13 23:37:12 2026
+  **** Start of session at: Thu May 14 08:58:00 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
@@ -38,7 +38,7 @@ source hw/vivado/build_bd.tcl
 # }
 INFO: board.repoPaths = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-boards/new/board_files
 # create_project -force $PROJECT $OUT_DIR -part $PART
-create_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:12 . Memory (MB): peak = 704.715 ; gain = 273.934
+create_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 706.090 ; gain = 275.871
 # if {[catch {set_property board_part $BOARD_PART [current_project]} _bp_err]} {
 #     set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.2}]
 #     if {$_alt_bp eq $BOARD_PART} { set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.0}] }
@@ -66,6 +66,13 @@ INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Worksp
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+# set RTL_DIR [file normalize "[file dirname [info script]]/rtl"]
+# if {[file exists "${RTL_DIR}/axis_to_video_bridge.v"]} {
+#     add_files -norecurse [list "${RTL_DIR}/axis_to_video_bridge.v"]
+#     update_compile_order -fileset sources_1
+# } else {
+#     puts "WARN: ${RTL_DIR}/axis_to_video_bridge.v not found - HDMI Section 10 will fail"
+# }
 # create_bd_design system
 Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
 # create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 ps_0
@@ -142,11 +149,13 @@ WARNING: [IP_Flow 19-3374] An attempt to modify the value of disabled parameter 
 WARNING: [IP_Flow 19-3374] An attempt to modify the value of disabled parameter 'GEN_F1_VSYNC_HSTART' from '695' to '1920' has been ignored for IP 'v_tc_0'
 WARNING: [IP_Flow 19-3374] An attempt to modify the value of disabled parameter 'GEN_F1_VSYNC_HEND' from '695' to '1920' has been ignored for IP 'v_tc_0'
 WARNING: [IP_Flow 19-3374] An attempt to modify the value of disabled parameter 'GEN_F1_VFRAME_SIZE' from '750' to '1125' has been ignored for IP 'v_tc_0'
-# create_bd_cell -type ip -vlnv xilinx.com:ip:v_axis_to_video_out:4.0 vid_out
-ERROR: [BD 5-390] IP definition not found for VLNV: xilinx.com:ip:v_axis_to_video_out:4.0 
-ERROR: [Common 17-39] 'create_bd_cell' failed due to earlier errors.
-
-    while executing
-"create_bd_cell -type ip -vlnv xilinx.com:ip:v_axis_to_video_out:4.0 vid_out"
-    (file "hw/vivado/build_bd.tcl" line 187)
-INFO: [Common 17-206] Exiting Vivado at Wed May 13 23:37:40 2026...
+# create_bd_cell -type module -reference axis_to_video_bridge vid_out
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis' of definition 'xilinx.com:interface:axis:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aresetn' of definition 'xilinx.com:signal:reset:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aclk' of definition 'xilinx.com:signal:clock:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aresetn': Added interface parameter 'POLARITY' with value 'ACTIVE_LOW'.
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aclk': Added interface parameter 'ASSOCIATED_BUSIF' with value 's_axis'.
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aclk': Added interface parameter 'ASSOCIATED_RESET' with value 's_axis_aresetn'.
+WARNING: [IP_Flow 19-11770] Clock interface 's_axis_aclk' has no FREQ_HZ parameter.
+Abnormal program termination (EXCEPTION_ACCESS_VIOLATION)
+Please check 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hs_err_pid31044.log' for details

@@ -27,10 +27,15 @@ if {[info exists ::env(XILINX_VIVADO)]} {
 } else {
     set _xlnx_ip ""
 }
-# M2-W2 quirk sync (Remote M2_W2_TIMING_CLOSED.md): hdmi_gt_controller has
-# the same family-missing-bd.tcl symptom as roe_framer in some 2024.1 installs.
-# Cover both via wildcard match.
-set _broken_ip_filters {*roe_framer* *hdmi_gt_controller*}
+# Install-quirk disable list (kept in sync with build_bd.tcl). Some Vivado
+# 2024.1 installs ship partial IP packages whose bd_rule helper TCLs
+# reference missing files; this list disables them in catalog before
+# launch_runs so the IPCACHE walk doesn't trip on them.
+#   roe_framer            (URGENT_ASK_11)
+#   hdmi_gt_controller    (M2-W2 sync)
+#   l_ethernet            (URGENT_ASK_20)
+#   microblaze            (URGENT_ASK_20)
+set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
 foreach _pat $_broken_ip_filters {
     set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
     if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {

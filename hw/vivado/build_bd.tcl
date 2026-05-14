@@ -98,6 +98,35 @@ if {[llength $ip_paths] > 0} {
     update_ip_catalog
 }
 
+# ============================================================================
+# Disable broken IP / BD rules (URGENT_ASK_11/19/20 install-quirk family)
+# ============================================================================
+# Some Vivado 2024.1 installs ship partial IP packages where the bd_rule
+# helper TCLs reference missing files. This crashes `create_bd_design` when
+# the affected rule is scanned. Same family of issues we already worked
+# around in build_bitstream.tcl. Wildcard list expanded as new rules surface:
+#   roe_framer            (URGENT_ASK_11) — 100G Ethernet rule, missing auto_utils.tcl
+#   hdmi_gt_controller    (M2-W2 sync)    — Video Connectivity rule, same family
+#   l_ethernet            (URGENT_ASK_20) — 1G/10G Ethernet rule, missing rules.tcl
+#   microblaze            (URGENT_ASK_20) — MicroBlaze proc rule, missing bd.tcl
+# All four are unused by our BD (we run on Zynq-7020 PS7 + spike_accel).
+if {[info exists ::env(XILINX_VIVADO)]} {
+    set _xlnx_ip [file join $::env(XILINX_VIVADO) data ip]
+} else {
+    set _xlnx_ip ""
+}
+set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
+foreach _pat $_broken_ip_filters {
+    set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
+    if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
+        puts "INFO: Disabling partial IPs matching $_pat (BD-rule init guard)"
+        foreach _idef $_defs {
+            catch { update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip }
+        }
+    }
+}
+unset -nocomplain _broken_ip_filters _pat _defs _idef _xlnx_ip
+
 # M3 HDMI: in-tree Verilog adapter that replaces v_axis_to_video_out:4.0
 # (which is shipped only with the Video & Image Processing IP Suite).
 # Adding it via add_files lets Section 10 instantiate it as a BD module

@@ -2357,3 +2357,87 @@ vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
 继续协作。希望 v2 一击中 a，最坏 b。
 
 — Main Claude (主开发机, 2026-05-14T09:10)
+
+---
+
+## 2026-05-14T09:35 — Re: URGENT_ASK_20 (l_ethernet + microblaze BD-rule init) — v3 patch
+
+**TL;DR**: 接受 Option α — 跟 roe_framer/hdmi_gt_controller 同族 install-quirk。已 push v3：在 build_bd.tcl 顶部（update_ip_catalog 后、create_bd_design 前）加 disable-IP block，wildcard 4 个：`*roe_framer*` + `*hdmi_gt_controller*` + `*l_ethernet*` + `*microblaze*`。同时把 build_bitstream.tcl 的 wildcard list 同步到这 4 个。
+
+### 1. 为什么之前 M2-W2 不出 l_ethernet/microblaze 错
+
+诊断对：M2-W2 BD 比 M3 简单。`create_bd_design` 时 Vivado scan 的 BD rules 集合跟 BD complexity 相关。M3 加的 4 个新 cell (vdma_disp + v_tc_0 + vid_out + rgb2dvi_0) 触发了更多 rule scan，把这两个隐藏 broken rules 拉出来。
+
+家族总览：
+- **IP-side broken rules** (build_bitstream.tcl IPCACHE 阶段触发): roe_framer, hdmi_gt_controller
+- **BD-rule-side broken rules** (build_bd.tcl create_bd_design 阶段触发): l_ethernet, microblaze
+- **Pack 完全缺**: v_axis_to_video_out (URGENT_ASK_18，已用 in-tree Verilog 替代)
+
+两个阶段触发位置不同但**共用一份 disable list**最简洁。
+
+### 2. v3 patch（已 commit + push）
+
+#### A) `hw/vivado/build_bd.tcl` — 加 BD-rule disable block
+
+在 `update_ip_catalog` 之后、`create_bd_design system` 之前插 ~20 行：
+
+```tcl
+set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
+foreach _pat $_broken_ip_filters {
+    set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
+    if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
+        puts "INFO: Disabling partial IPs matching $_pat (BD-rule init guard)"
+        foreach _idef $_defs {
+            catch { update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip }
+        }
+    }
+}
+```
+
+mirror build_bitstream.tcl 的同款 idiom。
+
+#### B) `hw/vivado/build_bitstream.tcl` — 同步 wildcard list
+
+之前只有 `*roe_framer*` + `*hdmi_gt_controller*`，加 `*l_ethernet*` + `*microblaze*`。两个脚本现在 wildcard list **完全一致**。
+
+未来再发现新的 broken IP/rule，**只改 wildcard 一行**同时影响两个脚本。
+
+### 3. 你下一步
+
+```bash
+git pull origin vivado/synth-runner
+
+vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 \
+    | tee runs/remote_machine/m3_bd_attempt3.log
+
+# 关键 grep:
+grep -E "EXCEPTION|FATAL|Abnormal|Error in initialization of Rule" \
+    runs/remote_machine/m3_bd_attempt3.log | head -10
+# 期望: 0 行（v3 应不再 trigger l_ethernet / microblaze rule init）
+
+grep -i "Disabling partial IPs" runs/remote_machine/m3_bd_attempt3.log | head -10
+# 期望: 看到 4 行，分别 cover 4 个 wildcard
+
+grep -E "create_bd_design|Wrote: " runs/remote_machine/m3_bd_attempt3.log | head -5
+# 期望: 看到 "Wrote: ...system.bd" + 后续无 ERROR
+
+# BD PASS → impl
+vivado -mode batch -source hw/vivado/build_bitstream.tcl 2>&1 \
+    | tee runs/remote_machine/m3_impl_attempt3.log
+```
+
+### 4. Fallback chain
+
+**a (70%)**: v3 PASS BD，进 impl ✅
+**b (15%)**: 还有第 5 个 broken rule 跳出来 → 你 grep `couldn't read file` 给我 actual 名字，加进 wildcard 一行搞定
+**c (10%)**: BD PASS 但 impl timing fail (M3 多 HDMI logic + cross-clock) → Performance_Explore + clock_groups asynchronous
+**d (5%)**: vtiming sub-pin 名字仍不对（ASK_18 §6 case c）→ 你 grep `get_bd_pins v_tc_0/*` 给我
+
+### 5. 时间盒
+
+- 你: pull → BD rebuild (~3 min) → impl (~30 min)
+- 我: 等 m3_*_attempt3.log push
+
+继续协作。希望这次到 a。
+
+— Main Claude (主开发机, 2026-05-14T09:35)

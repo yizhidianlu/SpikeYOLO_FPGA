@@ -1,0 +1,166 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Thu May 14 09:30:21 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source hw/vivado/build_bd.tcl
+# set PROJECT     spike_zybo
+# set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
+# set HLS_DIR     [file normalize "[file dirname [info script]]/../hls/build"]
+# set CONSTR_DIR  [file normalize "[file dirname [info script]]/constraints"]
+# set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
+# set DIGILENT_IP     [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
+# set DIGILENT_BOARDS [file normalize "${IP_REPO_DIR}/digilent/vivado-boards/new/board_files"]
+# set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
+# set PART        xc7z020clg400-1
+# set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
+# if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
+#     ![file exists "${SPIKE_IP}/sa_tiny_fpga_top.xo"]} {
+#     puts "WARN: sa_tiny_fpga_top.xo not found under HLS build dir or spike_accel/."
+#     puts "      Generating BD with a placeholder IP. Re-run after .xo is built."
+#     set HAS_HLS_IP 0
+# } else {
+#     set HAS_HLS_IP 1
+# }
+# file mkdir $OUT_DIR
+# if {[file isdirectory $DIGILENT_BOARDS]} {
+#     set_param board.repoPaths [list $DIGILENT_BOARDS]
+#     puts "INFO: board.repoPaths = $DIGILENT_BOARDS"
+# } else {
+#     puts "ERROR: vivado-boards not found at $DIGILENT_BOARDS"
+#     puts "       Run hw/vivado/scripts/setup_ip_repo.sh first (it now fetches both"
+#     puts "       vivado-library and vivado-boards as submodules)."
+#     exit 1
+# }
+INFO: board.repoPaths = C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-boards/new/board_files
+# create_project -force $PROJECT $OUT_DIR -part $PART
+create_project: Time (s): cpu = 00:00:08 ; elapsed = 00:00:15 . Memory (MB): peak = 704.852 ; gain = 275.477
+# if {[catch {set_property board_part $BOARD_PART [current_project]} _bp_err]} {
+#     set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.2}]
+#     if {$_alt_bp eq $BOARD_PART} { set _alt_bp [regsub {part0:1\.[02]$} $BOARD_PART {part0:1.0}] }
+#     puts "INFO: board_part $BOARD_PART not in catalog, trying $_alt_bp"
+#     set_property board_part $_alt_bp [current_project]
+#     set BOARD_PART $_alt_bp
+# }
+INFO: board_part digilentinc.com:zybo-z7-20:part0:1.0 not in catalog, trying digilentinc.com:zybo-z7-20:part0:1.2
+# unset -nocomplain _bp_err _alt_bp
+# set ip_paths [list]
+# if {$HAS_HLS_IP}                  { lappend ip_paths $HLS_DIR }
+# if {[file isdirectory $SPIKE_IP]} { lappend ip_paths $SPIKE_IP }
+# if {[file isdirectory $DIGILENT_IP]} {
+#     lappend ip_paths $DIGILENT_IP
+# } else {
+#     puts "WARN: Digilent vivado-library not found at $DIGILENT_IP"
+#     puts "      run hw/vivado/scripts/setup_ip_repo.sh before re-trying."
+# }
+# if {[llength $ip_paths] > 0} {
+#     set_property ip_repo_paths $ip_paths [current_project]
+#     update_ip_catalog
+# }
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+# if {[info exists ::env(XILINX_VIVADO)]} {
+#     set _xlnx_ip [file join $::env(XILINX_VIVADO) data ip]
+# } else {
+#     set _xlnx_ip ""
+# }
+# set _broken_ip_filters {*roe_framer* *hdmi_gt_controller* *l_ethernet* *microblaze*}
+# foreach _pat $_broken_ip_filters {
+#     set _defs [get_ipdefs -quiet -filter "NAME =~ $_pat"]
+#     if {[llength $_defs] > 0 && $_xlnx_ip ne ""} {
+#         puts "INFO: Disabling partial IPs matching $_pat (BD-rule init guard)"
+#         foreach _idef $_defs {
+#             catch { update_ip_catalog -disable_ip $_idef -repo_path $_xlnx_ip }
+#         }
+#     }
+# }
+INFO: Disabling partial IPs matching *l_ethernet* (BD-rule init guard)
+INFO: Disabling partial IPs matching *microblaze* (BD-rule init guard)
+# unset -nocomplain _broken_ip_filters _pat _defs _idef _xlnx_ip
+# set RTL_DIR [file normalize "[file dirname [info script]]/rtl"]
+# if {[file exists "${RTL_DIR}/axis_to_video_bridge.v"]} {
+#     add_files -norecurse [list "${RTL_DIR}/axis_to_video_bridge.v"]
+#     update_compile_order -fileset sources_1
+# } else {
+#     puts "WARN: ${RTL_DIR}/axis_to_video_bridge.v not found - HDMI Section 10 will fail"
+# }
+# create_bd_design system
+couldn't read file "E:/Applaction/Xilinx/Vivado/2024.1/scripts/ipintegrator/init.tcl": no such file or directory
+ERROR: [BD 41-68] Error sourcing TCL file: couldn't read file "E:/Applaction/Xilinx/Vivado/2024.1/scripts/ipintegrator/init.tcl": no such file or directory
+    while executing
+"source -notrace E:/Applaction/Xilinx/Vivado/2024.1/scripts/ipintegrator/init.tcl"
+invalid command name "bd::utils::is_empty"
+ERROR: [BD 41-1273] Error running init TCL procedure: invalid command name "bd::utils::is_empty"
+    ::xilinx.com_bd_rule_axi_noc::init Line 3
+invalid command name "bd::utils::dbg"
+ERROR: [BD 41-1273] Error running init TCL procedure: invalid command name "bd::utils::dbg"
+    ::xilinx.com_bd_rule_board::init Line 3
+invalid command name "bd::utils::not_empty"
+ERROR: [BD 41-69] Error sourcing TCL script: invalid command name "bd::utils::not_empty"
+    while executing
+"bd::utils::not_empty $gt_ipdef"
+    invoked from within
+"if { [bd::utils::not_empty $gt_ipdef] } {
+  source [::bd::get_vlnv_dir $EVEREST_GT_QUAD_VLNV]/tcl/rules.tcl
+}"
+    (file "utils.tcl" line 64)
+    invoked from within
+"source utils.tcl"
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/gt_tx_rx/bd.tcl" line 38)
+    invoked from within
+"source -notrace {E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/gt_tx_rx/bd.tcl} "
+    (in namespace eval "::xilinx.com_bd_rule_gt_tx_rx" script line 1)
+    invoked from within
+"namespace eval ::xilinx.com_bd_rule_gt_tx_rx { source -notrace {E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/gt_tx_rx/bd.tcl} }"
+invalid command name "bd::utils::dbg"
+ERROR: [BD 41-1273] Error running init TCL procedure: invalid command name "bd::utils::dbg"
+    ::xilinx.com_bd_rule_rf_converter_usp::init Line 10
+invalid command name "bd::utils::dbg"
+ERROR: [BD 41-69] Error sourcing TCL script: invalid command name "bd::utils::dbg"
+    while executing
+"bd::utils::dbg $msg"
+    (procedure "xroe_dbg_msg" line 2)
+    invoked from within
+"xroe_dbg_msg "loadMyAutomationLibAtStartup : Checking if the object has an repo present to enable block automation""
+    (procedure "loadMyAutomationLibAtStartup" line 2)
+    invoked from within
+"loadMyAutomationLibAtStartup"
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/roe_framer/bd.tcl" line 139)
+    invoked from within
+"source -notrace {E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/roe_framer/bd.tcl} "
+    (in namespace eval "::xilinx.com_bd_rule_roe_framer" script line 1)
+    invoked from within
+"namespace eval ::xilinx.com_bd_rule_roe_framer { source -notrace {E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/rules/roe_framer/bd.tcl} }"
+invalid command name "bd::utils::dbg"
+ERROR: [BD 41-1273] Error running init TCL procedure: invalid command name "bd::utils::dbg"
+    ::xilinx.com_bd_rule_xdma::init Line 3
+invalid command name "::bd::utils::get_axi_noc_vlnv"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi4:1.0'
+invalid command name "bd::utils::is_empty"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi_noc2:1.0'
+invalid command name "bd::utils::is_empty"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi_noc:1.0'
+invalid command name "bd::utils::not_empty"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:gt_tx_rx:1.0'
+invalid command name "bd::utils::dbg"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:pcie4_uscale_plus:1.0'
+invalid command name "bd::utils::dbg"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:pcie4c_uscale_plus:1.0'
+invalid command name "bd::utils::dbg"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:qdma:1.0'
+invalid command name "bd::utils::dbg"
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:xdma:1.0'
+Wrote  : <C:\Users\jielu\Desktop\Workspace\SpikeYOLO_FPGA\hw\vivado\out\spike_zybo.srcs\sources_1\bd\system\system.bd> 
+ERROR: [Common 17-39] 'create_bd_design' failed due to earlier errors.
+
+    while executing
+"create_bd_design system"
+    (file "hw/vivado/build_bd.tcl" line 142)
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 09:30:59 2026...

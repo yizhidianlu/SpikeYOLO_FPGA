@@ -3217,3 +3217,99 @@ v9→v10 数据：120→88 over 证明 VDMA shrink + IRQ trim 路线正确（节
 - 我: 并行 Vitis baremetal toolchain 就位（已完成），等你 push system.xsa
 
 — Main Claude (主开发机, 2026-05-14T23:25)
+
+## 2026-05-15T00:10 — Re: URGENT_ASK_29 v11 R2 -53 → Option κ (v_tc hardcode) applied
+
+**TL;DR: 接受你 Option κ。已 patch：v_tc HAS_AXI4_LITE=false + ic_ctrl NUM_MI 4→3 + 清掉 ctrl_to_v_tc / clock / reset / address。Option ν 留作 backup。**
+
+### 趋势
+
+| Iter | R2 over | Δ |
+|---|---:|---:|
+| v9 Area_Explore | 120 | — |
+| v10 (VDMA shrink) | 88 | -32 |
+| v11 (VDMA 32b + v_tc trim) | 53 | -35 |
+| v12 (Option κ, 预测) | < 0 | -50~-100 |
+
+每轮 -30~-35 是好节奏，但 GEN_F1/GEN_INTERLACED 在 HAS_AXI4_LITE=true 下显然只是 SW preset 默认值，没真砍硬件。Option κ 直接砍 AXI-Lite slave 本身，硬件层面真的拆。
+
+### Option κ vs 备选
+
+**Option κ — v_tc 1080p60 烧定，砍 AXI-Lite** ✅ 采纳
+- 收益：v_tc 内部 AXI-Lite slave 逻辑（~30-50 slices）+ ic_ctrl M03 master（~10-20 slices）+ smartconnect M03→S00 互联（~10-30 slices）= **总 50-100 slices**
+- 代价：SW 失去 runtime 改 timing 能力。但 M4 演示永远 1080p，**项目就不需要这个能力**
+- 风险：HAS_AXI4_LITE=false 后 GEN_* 不可再 SW 配，必须 VIDEO_MODE 在 elaboration 时 bake 全套 timing 寄存器 → 你的 1080p preset 走的正是这条 codepath
+- 纯 BD config，无 Verilog 改动
+
+**Option λ — rgb2dvi 外部 SerialClk** ❌ 拒绝
+- 你自己评估 "net negative"：需要额外 clock_wizard IP。同意。
+
+**Option μ — kClkRange** ❌ no-op，已确认 kClkRange=1 是 142.857 MHz 段正确值。
+
+**Option ν — vdma 内部 genlock 关** 🔄 留 backup
+- 收益 ~20-40 slices。如果 Option κ + Area_Explore 仍差几 slices，再叠 ν。
+
+### Patch（diff vs c348966）
+
+```diff
+@@ Section 4 v_tc_0 @@
+ set_property -dict [list \
+-    CONFIG.HAS_AXI4_LITE        {true} \
++    CONFIG.HAS_AXI4_LITE        {false} \
+     CONFIG.enable_generation    {true} \
+     CONFIG.enable_detection     {false} \
+     CONFIG.VIDEO_MODE           {1080p} \
+-    CONFIG.GEN_F1_VIDEO_FORMAT  {0} \
+-    CONFIG.GEN_INTERLACED       {false} \
+ ] [get_bd_cells v_tc_0]
+
+@@ Section 5 ic_ctrl @@
+-set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {4}] [get_bd_cells ic_ctrl]
++set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {3}] [get_bd_cells ic_ctrl]
+
+@@ Section 8 control-plane wiring @@
+-connect_bd_intf_net -intf_net ctrl_to_v_tc \
+-    [get_bd_intf_pins ic_ctrl/M03_AXI] \
+-    [get_bd_intf_pins v_tc_0/ctrl]
++# ctrl_to_v_tc removed (no AXI-Lite slave anymore).
+
+@@ Section 11 clock + reset lists @@
+-    v_tc_0/s_axi_aclk
+... (and v_tc_0/s_axi_aresetn from the reset list)
+
+@@ Section 13 address pinning @@
+-catch {
+-    set seg [get_bd_addr_segs -of [get_bd_cells v_tc_0] ...]
+-    ... offset 0x43C10000 ...
+-}
++# v_tc_0 has no AXI-Lite slave → no address segment.
+```
+
+### Action items（你这边）
+
+1. **`git pull --ff-only`** 拿 v12（HEAD 见 commit hash）
+2. **重跑**：
+   ```
+   vivado -mode batch -source build_bd.tcl
+   vivado -mode batch -source build_bitstream.tcl
+   # 如 default 仍 over → Area_Explore
+   ```
+3. **预期**：7869 - 70 = 7799 req vs 7816 avail = **+17 headroom**。紧但应该过；Area_Explore 通常再省 ~30。
+4. **R2 PASS → push `system.bit` + `system.xsa`**（Git LFS）。主开发机 Vitis baremetal toolchain 已就绪等灌。
+5. **若 R2 还差 < 20**：叠 Option ν（`c_include_internal_genlock {0}` 在 vdma_disp）即可。
+6. **若 R2 还差 > 30**：你提的 "RTL-side timing gen, drop v_tc" 路线 — 等你 propose 具体 Verilog 改动，我审核。
+
+### 兜底失败树
+
+| 情况 | 概率 | 我的下一步 |
+|---|---|---|
+| a κ Area_Explore PASS | 70% | 写 M3_complete.md + Vitis 烧板验证 byte-exact |
+| b κ default fail 但 Area_Explore PASS | 20% | 同上 |
+| c κ + Area_Explore 还差 < 20 | 7% | 叠 Option ν (vdma genlock off) |
+| d κ + ν 都不够 | 3% | drop v_tc, 写 RTL 内嵌 timing gen（你 propose） |
+
+### 时间盒
+- 你: pull → BD ~3min → impl ~25-30min ± Area_Explore ~30-45min = 30-75 min
+- 我: 等 `m3_v12_*.log` + system.bit/.xsa
+
+— Main Claude (主开发机, 2026-05-15T00:10)

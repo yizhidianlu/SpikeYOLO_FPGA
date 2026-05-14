@@ -293,18 +293,21 @@ set_property -dict [list \
 #   targeting it. Saves ~100-150 slices in FIFO + addr arith + byte-enable.
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
-# v_tc:6.2 quirk (URGENT_ASK_19 side): GEN_* timing params are gated behind
-# enable_generation + a custom video format select. Easier to use the
-# VIDEO_MODE preset for 1080p60. Detection disabled (we only generate).
-# v11/Option η: explicitly null out the second-field / interlaced subblocks
-# so synthesis prunes them rather than leaving idle slices around.
+# v12/Option κ: hard-code v_tc to 1080p60 and drop the AXI-Lite control
+# interface entirely. SW never re-programs the timing generator at runtime
+# (the demo only ever runs at 1080p), so the AXI-Lite slave + ic_ctrl M03
+# master + the smartconnect M03->S00 path are all dead silicon. Removing
+# them buys ~50-100 slices and lets ic_ctrl drop to NUM_MI=3.
+#
+# With HAS_AXI4_LITE=false the GEN_* params are no longer software-mutable,
+# so VIDEO_MODE=1080p must bake every timing register at elaboration time.
+# We also do NOT need GEN_F1_VIDEO_FORMAT / GEN_INTERLACED (those are
+# AXI-Lite-runtime knobs); the IP synthesises progressive-only by default.
 set_property -dict [list \
-    CONFIG.HAS_AXI4_LITE        {true} \
+    CONFIG.HAS_AXI4_LITE        {false} \
     CONFIG.enable_generation    {true} \
     CONFIG.enable_detection     {false} \
     CONFIG.VIDEO_MODE           {1080p} \
-    CONFIG.GEN_F1_VIDEO_FORMAT  {0} \
-    CONFIG.GEN_INTERLACED       {false} \
 ] [get_bd_cells v_tc_0]
 
 # vid_out: in-tree IP-XACT-packaged axis_to_video_bridge (URGENT_ASK_25).
@@ -325,9 +328,11 @@ set_property -dict [list \
 # 5. AXI Smartconnect — control plane + two HP data planes
 # ============================================================================
 # ic_ctrl masters: M00=spike_accel.s_axi_control, M01=axi_dma_feat.S_AXI_LITE,
-# M02=vdma_disp.S_AXI_LITE, M03=v_tc_0.ctrl (M3 HDMI rebuild).
+# M02=vdma_disp.S_AXI_LITE.
+# v12/Option κ: dropped M03 (v_tc_0.ctrl) - v_tc is now hard-coded to 1080p60
+# at elaboration time, no runtime AXI-Lite knobs. NUM_MI 4 -> 3.
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_ctrl
-set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {4}] [get_bd_cells ic_ctrl]
+set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {3}] [get_bd_cells ic_ctrl]
 
 # ic_data_hp0 aggregates the 5 spike_accel gmem* masters into S_AXI_HP0.
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp0
@@ -375,9 +380,8 @@ connect_bd_intf_net -intf_net ctrl_to_dma \
 connect_bd_intf_net -intf_net ctrl_to_vdma \
     [get_bd_intf_pins ic_ctrl/M02_AXI] \
     [get_bd_intf_pins vdma_disp/S_AXI_LITE]
-connect_bd_intf_net -intf_net ctrl_to_v_tc \
-    [get_bd_intf_pins ic_ctrl/M03_AXI] \
-    [get_bd_intf_pins v_tc_0/ctrl]
+# v12/Option κ: ctrl_to_v_tc removed — v_tc has no AXI-Lite slave anymore
+# (HAS_AXI4_LITE=false). ic_ctrl's NUM_MI dropped to 3 in Section 5.
 
 # ============================================================================
 # 9. Data-plane wiring (spike_accel m_axi_gmem* -> HP0; DMA + VDMA -> HP1)
@@ -468,10 +472,11 @@ foreach pin {
     axi_dma_feat/m_axi_s2mm_aclk
     vdma_disp/s_axi_lite_aclk
     vdma_disp/m_axi_mm2s_aclk
-    v_tc_0/s_axi_aclk
 } {
     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins $pin]}
 }
+# v12/Option κ: v_tc_0/s_axi_aclk no longer exists (HAS_AXI4_LITE=false).
+# Only the video-timing clk (FCLK_CLK1) remains and is wired in §11 below.
 # Resets to the same domain
 foreach pin {
     ic_ctrl/aresetn
@@ -479,10 +484,10 @@ foreach pin {
     ic_data_hp1/aresetn
     axi_dma_feat/axi_resetn
     vdma_disp/axi_resetn
-    v_tc_0/s_axi_aresetn
 } {
     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins $pin]}
 }
+# v12/Option κ: v_tc_0/s_axi_aresetn removed (no AXI-Lite slave).
 if {$HAS_HLS_IP} {
     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins spike_accel_0/ap_clk]}
     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins spike_accel_0/ap_rst_n]}
@@ -544,14 +549,10 @@ catch {
         set_property offset 0x43000000 [lindex $seg 0]
     }
 }
-catch {
-    # v_tc_0 0x43C10000 (next free slot above spike_accel)
-    set seg [get_bd_addr_segs -of [get_bd_cells v_tc_0] -filter {USAGE==register}]
-    if {[llength $seg] > 0} {
-        set_property range  64K [lindex $seg 0]
-        set_property offset 0x43C10000 [lindex $seg 0]
-    }
-}
+# v12/Option κ: v_tc_0 has no AXI-Lite slave (HAS_AXI4_LITE=false), so it
+# has no address segment to pin. Section 13 of address_map.yaml emitter in
+# build_bitstream.tcl will simply emit one fewer peripheral; uio_config.dts
+# already only maps spike_accel + axi_dma_feat + vdma_disp.
 
 # ============================================================================
 # 14. Save + wrapper

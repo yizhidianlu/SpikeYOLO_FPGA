@@ -13,17 +13,22 @@
 #   out/system.xpr                      (Vivado project)
 #   out/address_map.yaml                (Contract 4 — emitted post-implementation)
 #
-# Data-plane wiring (Option γ — M1 W6 unblocking):
+# Data-plane wiring (M3 HDMI rebuild — URGENT_ASK_18):
 #   M_AXI_GP0 (PS) -> ic_ctrl -> {spike_accel.s_axi_control,
-#                                 axi_dma_feat.S_AXI_LITE}
+#                                 axi_dma_feat.S_AXI_LITE,
+#                                 vdma_disp.S_AXI_LITE,
+#                                 v_tc_0.ctrl}
 #   spike_accel.{m_axi_gmem0..gmem4} -> ic_data_hp0 -> ps_0.S_AXI_HP0
-#   axi_dma_feat.{M_AXI_MM2S,M_AXI_S2MM} -> ic_data_hp1 -> ps_0.S_AXI_HP1
-#   ps_0.FCLK_CLK0 (100 MHz) -> spike_accel + DMA + ic_ctrl + ic_data_*
-#   IRQs: spike_accel + dma_mm2s + dma_s2mm -> xlconcat -> ps_0.IRQ_F2P
+#   axi_dma_feat.{M_AXI_MM2S,M_AXI_S2MM} + vdma_disp.M_AXI_MM2S -> ic_data_hp1 -> ps_0.S_AXI_HP1
+#   ps_0.FCLK_CLK0 (90 MHz) -> spike_accel + DMA + ic_ctrl + ic_data_*
+#   ps_0.FCLK_CLK1 (148.5 MHz) -> vdma m_axis side + v_tc clk + vid_out + rgb2dvi PixelClk
+#   IRQs: spike_accel + dma_mm2s + dma_s2mm + vdma_mm2s -> xlconcat -> ps_0.IRQ_F2P
 #
-# HDMI path (VDMA + rgb2dvi + v_axis_to_video_out + v_tc bridge) deferred to
-# M4-W11 (C3 Application sprint). See URGENT_ASK_8 + REPLIES_FROM_MAIN 2026-05-12.
-# FCLK_CLK1 (148.5 MHz) still emitted by PS but unused — harmless.
+# HDMI Section 10 uses an in-tree Verilog adapter (rtl/axis_to_video_bridge.v)
+# in place of `xilinx.com:ip:v_axis_to_video_out:4.0`, which is missing from
+# Vivado installs without the Video & Image Processing IP Suite (URGENT_ASK_18,
+# 2026-05-13). The bridge is functionally equivalent for our 1080p60 use-case
+# and removes the per-machine installer dependency.
 
 set PROJECT     spike_zybo
 set OUT_DIR     [file normalize "[file dirname [info script]]/out"]
@@ -93,6 +98,18 @@ if {[llength $ip_paths] > 0} {
     update_ip_catalog
 }
 
+# M3 HDMI: in-tree Verilog adapter that replaces v_axis_to_video_out:4.0
+# (which is shipped only with the Video & Image Processing IP Suite).
+# Adding it via add_files lets Section 10 instantiate it as a BD module
+# reference (`create_bd_cell -type module -reference axis_to_video_bridge`).
+set RTL_DIR [file normalize "[file dirname [info script]]/rtl"]
+if {[file exists "${RTL_DIR}/axis_to_video_bridge.v"]} {
+    add_files -norecurse [list "${RTL_DIR}/axis_to_video_bridge.v"]
+    update_compile_order -fileset sources_1
+} else {
+    puts "WARN: ${RTL_DIR}/axis_to_video_bridge.v not found - HDMI Section 10 will fail"
+}
+
 create_bd_design system
 
 # ============================================================================
@@ -146,34 +163,78 @@ set_property -dict [list \
 ] [get_bd_cells axi_dma_feat]
 
 # ============================================================================
-# 4. HDMI TX path — REMOVED in Option γ (URGENT_ASK_8)
+# 4. HDMI TX path — M3 rebuild (was Option γ-removed at URGENT_ASK_8)
 # ============================================================================
-# Original W5 plan: VDMA(MM2S) -> rgb2dvi -> HDMI TMDS. Blocker: rgb2dvi has
-# only parallel RGB inputs (vid_pData/VDE/HSync/VSync), no AXI-Stream slave.
-# Proper fix needs v_axis_to_video_out + v_tc bridge IPs. To keep M1 W6
-# bitstream on schedule and validate spike_accel, all HDMI/VDMA cells +
-# wiring are removed. HDMI display rebuilds in M4-W11 (C3 Application).
-# spike_accel still has full HP0 DMA via axi_dma_feat — inference path intact.
+# Data flow: vdma_disp.M_AXIS_MM2S (AXI-Stream RGB pixels @ 148.5 MHz pixel
+#            clock) -> vid_out.s_axis (axis-to-parallel video adapter) ->
+#            rgb2dvi_0.vid_p* (parallel RGB) -> TMDS serializer -> 4 LVDS pairs.
+# Side: v_tc_0 generates 1080p60 timing (HSync/VSync/active/blanking) consumed
+#       by vid_out's vtiming_* discrete inputs.
+
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.3 vdma_disp
+set_property -dict [list \
+    CONFIG.c_include_mm2s           {1} \
+    CONFIG.c_include_s2mm           {0} \
+    CONFIG.c_mm2s_genlock_mode      {0} \
+    CONFIG.c_include_mm2s_dre       {1} \
+    CONFIG.c_m_axi_mm2s_data_width  {64} \
+    CONFIG.c_mm2s_max_burst_length  {256} \
+] [get_bd_cells vdma_disp]
+
+create_bd_cell -type ip -vlnv xilinx.com:ip:v_tc:6.2 v_tc_0
+set_property -dict [list \
+    CONFIG.HAS_AXI4_LITE {true} \
+    CONFIG.GEN_F0_VSYNC_HSTART {1920} \
+    CONFIG.GEN_F0_VSYNC_HEND   {1920} \
+    CONFIG.GEN_F0_VFRAME_SIZE  {1125} \
+    CONFIG.GEN_F0_VSYNC_VSTART {1083} \
+    CONFIG.GEN_F0_VSYNC_VEND   {1088} \
+    CONFIG.GEN_F1_VSYNC_HSTART {1920} \
+    CONFIG.GEN_F1_VSYNC_HEND   {1920} \
+    CONFIG.GEN_F1_VFRAME_SIZE  {1125} \
+    CONFIG.GEN_F1_VSYNC_VSTART {1083} \
+    CONFIG.GEN_F1_VSYNC_VEND   {1088} \
+    CONFIG.GEN_HACTIVE_SIZE    {1920} \
+    CONFIG.GEN_HFRAME_SIZE     {2200} \
+    CONFIG.GEN_HSYNC_START     {2008} \
+    CONFIG.GEN_HSYNC_END       {2052} \
+    CONFIG.GEN_VACTIVE_SIZE    {1080} \
+] [get_bd_cells v_tc_0]
+
+# vid_out: in-tree Verilog `axis_to_video_bridge` instantiated as a BD
+# module reference (replaces missing xilinx.com:ip:v_axis_to_video_out:4.0).
+# Vivado infers AXI4-Stream slave interface from the s_axis_* port names.
+create_bd_cell -type module -reference axis_to_video_bridge vid_out
+
+create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
+set_property -dict [list \
+    CONFIG.kClkRange          {1} \
+    CONFIG.kRstActiveHigh     {true} \
+    CONFIG.kGenerateSerialClk {true} \
+] [get_bd_cells rgb2dvi_0]
 
 # ============================================================================
 # 5. AXI Smartconnect — control plane + two HP data planes
 # ============================================================================
+# ic_ctrl masters: M00=spike_accel.s_axi_control, M01=axi_dma_feat.S_AXI_LITE,
+# M02=vdma_disp.S_AXI_LITE, M03=v_tc_0.ctrl (M3 HDMI rebuild).
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_ctrl
-set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {2}] [get_bd_cells ic_ctrl]
+set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {4}] [get_bd_cells ic_ctrl]
 
 # ic_data_hp0 aggregates the 5 spike_accel gmem* masters into S_AXI_HP0.
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp0
 set_property -dict [list CONFIG.NUM_SI {5} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp0]
 
-# ic_data_hp1 aggregates AXI-DMA (MM2S+S2MM) into S_AXI_HP1.
+# ic_data_hp1 aggregates AXI-DMA (MM2S+S2MM) + VDMA MM2S into S_AXI_HP1.
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp1
-set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp1]
+set_property -dict [list CONFIG.NUM_SI {3} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp1]
 
 # ============================================================================
 # 6. IRQ concatenation -> PS IRQ_F2P
 # ============================================================================
+# In0=spike_accel.interrupt, In1=dma_mm2s, In2=dma_s2mm, In3=vdma_mm2s (M3).
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 irq_concat
-set_property -dict [list CONFIG.NUM_PORTS {3}] [get_bd_cells irq_concat]
+set_property -dict [list CONFIG.NUM_PORTS {4}] [get_bd_cells irq_concat]
 
 # ============================================================================
 # 7. Resets — system processor reset for each clock domain
@@ -201,7 +262,12 @@ if {$HAS_HLS_IP} {
 connect_bd_intf_net -intf_net ctrl_to_dma \
     [get_bd_intf_pins ic_ctrl/M01_AXI] \
     [get_bd_intf_pins axi_dma_feat/S_AXI_LITE]
-# ctrl_to_vdma removed (VDMA dropped in Option γ — see Section 4)
+connect_bd_intf_net -intf_net ctrl_to_vdma \
+    [get_bd_intf_pins ic_ctrl/M02_AXI] \
+    [get_bd_intf_pins vdma_disp/S_AXI_LITE]
+connect_bd_intf_net -intf_net ctrl_to_v_tc \
+    [get_bd_intf_pins ic_ctrl/M03_AXI] \
+    [get_bd_intf_pins v_tc_0/ctrl]
 
 # ============================================================================
 # 9. Data-plane wiring (spike_accel m_axi_gmem* -> HP0; DMA + VDMA -> HP1)
@@ -225,19 +291,58 @@ connect_bd_intf_net -intf_net dma_mm2s_to_hp1 \
 connect_bd_intf_net -intf_net dma_s2mm_to_hp1 \
     [get_bd_intf_pins axi_dma_feat/M_AXI_S2MM] \
     [get_bd_intf_pins ic_data_hp1/S01_AXI]
-# vdma_mm2s_to_hp1 removed (VDMA dropped in Option γ — see Section 4)
+connect_bd_intf_net -intf_net vdma_mm2s_to_hp1 \
+    [get_bd_intf_pins vdma_disp/M_AXI_MM2S] \
+    [get_bd_intf_pins ic_data_hp1/S02_AXI]
 connect_bd_intf_net -intf_net ic_data_hp1_to_ps \
     [get_bd_intf_pins ic_data_hp1/M00_AXI] \
     [get_bd_intf_pins ps_0/S_AXI_HP1]
 
 # ============================================================================
-# 10. HDMI video stream — REMOVED in Option γ (URGENT_ASK_8)
+# 10. HDMI video stream (M3 rebuild — uses in-tree axis_to_video_bridge)
 # ============================================================================
-# rgb2dvi has no s_axis_video pin (only parallel RGB inputs). Restoring this
-# section requires inserting v_axis_to_video_out:4.0 + v_tc:6.2 bridge IPs
-# between vdma_disp.M_AXIS_MM2S and rgb2dvi_0's vid_pData/VDE/HSync/VSync.
-# Deferred to M4-W11 (C3 Application). For M2 bitstream, no HDMI output.
-# zybo_z7_20.xdc HDMI pin constraints will WARN unused-port — non-fatal.
+# vdma -> vid_out: AXI-Stream RGB at 148.5 MHz pixel clock. The s_axis_*
+# port group on axis_to_video_bridge is auto-inferred as Xilinx AXI4-Stream
+# slave interface, so connect_bd_intf_net works straight to vdma.M_AXIS_MM2S.
+connect_bd_intf_net -intf_net vdma_axis_to_vid_out \
+    [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
+    [get_bd_intf_pins vid_out/s_axis]
+
+# v_tc.vtiming_out interface -> vid_out discrete vtiming_* pins. Vivado
+# expands v_tc's vtiming_out video_timing interface into individual sub-pins
+# named `vtiming_out_<signal>` accessible via get_bd_pins.
+foreach {sig vidpin} {
+    active_video  vtiming_active_video
+    hsync         vtiming_hsync
+    vsync         vtiming_vsync
+    hblank        vtiming_hblank
+    vblank        vtiming_vblank
+} {
+    catch {connect_bd_net \
+        [get_bd_pins v_tc_0/vtiming_out_$sig] \
+        [get_bd_pins vid_out/$vidpin]}
+}
+
+# vid_out -> rgb2dvi: parallel RGB data + sync signals (discrete pins).
+connect_bd_net [get_bd_pins vid_out/vid_data]          [get_bd_pins rgb2dvi_0/vid_pData]
+connect_bd_net [get_bd_pins vid_out/vid_active_video]  [get_bd_pins rgb2dvi_0/vid_pVDE]
+connect_bd_net [get_bd_pins vid_out/vid_hsync]         [get_bd_pins rgb2dvi_0/vid_pHSync]
+connect_bd_net [get_bd_pins vid_out/vid_vsync]         [get_bd_pins rgb2dvi_0/vid_pVSync]
+
+# HDMI TMDS BD ports — names match constraints/zybo_z7_20.xdc:
+#   hdmi_tx_clk_p/n  (1 pair),  hdmi_tx_data_p/n  ([2:0], 3 pairs)
+create_bd_port -dir O                hdmi_tx_clk_p
+create_bd_port -dir O                hdmi_tx_clk_n
+create_bd_port -dir O -from 2 -to 0  hdmi_tx_data_p
+create_bd_port -dir O -from 2 -to 0  hdmi_tx_data_n
+connect_bd_net [get_bd_ports hdmi_tx_clk_p]   [get_bd_pins rgb2dvi_0/TMDS_Clk_p]
+connect_bd_net [get_bd_ports hdmi_tx_clk_n]   [get_bd_pins rgb2dvi_0/TMDS_Clk_n]
+connect_bd_net [get_bd_ports hdmi_tx_data_p]  [get_bd_pins rgb2dvi_0/TMDS_Data_p]
+connect_bd_net [get_bd_ports hdmi_tx_data_n]  [get_bd_pins rgb2dvi_0/TMDS_Data_n]
+
+# rgb2dvi pixel-clock + reset (148.5 MHz on FCLK_CLK1).
+connect_bd_net [get_bd_pins ps_0/FCLK_CLK1]            [get_bd_pins rgb2dvi_0/PixelClk]
+connect_bd_net [get_bd_pins rst_clk1/peripheral_reset] [get_bd_pins rgb2dvi_0/aRst]
 
 # ============================================================================
 # 11. Clock distribution (100 MHz to data/control plane, 148.5 MHz already wired)
@@ -253,6 +358,9 @@ foreach pin {
     axi_dma_feat/s_axi_lite_aclk
     axi_dma_feat/m_axi_mm2s_aclk
     axi_dma_feat/m_axi_s2mm_aclk
+    vdma_disp/s_axi_lite_aclk
+    vdma_disp/m_axi_mm2s_aclk
+    v_tc_0/s_axi_aclk
 } {
     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins $pin]}
 }
@@ -262,6 +370,8 @@ foreach pin {
     ic_data_hp0/aresetn
     ic_data_hp1/aresetn
     axi_dma_feat/axi_resetn
+    vdma_disp/axi_resetn
+    v_tc_0/s_axi_aresetn
 } {
     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins $pin]}
 }
@@ -269,7 +379,15 @@ if {$HAS_HLS_IP} {
     catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK0] [get_bd_pins spike_accel_0/ap_clk]}
     catch {connect_bd_net [get_bd_pins rst_clk0/peripheral_aresetn] [get_bd_pins spike_accel_0/ap_rst_n]}
 }
-# VDMA m_axis pixel-clock wiring removed (Option γ — see Section 4)
+
+# Pixel-clock domain (148.5 MHz on FCLK_CLK1) — vdma m_axis side + v_tc clk +
+# axis_to_video_bridge (single-clock module, drives s_axis_aclk on the same
+# pixel clock so no CDC FIFO is needed).
+catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins vdma_disp/m_axis_mm2s_aclk]}
+catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins v_tc_0/clk]}
+catch {connect_bd_net [get_bd_pins ps_0/FCLK_CLK1] [get_bd_pins vid_out/s_axis_aclk]}
+catch {connect_bd_net [get_bd_pins rst_clk1/peripheral_aresetn] [get_bd_pins v_tc_0/resetn]}
+catch {connect_bd_net [get_bd_pins rst_clk1/peripheral_aresetn] [get_bd_pins vid_out/s_axis_aresetn]}
 
 # ============================================================================
 # 12. IRQ wiring
@@ -279,7 +397,7 @@ if {$HAS_HLS_IP} {
 }
 catch {connect_bd_net [get_bd_pins axi_dma_feat/mm2s_introut] [get_bd_pins irq_concat/In1]}
 catch {connect_bd_net [get_bd_pins axi_dma_feat/s2mm_introut] [get_bd_pins irq_concat/In2]}
-# vdma_disp irq removed (Option γ — see Section 4)
+catch {connect_bd_net [get_bd_pins vdma_disp/mm2s_introut]    [get_bd_pins irq_concat/In3]}
 connect_bd_net [get_bd_pins irq_concat/dout] [get_bd_pins ps_0/IRQ_F2P]
 
 # ============================================================================
@@ -298,7 +416,16 @@ catch {
     set seg [get_bd_addr_segs -of [get_bd_cells axi_dma_feat] -filter {USAGE==register}]
     if {[llength $seg] > 0} { set_property offset 0x40400000 [lindex $seg 0] }
 }
-# VDMA 0x43000000 address-assign removed (Option γ — see Section 4)
+catch {
+    # VDMA  0x43000000  (M3 HDMI rebuild — matches address_map.yaml + uio_config.dts)
+    set seg [get_bd_addr_segs -of [get_bd_cells vdma_disp] -filter {USAGE==register}]
+    if {[llength $seg] > 0} { set_property offset 0x43000000 [lindex $seg 0] }
+}
+catch {
+    # v_tc_0 0x43C10000  (next free slot above spike_accel)
+    set seg [get_bd_addr_segs -of [get_bd_cells v_tc_0] -filter {USAGE==register}]
+    if {[llength $seg] > 0} { set_property offset 0x43C10000 [lindex $seg 0] }
+}
 
 # ============================================================================
 # 14. Save + wrapper

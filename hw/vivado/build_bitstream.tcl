@@ -40,7 +40,11 @@ set _broken_ip_names {
     l_ethernet
     microblaze
     microblaze_riscv
+    cpri
 }
+# v13.1 (URGENT_ASK_31): cpri added — surfaced first time during 720p impl
+# launch_runs sub-Vivado synth process re-evaluating the catalog. Mirror the
+# build_bd.tcl list to keep parity (any new IP added here MUST also go there).
 foreach _name $_broken_ip_names {
     if {$_xlnx_ip eq ""} { continue }
     set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]

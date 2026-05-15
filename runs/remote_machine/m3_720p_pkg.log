@@ -1,0 +1,79 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Fri May 15 10:37:46 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source hw/vivado/scripts/package_axis_bridge.tcl
+# set HW_VIVADO_DIR [file normalize "[file dirname [info script]]/.."]
+# set RTL_FILE      [file normalize "${HW_VIVADO_DIR}/rtl/axis_to_video_bridge.v"]
+# set IP_REPO_DIR   [file normalize "${HW_VIVADO_DIR}/ip_repo/axis_to_video_bridge"]
+# set TMP_PROJ_DIR  "${IP_REPO_DIR}/_packaging"
+# set PART          xc7z020clg400-1
+# if {![file exists $RTL_FILE]} {
+#     puts "ERROR: Verilog source not found: $RTL_FILE"
+#     exit 1
+# }
+# if {[file isdirectory $TMP_PROJ_DIR]} { file delete -force $TMP_PROJ_DIR }
+# file mkdir $IP_REPO_DIR
+# file copy -force $RTL_FILE "${IP_REPO_DIR}/axis_to_video_bridge.v"
+# create_project -force pkg_axis_to_video_bridge $TMP_PROJ_DIR -part $PART
+INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
+Current project path is 'C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge/_packaging'
+create_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 628.094 ; gain = 197.270
+# add_files -norecurse "${IP_REPO_DIR}/axis_to_video_bridge.v"
+# set_property top axis_to_video_bridge [current_fileset]
+# update_compile_order -fileset sources_1
+# ipx::package_project -root_dir C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge -vendor user -library user -taxonomy /AXI_Infrastructure -import_files -set_current true -force
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aclk' of definition 'xilinx.com:signal:clock:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aclk' of definition 'xilinx.com:signal:clock:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aresetn' of definition 'xilinx.com:signal:reset:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_aresetn' of definition 'xilinx.com:signal:reset:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis' of definition 'xilinx.com:interface:axis:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis' of definition 'xilinx.com:interface:axis:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aclk': Added interface parameter 'ASSOCIATED_BUSIF' with value 's_axis'.
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aclk': Added interface parameter 'ASSOCIATED_RESET' with value 's_axis_aresetn'.
+INFO: [IP_Flow 19-4728] Bus Interface 's_axis_aresetn': Added interface parameter 'POLARITY' with value 'ACTIVE_LOW'.
+WARNING: [IP_Flow 19-11888] Component Definition 'user:user:axis_to_video_bridge:1.0 (axis_to_video_bridge_v1_0)': IP description "axis_to_video_bridge_v1_0" is not meaningful: same as name or display name
+WARNING: [IP_Flow 19-11770] Clock interface 's_axis_aclk' has no FREQ_HZ parameter.
+INFO: [IP_Flow 19-2181] Payment is not required for this core.
+WARNING: [IP_Flow 19-2187] The Product Guide file is missing.
+# set _core [ipx::current_core]
+# set_property name              axis_to_video_bridge $_core
+# set_property version           1.0                  $_core
+# set_property core_revision     1                    $_core
+# set_property display_name      "AXIS to Video Bridge (in-tree replacement for v_axis_to_video_out)" $_core
+# set_property description       "M3 HDMI: VDMA AXI4-Stream RGB -> rgb2dvi parallel video. Single-clock domain (148.5 MHz pixel). Replaces missing xilinx.com:ip:v_axis_to_video_out:4.0 from Vivado 2024.1 installs without Video & Image Processing IP Suite. URGENT_ASK_18/19/22/25." $_core
+# set_property vendor_display_name "SpikeYOLO_FPGA"   $_core
+# set_property company_url       "https://github.com/yizhidianlu/SpikeYOLO_FPGA" $_core
+# ipx::create_xgui_files $_core
+# ipx::update_checksums  $_core
+# ipx::save_core         $_core
+# ipx::unload_core       $_core
+# close_project
+# file delete -force $TMP_PROJ_DIR
+# puts "============================================================"
+============================================================
+# puts "OK  axis_to_video_bridge IP packaged at:"
+OK  axis_to_video_bridge IP packaged at:
+# puts "    ${IP_REPO_DIR}/component.xml"
+    C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge/component.xml
+# puts ""
+
+# puts "VLNV: user:user:axis_to_video_bridge:1.0"
+VLNV: user:user:axis_to_video_bridge:1.0
+# puts ""
+
+# puts "Next:  vivado -mode batch -source hw/vivado/build_bd.tcl"
+Next:  vivado -mode batch -source hw/vivado/build_bd.tcl
+# puts "       (build_bd.tcl auto-discovers IPs under hw/vivado/ip_repo/*)"
+       (build_bd.tcl auto-discovers IPs under hw/vivado/ip_repo/*)
+# puts "============================================================"
+============================================================
+INFO: [Common 17-206] Exiting Vivado at Fri May 15 10:37:58 2026...

@@ -1,0 +1,697 @@
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Fri May 15 11:08:40 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source hw/vivado/build_bitstream.tcl
+# set PROJECT spike_zybo
+# set OUT_DIR [file normalize "[file dirname [info script]]/out"]
+# set REPORTS [file normalize "[file dirname [info script]]/reports"]
+# file mkdir $REPORTS
+# open_project [file join $OUT_DIR ${PROJECT}.xpr]
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/hls/build'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/spike_accel'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/axis_to_video_bridge'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/ip_repo/digilent/vivado-library'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Applaction/Xilinx/Vivado/2024.1/data/ip'.
+open_project: Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 742.395 ; gain = 312.441
+# if {[info exists ::env(XILINX_VIVADO)]} {
+#     set _xlnx_ip [file join $::env(XILINX_VIVADO) data ip]
+# } else {
+#     set _xlnx_ip ""
+# }
+# set _broken_ip_names {
+#     roe_framer
+#     hdmi_gt_controller
+#     l_ethernet
+#     microblaze
+#     microblaze_riscv
+# }
+# foreach _name $_broken_ip_names {
+#     if {$_xlnx_ip eq ""} { continue }
+#     set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]
+#     if {[llength $_ipdefs] == 0} {
+#         puts "INFO: IP NAME=$_name not in catalog â€? skipping"
+#         continue
+#     }
+#     foreach _ipdef $_ipdefs {
+#         if {[catch {update_ip_catalog -disable_ip $_ipdef -repo_path $_xlnx_ip} _err]} {
+#             puts "WARN: could not disable $_ipdef: $_err"
+#         } else {
+#             puts "INFO: Disabled broken IP $_ipdef"
+#         }
+#     }
+# }
+INFO: IP NAME=roe_framer not in catalog â€? skipping
+INFO: IP NAME=hdmi_gt_controller not in catalog â€? skipping
+INFO: IP NAME=l_ethernet not in catalog â€? skipping
+INFO: IP NAME=microblaze not in catalog â€? skipping
+INFO: IP NAME=microblaze_riscv not in catalog â€? skipping
+# unset -nocomplain _broken_ip_names _name _ipdefs _ipdef _err _xlnx_ip
+# catch { set_param ip.useCacheStrategy 0 }
+# catch { set_param ip.checkLicense 0 }
+# catch { set_param ip.useIpCache 0 }
+# catch { set_param project.disableIPCache 1 }
+# catch { set_param general.maxThreads 1 }
+# launch_runs synth_1 -jobs 1
+couldn't read file "E:/Applaction/Xilinx/Vivado/2024.1/scripts/xguifrmwork/init.tcl": No error
+ERROR: [Ip 78-89] Error in evaluating command source [rdi::utils::find_approot_file scripts/xguifrmwork/init.tcl]
+ - 
+    while executing
+"source [rdi::utils::find_approot_file scripts/xguifrmwork/init.tcl]"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:ai_engine:1.0 ai_engine - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:ai_engine:1.0 ai_engine"
+invalid command name "updater"
+    while executing
+"updater {load_larch.VALUE} {aieprj_file.ENABLEMENT aieprj_file.VALUE} {
+  bd::utils::dbg "\[updater_aieprj_file\] load_larch: ${load_larch.VALUE}"
+  s..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/ai_engine/bd.tcl" line 274)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:ai_engine:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:aurora:1.0 aurora - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:aurora:1.0 aurora"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/aurora/bd.tcl" line 307)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:aurora:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:axi4:1.0 axi4 - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:axi4:1.0 axi4"
+invalid command name "updater"
+    while executing
+"updater {Master.VALUE Slave.VALUE} {intc_ip.ENABLEMENT intc_ip.VALUE intc_ip.RANGE} {
+  bd::utils::dbg "\[update_intc_ip\] intc_ip: ${intc_ip.VALUE};"..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/conn/axi4/rules.tcl" line 441)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi4:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_chip2chip:1.0 axi_chip2chip - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_chip2chip:1.0 axi_chip2chip"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/axi_chip2chip/bd.tcl" line 499)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi_chip2chip:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_ethernet:1.0 axi_ethernet - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_ethernet:1.0 axi_ethernet"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_noc2:1.0 axi_noc2 - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_noc2:1.0 axi_noc2"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {ddr5_mc_type.VALUE } {num_mc_ddr5.VISIBLE num_mc_ddr5.RANGE num_mc_ddr5.ENABLEMENT num_mc_ddr5.VALUE num_mc_ddr5.DISPLAYNAME } {
+  variab..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/axi_noc2/rules.tcl" line 629)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi_noc2:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_noc:1.0 axi_noc - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:axi_noc:1.0 axi_noc"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {mc_type.VALUE} {num_mc_ddr.VISIBLE num_mc_ddr.RANGE num_mc_ddr.ENABLEMENT num_mc_ddr.VALUE num_mc_ddr.DISPLAYNAME num_mc_lpddr.RANGE num_..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/axi_noc/rules.tcl" line 603)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:axi_noc:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:board:1.0 board - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:board:1.0 board"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {Board_Interface.VALUE} {Manual_Source.VISIBLE} {
+  if { $tmp::type eq "rst" } {
+    bd::utils::dbg "\[gui_updater\] ${Board_Interface.VAL..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/conn/board/rules.tcl" line 355)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:board:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:cips:1.0 cips - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:cips:1.0 cips"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {mc_type.VALUE} {num_mc_ddr.VISIBLE num_mc_ddr.RANGE num_mc_ddr.VALUE num_mc_lpddr.VISIBLE num_mc_lpddr.RANGE num_mc_lpddr.VALUE} {
+  vari..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/cips/bd.tcl" line 480)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:cips:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:clkrst:1.0 clkrst - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:clkrst:1.0 clkrst"
+invalid command name "updater"
+    while executing
+"updater {Clk.VALUE} {Ref_Clk0.ENABLEMENT Ref_Clk0.RANGE Ref_Clk0.VALUE} {
+  bd::utils::dbg "\[updater_Ref_Clk0\] Clk: ${Clk.VALUE}"
+  set is_enabled f..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/conn/clkrst/bd.tcl" line 178)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:clkrst:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:cpri:1.0 cpri - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:cpri:1.0 cpri"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/cpri/bd.tcl" line 274)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:cpri:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:dcmac:1.0 dcmac - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:dcmac:1.0 dcmac"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:ethernet_1_10_25g:1.0 ethernet_1_10_25g - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:ethernet_1_10_25g:1.0 ethernet_1_10_25g"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/ethernet_1_10_25g/rules.tcl" line 288)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:ethernet_1_10_25g:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:gig_ethernet_pcs_pma:1.0 gig_ethernet_pcs_pma - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:gig_ethernet_pcs_pma:1.0 gig_ethernet_pcs_pma"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:gt_ips:1.0 gt_ips - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:gt_ips:1.0 gt_ips"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/gt_ips/bd.tcl" line 283)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:gt_ips:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:gt_tx_rx:1.0 gt_tx_rx - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:gt_tx_rx:1.0 gt_tx_rx"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:hdmi_gt_controller:1.0 hdmi_gt_controller - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:hdmi_gt_controller:1.0 hdmi_gt_controller"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:ilknf:1.0 ilknf - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:ilknf:1.0 ilknf"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/ilknf/bd.tcl" line 283)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:ilknf:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:jesd204c:1.0 jesd204c - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:jesd204c:1.0 jesd204c"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/jesd204c/bd.tcl" line 289)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:jesd204c:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:l_ethernet:1.0 l_ethernet - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:l_ethernet:1.0 l_ethernet"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:microblaze:1.0 microblaze - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:microblaze:1.0 microblaze"
+invalid command name "updater"
+    while executing
+"updater {disable.VALUE} {all.ENABLEMENT compress.ENABLEMENT} {
+  set all.ENABLEMENT true
+  set compress.ENABLEMENT true
+  if {${disable.VALUE} == 1} {..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/microblaze/convert.tcl" line 269)
+
+    while executing
+"source -notrace "[file join [file dirname [file normalize [info script]]] convert.tcl]""
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/microblaze/bd.tcl" line 53)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:microblaze:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:microblaze_riscv:1.0 microblaze_riscv - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:microblaze_riscv:1.0 microblaze_riscv"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {preset.VALUE} {cache.TOOLTIP} {
+  variable config
+  variable tooltips
+
+  set pre_none [dict get $config pre_none]
+
+  if {${preset.VALUE} ..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/microblaze_riscv/bd.tcl" line 391)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:microblaze_riscv:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:mrmac:1.0 mrmac - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:mrmac:1.0 mrmac"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/mrmac/bd.tcl" line 452)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:mrmac:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:oran_radio_if:1.0 oran_radio_if - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:oran_radio_if:1.0 oran_radio_if"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie4_uscale_plus:1.0 pcie4_uscale_plus - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie4_uscale_plus:1.0 pcie4_uscale_plus"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie4c_uscale_plus:1.0 pcie4c_uscale_plus - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie4c_uscale_plus:1.0 pcie4c_uscale_plus"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_dma_versal:1.0 pcie_dma_versal - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_dma_versal:1.0 pcie_dma_versal"
+invalid command name "updater"
+    while executing
+"updater {link_speed.VALUE} {link_width.RANGE link_width.VALUE} {
+  variable link_width_all
+  switch ${link_speed.VALUE} {
+    5 {
+      set link_width..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/pcie_dma_versal/bd.tcl" line 171)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:pcie_dma_versal:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_phy_versal:1.0 pcie_phy_versal - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_phy_versal:1.0 pcie_phy_versal"
+invalid command name "updater"
+    while executing
+"updater {link_speed.VALUE} {link_width.RANGE link_width.VALUE} {
+  variable link_width_all
+  switch ${link_speed.VALUE} {
+    5 {
+      set link_width..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/pcie_phy_versal/bd.tcl" line 166)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:pcie_phy_versal:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_versal:1.0 pcie_versal - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:pcie_versal:1.0 pcie_versal"
+invalid command name "updater"
+    while executing
+"updater {link_speed.VALUE} {link_width.RANGE link_width.VALUE} {
+  variable link_width_all
+  switch ${link_speed.VALUE} {
+    5 {
+      set link_width..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/pcie_versal/bd.tcl" line 176)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:pcie_versal:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:ps_wizard:1.0 ps_wizard - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:ps_wizard:1.0 ps_wizard"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {mc_type.VALUE} {num_mc_ddr.VISIBLE num_mc_ddr.RANGE num_mc_ddr.VALUE num_mc_lpddr.VISIBLE num_mc_lpddr.RANGE num_mc_lpddr.VALUE} {
+  vari..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/ps_wizard/bd.tcl" line 492)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:ps_wizard:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:qdma:1.0 qdma - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:qdma:1.0 qdma"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:quadsgmii:1.0 quadsgmii - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:quadsgmii:1.0 quadsgmii"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:tmr:1.0 tmr - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:tmr:1.0 tmr"
+invalid command name "gui_updater"
+    while executing
+"gui_updater {mode.VALUE} {brk.TOOLTIP} {
+  variable config
+  variable tooltips
+
+  set mode_tmr [dict get $config mode_tmr]
+
+  set brk.ENABLEMENT false..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/tmr/bd.tcl" line 300)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:tmr:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:usxgmii:1.0 usxgmii - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:usxgmii:1.0 usxgmii"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/usxgmii/bd.tcl" line 293)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:usxgmii:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:v_vid_gt_bridge:2.0 v_vid_gt_bridge - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:v_vid_gt_bridge:2.0 v_vid_gt_bridge"
+invalid command name "updater"
+    while executing
+"updater {  Quad0_selection.VALUE} {Lane0_selection.RANGE Lane0_selection.VALUE} {
+         set used_quad_list [list]
+         set used_lane_list [list..."
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel $numlevels [string map $paramlist $procedure]"
+    (procedure "EvalSubstituting" line 10)
+    invoked from within
+"EvalSubstituting {tmp::quad_list tmp::lane_list tmp::quad_value tmp::lane_value tmp::lane_range} {
+      updater {$tmp::quad_list $tmp::lane_list $tmp..."
+    ("for" body line 11)
+    invoked from within
+"for {set tmp::i 0} {$tmp::i < $tmp::max_lanes_supported} {incr tmp::i} {
+  if {$tmp::i} {
+     set tmp::j [expr $tmp::i-1]
+     lappend tmp::quad_list..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/v_vid_gt_bridge/bd.tcl" line 352)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:v_vid_gt_bridge:2.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_cips:1.0 versal_cips - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_cips:1.0 versal_cips"
+invalid command name "updater"
+    while executing
+"updater {num_ddr.VALUE pcie0_mode.VALUE} {configure_noc.ENABLEMENT} {
+  bd::utils::dbg "\[updater_num_ddr\] configure_noc: ${configure_noc.ENABLEMENT}..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/versal_cips/bd.tcl" line 327)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:versal_cips:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_dp_rx_ss:1.0 versal_dp_rx_ss - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_dp_rx_ss:1.0 versal_dp_rx_ss"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_dp_tx_ss:1.0 versal_dp_tx_ss - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_dp_tx_ss:1.0 versal_dp_tx_ss"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_hdmi_rx_ss:1.0 versal_hdmi_rx_ss - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_hdmi_rx_ss:1.0 versal_hdmi_rx_ss"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_hdmi_tx_ss:1.0 versal_hdmi_tx_ss - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:versal_hdmi_tx_ss:1.0 versal_hdmi_tx_ss"
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:xdma:1.0 xdma - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:xdma:1.0 xdma"
+invalid command name "updater"
+    while executing
+"updater {auto_level.VALUE}  {axi_intf.ENABLEMENT bar_size.ENABLEMENT bypass_size.ENABLEMENT h2c.ENABLEMENT c2h.ENABLEMENT} {
+  variable main_config
+
+ ..."
+    invoked from within
+"if {$xdma::family == "VERSAL"} {
+# GUI configuration constants
+
+# GUI tooltips
+variable tooltips [dict create \
+  pl_pcie_cpm  "Generate BD based on P..."
+    (file "E:/Applaction/Xilinx/Vivado/2024.1/data/rsb/design_assist/block/xdma/bd.tcl" line 72)
+INFO: [Common 17-239] ERROR Messages are prohibited to be downgraded. Message 'Ip 78-90' is not downgraded.
+ERROR: [Ip 78-90] Error in initialization of Rule object 'xilinx.com:bd_rule:xdma:1.0'
+invalid command name "::xgui::utils::init_utils"
+ERROR: [Ip 78-89] Error in evaluating command ::xgui::utils::init_utils ::xilinx.com:bd_rule:xxv_ethernet:1.0 xxv_ethernet - invalid command name "::xgui::utils::init_utils"
+    while executing
+"::xgui::utils::init_utils ::xilinx.com:bd_rule:xxv_ethernet:1.0 xxv_ethernet"
+INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/synth/system.v
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S00_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem0_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S01_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem1_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S02_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem2_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S03_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem3_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_arlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_ARLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/ic_data_hp0/S04_AXI_awlock'(1) to pin: '/spike_accel_0/m_axi_gmem4_AWLOCK'(2) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/vid_out/s_axis_tdata'(24) to pin: '/vdma_disp/m_axis_mm2s_tdata'(32) - Only lower order bits will be connected.
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/sim/system.v
+Verilog Output written to : c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/hdl/system_wrapper.v
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_GP0'. A default connection has been created.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP0'. A default connection has been created.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP1'. A default connection has been created.
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block spike_accel_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_dma_feat .
+WARNING: [IP_Flow 19-4994] Overwriting existing constraint file 'c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_vdma_disp_0/system_vdma_disp_0_ooc.xdc'
+INFO: [BD 41-1029] Generation completed for the IP Integrator block vdma_disp .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block v_tc_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block vid_out .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rgb2dvi_0 .
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(152) to pin: '/s00_nodes/S_SC_AR_payld'(148) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(152) to pin: '/s00_nodes/S_SC_AW_payld'(148) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(12) to pin: '/m00_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(58) to pin: '/m00_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(12) to pin: '/m01_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(58) to pin: '/m01_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(12) to pin: '/m02_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(58) to pin: '/m02_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(148) to pin: '/m00_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(148) to pin: '/m00_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(148) to pin: '/m01_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(148) to pin: '/m01_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(148) to pin: '/m02_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(148) to pin: '/m02_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(10) to pin: '/s00_nodes/M_SC_B_payld'(12) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(56) to pin: '/s00_nodes/M_SC_R_payld'(58) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(152) to pin: '/s00_nodes/S_SC_AR_payld'(148) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(152) to pin: '/s00_nodes/S_SC_AW_payld'(148) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(12) to pin: '/m00_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(58) to pin: '/m00_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(12) to pin: '/m01_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(58) to pin: '/m01_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(12) to pin: '/m02_nodes/S_SC_B_payld'(10) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(58) to pin: '/m02_nodes/S_SC_R_payld'(56) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(148) to pin: '/m00_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(148) to pin: '/m00_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(148) to pin: '/m01_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(148) to pin: '/m01_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(148) to pin: '/m02_nodes/M_SC_AR_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(148) to pin: '/m02_nodes/M_SC_AW_payld'(152) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(10) to pin: '/s00_nodes/M_SC_B_payld'(12) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(56) to pin: '/s00_nodes/M_SC_R_payld'(58) - Only lower order bits will be connected.
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/hw_handoff/system_ic_ctrl_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_ctrl_0/bd_0/synth/system_ic_ctrl_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_ctrl .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/hw_handoff/system_ic_data_hp0_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp0_0/bd_0/synth/system_ic_data_hp0_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_data_hp0 .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/hw_handoff/system_ic_data_hp1_0.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/ip/system_ic_data_hp1_0/bd_0/synth/system_ic_data_hp1_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ic_data_hp1 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block irq_concat .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rst_clk0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rst_clk1 .
+Exporting to file c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/hw_handoff/system.hwh
+Generated Hardware Definition File c:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/spike_zybo.gen/sources_1/bd/system/synth/system.hwdef
+INFO: [IP_Flow 19-6930] IPCACHE: runCacheChecks() number of threads = 8
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_axi_dma_feat_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_ctrl_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_ic_data_hp1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rgb2dvi_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_rst_clk1_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_spike_accel_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_v_tc_0_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vdma_disp_0
+INFO: [IP_Flow 19-6921] IPCACHE: Adding cache check func to thread queue for IP system_vid_out_0
+INFO: [IP_Flow 19-8020] IPCACHE: runCacheChecks() calling threadPool finishWork()
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_axi_dma_feat_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_ctrl_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_data_hp0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_ic_data_hp1_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rgb2dvi_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rst_clk0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_rst_clk1_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_spike_accel_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_v_tc_0_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_vdma_disp_0
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: system_vid_out_0
+ERROR: [Vivado 12-4756] Launch of runs aborted due to earlier errors while preparing sub-designs for run execution.
+INFO: [Common 17-206] Exiting Vivado at Fri May 15 11:09:46 2026...

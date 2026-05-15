@@ -51,6 +51,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="auto-pick newest mtime resumable .pt under cfg.resume_dir")
     p.add_argument("--force-resume", action="store_true",
                    help="skip config-hash check during resume (manual override)")
+    p.add_argument("--allow-random-init", action="store_true",
+                   help="A2-W11 safety override: allow _build_student to fall "
+                        "back to RANDOM init when --student-init shape doesn't "
+                        "match. Default REFUSES (was silent in old code).")
     return p
 
 
@@ -259,20 +263,68 @@ def run_validate(ckpt_path: Path, min_map: float, student_cfg: Path) -> int:
     return 0 if ok else 1
 
 
-def _build_student(cfg_path: Path, init_path: Path, device):
+def _build_student(cfg_path: Path, init_path: Path, device,
+                   allow_random_init: bool = False):
+    """Build the student. By default REFUSE silent random-init fallback —
+    A2-W11 root-cause: `models/tiny_fpga_fp32.pt` was a 23M teacher copy and
+    a try/except here silently swallowed the size mismatch, training then
+    started from random weights for 21 epochs. To opt back into a clean
+    random start, pass allow_random_init=True or use init_path=None.
+    """
     import torch
     from ultralytics import YOLO
     model = YOLO(str(cfg_path), task="detect").model
-    if init_path and init_path.exists():
-        try:
-            ckpt = torch.load(init_path, map_location="cpu", weights_only=False)
-            sd = ckpt.get("model", ckpt)
-            sd = sd.state_dict() if hasattr(sd, "state_dict") else sd
-            sd = {k: v.float() for k, v in sd.items()}
-            miss, unx = model.load_state_dict(sd, strict=False)
-            print(f"[student] loaded init {init_path} (missing={len(miss)}, unexpected={len(unx)})")
-        except Exception as e:
-            print(f"[student] WARN: init load failed ({e!r}); using fresh weights")
+    # Snapshot expected shapes so we can verify the load actually applied.
+    expected_sd = model.state_dict()
+    expected_keys = set(expected_sd.keys())
+    if init_path is None or str(init_path) == "":
+        print("[student] init_path is None — random init")
+        return model.to(device)
+    if not init_path.exists():
+        raise FileNotFoundError(
+            f"[student] init {init_path} does not exist. Pass --student-init '' "
+            f"or use allow_random_init=True if you really want random.")
+
+    ckpt = torch.load(init_path, map_location="cpu", weights_only=False)
+    sd = ckpt.get("model", ckpt)
+    sd = sd.state_dict() if hasattr(sd, "state_dict") else sd
+    sd = {k: v.float() for k, v in sd.items()}
+
+    # Pre-check: which keys' shapes don't match? Reject the load BEFORE
+    # load_state_dict so we don't get the partially-applied state that
+    # was the source of the silent fallback.
+    shape_mismatch = []
+    for k, v in sd.items():
+        if k in expected_sd and v.shape != expected_sd[k].shape:
+            shape_mismatch.append((k, tuple(expected_sd[k].shape), tuple(v.shape)))
+    keys_overlap = expected_keys & set(sd.keys())
+    keys_overlap_n = len(keys_overlap)
+    expected_n = len(expected_keys)
+
+    print(f"[student] init source = {init_path}")
+    print(f"[student]   expected keys = {expected_n}, init keys = {len(sd)}, "
+          f"overlap = {keys_overlap_n}")
+    print(f"[student]   shape mismatches = {len(shape_mismatch)}")
+    for k, want, got in shape_mismatch[:5]:
+        print(f"[student]     {k}: model expects {want} but init has {got}")
+
+    # Decision rules:
+    #   - if >5% of expected keys don't even appear in init → init is for a
+    #     different architecture; refuse unless allow_random_init.
+    #   - any shape mismatch → init is for a different model variant; refuse.
+    coverage = keys_overlap_n / max(1, expected_n)
+    if coverage < 0.95 or shape_mismatch:
+        msg = (f"[student] init {init_path} does NOT match this architecture: "
+               f"coverage={coverage:.1%}, shape_mismatches={len(shape_mismatch)}. "
+               f"Refusing silent random fallback (A2-W11 fix).")
+        if allow_random_init:
+            print(f"[student] WARN: {msg} — allow_random_init=True, proceeding with RANDOM weights")
+            return model.to(device)
+        raise RuntimeError(
+            msg + "  Pass --allow-random-init=true to bypass, or fix --student-init.")
+
+    miss, unx = model.load_state_dict(sd, strict=False)
+    print(f"[student] loaded init {init_path} (missing={len(miss)}, unexpected={len(unx)})")
     return model.to(device)
 
 
@@ -677,7 +729,8 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
     seed = int(cfg.get("seed", 42))
     torch.manual_seed(seed)
     print(f"[distill] device={device} epochs={epochs} batch={batch_size} seed={seed}")
-    student = _build_student(args.student_cfg, args.student_init, device)
+    student = _build_student(args.student_cfg, args.student_init, device,
+                             allow_random_init=args.allow_random_init)
     teacher = _build_teacher(args.teacher, device) if args.teacher else None
     align_ids = list(cfg.get("distill_alignment_layers", [5, 7, 8]))
     s_feats, s_handles = _register_taps(student, align_ids)
@@ -841,18 +894,31 @@ def _train_impl(args, cfg, kd_logits_loss, feat_align_loss, spike_rate_loss, bui
             return
         # legacy state_dict snapshot kept (downstream eval scripts read this)
         ckpt_path = out_path.with_name(out_path.stem + f"_ep{ep + 1}" + out_path.suffix)
+        # A2-W11: also save EMA weights when available (Ultralytics maintains
+        # trainer.ema; eval-time EMA typically gives +2-5% mAP over raw).
+        ema_state = None
+        try:
+            tr_ema = getattr(trainer, "ema", None)
+            if tr_ema is not None and getattr(tr_ema, "ema", None) is not None:
+                ema_state = {k: v.detach().cpu().clone()
+                             for k, v in tr_ema.ema.state_dict().items()}
+        except Exception as _e:
+            print(f"[distill] EMA snapshot skipped: {_e!r}")
         try:
             torch.save({
                 "state_dict":  {k: v.detach().cpu().clone()
                                 for k, v in student.state_dict().items()},
+                "ema_state_dict": ema_state,
                 "adapter":     (adapter.state_dict() if adapter is not None else None),
                 "epoch":       ep + 1,
                 "config_hash": cfg_hash,
                 "train_args":  dict(overrides),
                 "note":        "per-epoch state_dict snapshot; reload via "
-                               "model.load_state_dict(...)",
+                               "model.load_state_dict(...). ema_state_dict "
+                               "added A2-W11; use --use-ema in _eval_ep_oneshot.",
             }, ckpt_path)
-            print(f"[distill] epoch {ep + 1} checkpoint -> {ckpt_path}")
+            print(f"[distill] epoch {ep + 1} checkpoint -> {ckpt_path}  "
+                  f"(ema={'yes' if ema_state else 'no'})")
         except Exception as e:
             print(f"[distill] epoch ckpt save failed: {e!r}")
         _do_resumable_save(reason=f"on_fit_epoch_end_{ep + 1}")

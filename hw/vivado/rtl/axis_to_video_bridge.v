@@ -39,19 +39,23 @@ module axis_to_video_bridge #(
 ) (
     // Common pixel clock + active-low synchronous reset.
     //
-    // URGENT_ASK_19 fix: Vivado 2024.1's BD inference engine SIGSEGVs when
-    // an inferred AXIS clock has no FREQ_HZ parameter on a `-type module
-    // -reference` cell. Embedding ASSOCIATED_BUSIF + FREQ_HZ via
-    // X_INTERFACE_PARAMETER on the clock port short-circuits the problematic
-    // null-deref path. Standard UG994 pattern for module-reference IP.
-    // FREQ_HZ matches Vivado's actual PS PLL output for FCLK_CLK1 (v9
-    // URGENT_ASK_26): v5/v8 used theoretical 50e6*20/7 = 142_857_143, but
-    // Vivado's fractional-N PLL computes 142_857_132 (11 Hz under, internal
-    // rounding). The BD validator's exact-match check fails on /vid_out/s_axis
-    // vs /ps_0/FCLK_CLK1 with the theoretical value. Use Vivado's observed
-    // value instead.
+    // History:
+    //   v5-v8: We were instantiated as `-type module -reference`. Vivado 2024.1's
+    //          BD inference engine SIGSEGV'd when an inferred AXIS clock had no
+    //          FREQ_HZ parameter (URGENT_ASK_19). We embedded FREQ_HZ 142857132
+    //          (PS PLL actual for FCLK_CLK1 @ 148.5 MHz, fractional-N rounded)
+    //          to short-circuit the null-deref path. Standard UG994 pattern.
+    //   v8+ : Switched to IP-XACT packaging (URGENT_ASK_25, package_axis_bridge.tcl).
+    //          The module-reference SIGSEGV codepath is no longer touched.
+    //   v13 : URGENT_ASK_30 — hardcoded FREQ_HZ blocks 720p variant. SW can't
+    //          set_property override an X_INTERFACE_PARAMETER bake-in. Drop the
+    //          FREQ_HZ literal entirely; Vivado's BD validator will propagate
+    //          the actual PLL frequency from whichever clock is connected
+    //          (FCLK_CLK1 @ 148.5 MHz pixel for 1080p, FCLK_CLK1 @ 74.25 MHz for
+    //          720p). ASSOCIATED_BUSIF / ASSOCIATED_RESET still required so the
+    //          pixel-clock inference points at the right interface bundle.
     (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 s_axis_aclk CLK" *)
-    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn, FREQ_HZ 142857132" *)
+    (* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF s_axis, ASSOCIATED_RESET s_axis_aresetn" *)
     input  wire                              s_axis_aclk,
     (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 s_axis_aresetn RST" *)
     (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)

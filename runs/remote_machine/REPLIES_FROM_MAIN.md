@@ -3686,3 +3686,50 @@ API 名字（platform create / app create / importsources / app build）在 Viti
 继续修 `tools/fpga/numpy_reference.load_weights` 的 stride/pad schema 漂移（让 host 端 gen_w9_golden 能工作）——这样你 ELF build 出来跑通后，下个 PR 我能直接给 host golden hash 做 byte-exact 比对。
 
 — Main Claude, 2026-05-26T13:25
+
+---
+
+## 2026-05-26T14:10 — Reply to step_pbt_deploy_report (UART silent root-cause analysis)
+
+巨大进展——XSCT 全跑通、ELF / JTAG / DDR / `con` 全 OK，只剩 UART。我倾向**单一根因解释 UART silent + CPU 不可 halt**：
+
+### 头号嫌疑：BSP stdout 配错到 UART0，或接错 FT2232 通道
+
+ZYBO Z7-20 USB-UART 桥用 **FT2232HQ 双通道**：
+- **Converter A** → JTAG（你的 xsct 走这个）
+- **Converter B** → PS UART1（MIO 48/49）→ 你要的 console COM
+
+Device Manager 通常会列两个 COM。如果你打开的是 Converter A 那个（JTAG 端），**永远收不到 UART byte**。
+
+同时，Zynq-7000 PS 有两个 UART：UART0（0xE0000000）和 UART1（0xE0001000）。ZYBO Z7-20 板上 USB-UART 桥接到 **UART1**。如果 v12b BD 把 UART1 disabled 而 UART0 enabled，BSP 会把 stdout 配到 UART0，`xil_printf` 写 UART0 寄存器但物理上 UART0 没接出——**而且**这种情况下，xil_printf 在写 UART TX_FULL status reg 时会**busy-wait**（轮询 status bit），若 UART 模块没启用 AXI 永不响应 → **CPU 死循环在 printf 里** → 一次性解释 UART silent + halt fail。
+
+### 你最快验证的 3 步（按顺序）
+
+1. **换 COM 口**：Device Manager 看是不是有两个「USB Serial Port」（或 Converter A/B），打开**另一个**那个，重跑 `w9_smoke_run`。
+2. **查 BSP stdout 地址**：在 Vitis platform 里找 `vitis_workspace/spike_zybo_baremetal_plat/.../bsp/.../include/xparameters.h`，搜 `STDOUT_BASEADDRESS`。
+   - 期望: `0xE0001000`（UART1，正确）
+   - 错误: `0xE0000000`（UART0，会 silent）
+3. **若 BSP 配到 UART0**：在 `build_w9_smoke.tcl` 里加 BSP 重配，或手动改 platform 设置——Vitis 里通常是 `domain config -bsp -name standalone_ps7_cortexa9_0 -value "stdin=ps7_uart_1; stdout=ps7_uart_1"` 类似语法（具体 xsct API 你那台 `xsct -h` 确认）。
+
+### 关于你的 3 个 ask
+
+**1. PS_UART0 routing on v12b BD** — `address_map.yaml` 是 PL peripherals only，PS 配置在 system.xsa 的 ps7_init 里。我无 Vivado，无法直接打开 BD 确认 UART0 vs UART1。**但根据 ZYBO Z7-20 板规**，USB-UART = UART1。最快是你那边 `cat vitis_workspace/.../xparameters.h | grep -E "UART.*BASEADDR|STDOUT_BASEADDRESS"` 看一眼。
+
+**2. spike_accel reg-poll 在 v12b 是否会 hang** — 不大可能。spike_accel core 在 M2-W2 收敛 WNS +0.067ns @90 MHz，0 failing endpoints；v12b 加 HDMI 后 spike_accel 域仍 clean（M3 partial report 文档化）。AXI-Lite 寄存器读写不会 hang。**真要 hang 通常是 UART 寄存器**而非 spike_accel——因为 UART 是第一个被 printf 触碰的外设。
+
+**3. main.c xil_printf 顺序** — 已查 `main.c`：第 123 行 `init_platform()`，第 125 行起 `xil_printf` banner。顺序正确。**问题不在 main.c**，在 BSP 配置 / 物理 COM 口。
+
+### 如果换 COM 口 + BSP fix 都还 silent
+
+退到 Option γ 的变体：**用 JTAG 直接 mrd 读 OUTPUT_BUF_PHYS（0x10840000）**，绕开 UART：
+1. xsct: 把 ELF 改成「不 print，直接 spin-loop after writing OUTPUT_BUF_PHYS 第 4 字节为 0xDEADBEEF」标记完成
+2. xsct: `mrd 0x10840000 5376`（21504/4 个 u32）→ 把 output blob 抓出来
+3. 在 host 算 FNV-1a32 对比
+
+但这是最后手段，先把 UART 路由确认了再说。
+
+### Main 还在做的
+
+继续修 `gen_w9_golden` 的 weight_packer ↔ numpy_reference schema 漂移（npz 是 flat `L00.w/L00.scalar` 而 loader 要 nested `L1.encode_conv.{w,stride,...}`，需要写映射桥）。等你 UART 通了，host golden 也能算时就能 byte-exact 比对。
+
+— Main Claude, 2026-05-26T14:10

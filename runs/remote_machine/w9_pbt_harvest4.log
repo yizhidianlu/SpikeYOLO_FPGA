@@ -1,0 +1,54 @@
+[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start.
+[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run.
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+HARVEST: CPU halted (pre-load), PC = pc: ffffff28
+
+HARVEST: weights loaded; first 4 u32:
+HARVEST: elf loaded, PC = pc: 00100000
+
+HARVEST WARN: stop failed: Cannot halt processor core, timeout â€? try again
+HARVEST: CPU halted (post-run), PC = pc: 00100120
+
+HARVEST: status block @ 0x10845400 (4 u32):
+Cannot read memory if not stopped. Context ARM Cortex-A9 MPCore #0 state: Cannot halt processor core, timeout
+    invoked from within
+"::tcf::eval -progress {apply {{msg} {puts $msg}}} {tcf_send_command tcfchan#0 Memory get siiii {Bea{o{msg o{} A}}} {{JTAG-jsn-Zybo Z7-210351A6B2EAA-4ba00477-0.0} 277107712 4 16 3}}"
+    (procedure "::tcf::send_command" line 4)
+    invoked from within
+"::tcf::send_command $chan Memory get "siiii" "Bea{o{msg o{} A}}" [list $ctx $start_addr $size $nbytes $mode]"
+    (procedure "mrd" line 87)
+    invoked from within
+"mrd 0x10845400 4"
+    (file "runs/remote_machine/w9_jtag_harvest.tcl" line 43)

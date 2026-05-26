@@ -1,73 +1,65 @@
-# Step PBT Deploy — partial (toolchain green, board UART silent)
+# Step PBT Deploy — final report (board ground truth NOT captured)
 
-## Status
+## Status: blocked
 
 | Phase | Status | Notes |
 |---|---|---|
-| Pull `tiny_fpga_int8_pbt.bin` | ✅ DONE | 1343776 bytes, matches expected |
-| Patch xsdb_setup.tcl `_real.bin → _pbt.bin` | ✅ DONE | committed |
-| Build Vitis platform + app | ✅ DONE | new `build_w9_smoke.tcl` script under sw/baremetal/.../ |
-| Produce `spike_accel_w9_smoke.elf` | ✅ DONE | 254124 bytes |
-| XSCT: connect JTAG + program bitstream | ✅ DONE | hw_server launches, finds ZYBO target |
-| XSCT: ps7_init (clocks + DDR) | ✅ DONE | DDR readback shows weights loaded |
-| XSCT: download ELF + con | ✅ DONE | PC = 0x00100000 set, con returned |
-| **Capture board UART** | ❌ **SILENT** | COM3 @ 115200 8N1 opened but no bytes for 60 s |
-| Halt CPU for dump | ❌ FAIL | `stop` → "Cannot halt processor core, timeout" |
-| Dump 21504-byte feat_out.bin | ❌ blocked by halt fail | — |
-| **board fnv1a32 hash** | ❌ **not captured** | — |
+| Pull `tiny_fpga_int8_pbt.bin` + work order | ✅ | b641614 |
+| Patch xsdb_setup.tcl → `_pbt.bin` | ✅ | committed |
+| Build Vitis platform + app + ELF via XSCT | ✅ | new tooling under sw/baremetal/ |
+| `init_platform` stub for Empty template | ✅ | committed to vitis_workspace |
+| XSCT JTAG flow (bitstream + ps7_init + weights mwr + ELF dow + con) | ✅ | clean every time |
+| **Capture board UART** | ❌ | UART1 disabled in v12b BD (Main fixed in 5f2ea71) AND CPU never reached main() |
+| **board fnv1a32 hash** | ❌ NOT CAPTURED | — |
 
-## What worked end-to-end
+## Root-cause chain (in order of discovery)
 
-XSCT got further than ever before. Full flow log at `runs/remote_machine/w9_pbt_xsct.log`:
+1. **`tiny_fpga_int8_real.bin` not in repo** → xsdb_setup.tcl referenced an obsolete weights file. Patched to `tiny_fpga_int8_pbt.bin`.
+2. **No `spike_accel_w9_smoke.elf`** → Wrote `build_w9_smoke.tcl` XSCT script to scripted-build the platform + app + ELF. Worked after 4 iterations (domain naming, template selection, init_platform stub).
+3. **xsdb_setup.tcl bracket-puts TCL parse errors** → Patched.
+4. **target filter `*Cortex-A9 #0*` vs actual `*Cortex-A9 MPCore #0*`** → Patched.
+5. **`print -e` deprecated** → Replaced with `rrd pc`.
+6. **DDR controller in reset / ps7_init.tcl missing** → Pointed `::W9_PS7_INIT` at the right path, then sourced at GLOBAL scope so silicon-version constants become global vars (xsdb_setup sources it inside proc → vars went local → ps7_init couldn't see them).
+7. **UART silent + CPU can't halt** → Initially thought UART1 misroute. Probed and confirmed STDOUT_BASEADDRESS = 0xE0001000 = UART1 (correct). But: APER_CLK_CTRL bit 21 = 0 and MIO_PIN_48/49 L3_SEL = 0 → **PS UART1 not enabled in v12b BD**. Main fixed via `5f2ea71` (CONFIG.PCW_UART1_PERIPHERAL_ENABLE {1}).
+8. **v12c bitstream rebuild blocked** by Vivado install rot (`scripts/xguifrmwork/init.tcl` missing, `::xgui::utils::init_utils` invalid) — same rot that defeated M3 720p.
+9. **Option β: main_jtag_only.c** (UART-bypass, write status block to DDR + WFI spin) → ELF built. CPU still hung at PC=0x100154 — inside BSP crt0 `CheckEFUSE` proc, BEFORE main(). UART was a red herring.
+10. **Patched boot.S CheckEFUSE → `b OKToRun`** (skip EFUSE silicon-version read at 0xF800701C). Manually compiled with arm-none-eabi-gcc + replaced boot.o in libxil.a (BSP build infrastructure wouldn't regenerate on mtime alone). Re-linked ELF.
+11. **CPU still hangs** — PC moved from 0x100154 → 0x100120. New stuck point is **inside the ARM vector table area**, between PrefetchAbortHandler (0x100100) and _boot (0x10012c). Indicates an exception was raised during early startup (likely in cpu_init after CheckEFUSE — possibly MMU or L2 cache init), trapping to a data abort or prefetch abort handler.
 
-```
-[w9-smoke] programming bitstream...
-[w9-smoke] sourcing ps7_init.tcl...
-[w9-smoke] loading weights into DDR @ 0x10000000...
-[w9-smoke] DDR @ 0x10000000 readback (4x u32):
-  10000000:   02040100
-  10000004:   00070101
-  10000008:   00180003
-  1000000C:   00003100
-[w9-smoke] downloading elf...
-[w9-smoke] elf loaded, PC = pc: 00100000
-[w9-smoke] >>> con — watch your UART terminal for results
-Cannot halt processor core, timeout
-```
+## What we know
 
-DDR readback **proves** XSDB load worked (first 16 weight bytes match `tiny_fpga_int8_pbt.bin` first 16 bytes — non-zero, varying values, not all 0xFF or 0x00).
+- ✅ JTAG works (CPU halts on demand pre-con, all mrd/mwr operations succeed)
+- ✅ Bitstream programs (PL clean)
+- ✅ DDR comes up via ps7_init (mwr verifies weights present at 0x10000000)
+- ✅ ELF downloads cleanly (PC = entry 0x100000)
+- ✅ `con` runs, CPU advances past _vector_table → _boot → CheckEFUSE
+- ❌ Some PS init step in cpu_init / mmu_init / cache_init faults
+- ❌ CPU traps to abort handler, gets stuck
+- ❌ JTAG `stop` times out (CPU is in tight uninterruptible exception loop)
 
-## What's broken
+## Hypothesis (for Main)
 
-**`con` returns successfully and the CPU is "running", but**:
-1. **UART is silent** — 60 s capture on COM3 yields 0 bytes (file is empty 0 B)
-2. **CPU cannot be halted via JTAG** — `stop` times out after ~5 s
+After CheckEFUSE skip, the next BSP step is `cpu_init` which programs L1/L2 caches and MMU. One of these accesses may hit a problematic AXI path:
 
-These two symptoms together suggest the CPU is in an unrecoverable state, NOT idle. Likely candidates:
+- L2 controller initialization touches PL310 (0xF8F02xxx)
+- MMU TLB might be set up to span PL address space (0x40000000+) which on v12b has marginal R1 timing (WNS -0.516 ns, WPWS -0.755 ns from M3_PARTIAL_REPORT)
+- The 9 WPWS-failing endpoints on the HDMI domain may produce undefined values that propagate via AXI to PS
 
-1. **AXI-Lite read to `SA_REG_BASE = 0x43C00000` hangs**. main.c reads spike_accel control regs to poll `ap_done`. If the AXI transaction never completes (e.g. due to v12b's marginal timing closure on PS↔HP path, or spike_accel's interrupt logic stuck), the CPU stalls indefinitely waiting for the AXI bridge. JTAG can't preempt a hung AXI access.
-2. **Early crash before any `xil_printf`**: main.c's `init_platform()` → `Xil_DCacheEnable()`. If DCache enable hits a memory-fault, CPU may end up in undefined-handler infinite loop. But the proper `platform.c` is now in place (cache enable + uart-by-ps7_init).
-3. **UART not actually wired to COM3 in v12b bitstream**: COM3 may be a different port (e.g. PMOD UART, USB-to-serial bridge). Need to verify which physical port the v12b BD wires PS_UART0 to.
+## Time invested
 
-## My infrastructure changes (committed below)
+~16h across two days (M3 deploy day + this session). Diminishing returns. Recommend Main decide:
+- **Option ζ** — push the cpu_init bypass too (set up SP + branch direct to main) — heavier ASM patch
+- **Option η** — wait for Vivado install repair, then rebuild a UART1-enabled v12c bitstream (may also have better timing closure)
+- **Option θ** — defer board hash capture; rely on Main's `gen_w9_golden` host-side ground truth (when schema-bridge is ready)
 
-- `sw/baremetal/spike_accel_w9_smoke/xsdb_setup.tcl`:
-  - `tiny_fpga_int8_real.bin → tiny_fpga_int8_pbt.bin` (per work order)
-  - Escape `[w9-smoke]` literals in `puts` (TCL bracket parsing fix)
-  - Target filter `*Cortex-A9 #0*` → `*Cortex-A9 MPCore #0*` (Vitis 2024.1 emits "MPCore")
-  - `print -e` (deprecated) → `rrd pc`
-- `sw/baremetal/spike_accel_w9_smoke/build_w9_smoke.tcl` (new): scripted Vitis platform + app build for future deploys
-- `sw/baremetal/spike_accel_w9_smoke/app_build_only.tcl` (new): rebuild ELF after src edits
-- `runs/remote_machine/capture_uart.ps1`: COM3 → log with terminator detection
-- `runs/remote_machine/w9_smoke_oneshot.tcl`: XSCT wrapper with global `source $::W9_PS7_INIT` workaround (xsdb_setup.tcl sources it inside the proc → vars go local)
-- `vitis_workspace/spike_accel_w9_smoke/src/platform.c`: init_platform/cleanup_platform with cache enable (Empty template doesn't emit these; main.c references them; without them link fails)
+## Pushed artifacts
 
-## Asks for Main
+- `sw/baremetal/spike_accel_w9_smoke/src/main.c` — TEMPORARILY contains main_jtag_only.c content (restore via `git checkout` after we resolve this)
+- `sw/baremetal/spike_accel_w9_smoke/src/main_jtag_only.c` — renamed main → _unused_main_jtag_only to avoid duplicate symbol
+- `sw/baremetal/spike_accel_w9_smoke/{build_w9_smoke,app_build_only,probe_domains,rebuild_bsp,build_w9_smoke_jtag}.tcl` — scripted Vitis build helpers
+- `vitis_workspace/.../boot.S` — CheckEFUSE early-return patch
+- `vitis_workspace/spike_zybo_baremetal_plat/.../libxil.a` — re-archived with new boot.o
+- `runs/remote_machine/{capture_uart.ps1,w9_smoke_oneshot.tcl,w9_jtag_harvest.tcl,probe_uart.tcl}` — automation
+- `runs/remote_machine/w9_pbt_*.log` — full traces
 
-1. **Verify which COM port** the v12b BD's PS_UART0 reaches. If PMOD UART instead of USB-UART bridge, Remote may need a different physical cable. (Check `hw/vivado/out/system_bd_dump.tcl` or `address_map.yaml` for UART_0 EMIO/MIO routing.)
-2. **Confirm spike_accel reg-poll won't hang on v12b's marginal R1 timing**. If you've seen this elsewhere, document the workaround.
-3. **Optional fallback**: rebuild app with `xil_printf` calls BEFORE the first AXI read, so if AXI hangs we still see the banner. main.c likely does this; verify with `objdump -d` if you have it locally.
-
-Standing by; full XSCT + UART logs pushed alongside this report.
-
-— Remote Claude, 2026-05-26T13:46:00+08:00
+— Remote Claude, 2026-05-26T15:05:00+08:00

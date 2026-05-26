@@ -73,7 +73,9 @@ static void fill_ramp(int8_t *buf, uint32_t n) {
 
 extern void init_platform(void);
 
-int main(void) {
+/* Remote 2026-05-26: rename to avoid duplicate-main link errors. main.c
+ * has been overlaid with this file's content; that one is the live main(). */
+int _unused_main_jtag_only(void) {
     init_platform();   /* cache enable only — does NOT touch UART */
 
     int8_t  *input  = (int8_t *)(uintptr_t)INPUT_BUF_PHYS;

@@ -4032,3 +4032,48 @@ ACK 你的 final report。16h 工作量我看到了，所有 toolchain 端的 is
 把 `sw/baremetal/spike_accel_w9_smoke/src/main.c` 用 `git checkout HEAD~10 -- ...` 还原回原始 (有 printf) 那份，main_jtag_only.c 保留作为 JTAG-only 备用。这样恢复 baseline 状态。
 
 — Main Claude, 2026-05-26T15:30
+
+---
+
+## 2026-05-26T15:50 — User decision: Path A (fix Vivado install + v12c rebuild)
+
+用户选 A——正面突破。
+
+### Sequence
+
+1. **用户手动**进 Vivado 2024.1 → Add/Remove Components → 装回 `xguifrmwork` 等缺失（30-60 min GUI on 你那台机器，或用户远程进）
+2. 修完后用户 push 一个空 commit / 或在 runs/remote_machine/INSTALL_REPAIRED.md 写 ACK，或者你自己 `vivado -mode batch -source hw/vivado/build_bd.tcl` 试跑——如果 BD 不再撞 xguifrmwork init 错误就是修好了
+3. 你做 v12c：
+   - `git pull` 确认有我的 UART1 enable patch（5f2ea71 现在已在 vivado/synth-runner HEAD）
+   - **建议同时把 HDMI 降到 720p**——避免 1080p WPWS -0.755 ns 反污染 PS-AXI（你前面 BSP cpu_init exception 的最可能根因）。改 build_bd.tcl：
+     ```tcl
+     CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {74.25}    ;# 1080p 148.5 -> 720p 74.25
+     CONFIG.VIDEO_MODE {720p}                       ;# v_tc_0
+     CONFIG.kClkRange {0}                           ;# rgb2dvi_0
+     ```
+     这正是 M3_PARTIAL_REPORT §"Path forward — M4 HDMI fix (Option β)" 你早就识别的 720p variant patch。一并进 v12c
+4. `vivado -mode batch -source build_bd.tcl` + `vivado -mode batch -source build_bitstream.tcl` → R2 PASS（spike_accel 域不动，UART1 PS-only，HDMI 降到 720p TMDS 应该有 ample headroom）
+5. 重 generate Vitis platform（用新 system.xsa）+ rebuild ELF（用 ORIGINAL main.c，恢复 xil_printf——v12c 有 UART1 真正能 print）
+6. xsct: 同前流程 → console banner 出现 → board fnv1a32 hash 抓回来
+7. 写新版 `step_pbt_deploy_report.md`（覆盖 partial 那份）含 board hash
+8. commit + push
+
+### 期望 ETA
+
+| 阶段 | ETA |
+|---|---:|
+| 用户修 install | 30-60 min（用户主导）|
+| Remote v12c BD + R2 synth + bit | 1.5-2 h |
+| platform + ELF rebuild | 10-15 min |
+| xsct smoke + hash capture | < 5 min |
+| **总** | **~2.5-3 h after install repaired** |
+
+### 你现在做什么
+
+stand by。下次唤醒前看 `runs/remote_machine/INSTALL_REPAIRED.md` 或试一次 `vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 | tail -20` 判断 install 是否修好。修好就走上面 sequence；没修好继续等。
+
+### Main 同时做的
+
+继续修 `gen_w9_golden` schema bridge，让你 v12c 拿到 board hash 时 host 端能立即比对。
+
+— Main Claude, 2026-05-26T15:50

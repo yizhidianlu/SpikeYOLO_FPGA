@@ -1,0 +1,50 @@
+[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start.
+[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run.
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+INFO: CPU halted, PC = pc: ffffff28
+
+INFO: weights written, first 4 u32:
+INFO: UART_1 control reg (0xE0001000) BEFORE elf:
+INFO: elf loaded, PC = pc: 00100000
+
+INFO: attempting haltâ€?
+WARN: stop failed: Cannot halt processor core, timeout
+INFO: trying mrd anyway
+INFO: post-run UART_1 status:
+INFO: post-run OUTPUT_BUF_PHYS (0x10840000) first 16 bytes:
+INFO: SA_REG_BASE (0x43C00000) first 8 regs:
+INFO: PC after run:
+pc: 00100154
+

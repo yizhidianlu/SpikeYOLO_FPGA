@@ -1,0 +1,51 @@
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+==PRE-ELF UART1 alive probe==
+APER_CLK_CTRL_BIT21 @ 0xF800014C: F800014C:   00000501
+
+MIO_PIN_48 @ 0xF8000730: F8000730:   00001600
+
+MIO_PIN_49 @ 0xF8000734: F8000734:   00001600
+
+UART1_CR @ 0xE0001000: E0001000:   00000114
+
+UART1_BAUDGEN @ 0xE0001018: E0001018:   0000007C
+
+UART1_SR @ 0xE000102C: E000102C:   0000000A
+
+PC after dow: pc: 00100000
+
+==POST-RUN==
+PC after 8s con: pc: 00100140
+

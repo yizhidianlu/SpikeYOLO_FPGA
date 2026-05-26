@@ -41,6 +41,7 @@ set _broken_ip_names {
     microblaze
     microblaze_riscv
     cpri
+    xdma
 }
 # v13.1 (URGENT_ASK_31): cpri added — surfaced first time during 720p impl
 # launch_runs sub-Vivado synth process re-evaluating the catalog. Mirror the

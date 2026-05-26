@@ -1,0 +1,66 @@
+[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start.
+[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run.
+
+============================================================
+[w9-smoke] xsdb automation start
+  proj root : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA
+  bitstream : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/hw/vivado/out/system.bit
+  weights   : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/models/tiny_fpga_int8_pbt.bin (1343776 bytes @ 0x10000000)
+  elf       : C:/Users/jielu/Desktop/Workspace/SpikeYOLO_FPGA/vitis_workspace/spike_accel_w9_smoke/Debug/spike_accel_w9_smoke.elf
+============================================================
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+[w9-smoke] programming bitstream...
+[w9-smoke] sourcing ps7_init.tcl...
+[w9-smoke] loading weights into DDR @ 0x10000000...
+[w9-smoke] DDR @ 0x10000000 readback (4x u32):
+  10000000:   02040100
+10000004:   00070101
+10000008:   00180003
+1000000C:   00003100
+
+[w9-smoke] downloading elf...
+[w9-smoke] elf loaded, PC = pc: 00100000
+
+[w9-smoke] >>> con â€? watch your UART terminal for results
+Cannot halt processor core, timeout
+    invoked from within
+"::tcf::eval -progress {apply {{msg} {puts $msg}}} {tcf_send_command tcfchan#0 RunControl suspend s e {{JTAG-jsn-Zybo Z7-210351A6B2EAA-4ba00477-0.0}}}"
+    (procedure "::tcf::send_command" line 4)
+    invoked from within
+"::tcf::send_command $chan RunControl suspend s e [list $ctx]"
+    (procedure "stop" line 14)
+    invoked from within
+"stop"
+    (file "runs/remote_machine/w9_smoke_oneshot.tcl" line 19)

@@ -140,9 +140,12 @@ set _broken_ip_names {
     microblaze
     microblaze_riscv
     cpri
+    xdma
 }
 # v13.1 (URGENT_ASK_31): cpri added — surfaced first time during 720p impl
 # launch_runs (BD-side init didn't trigger it; sub-Vivado synth process did).
+# v12c (Path A 2026-05-26): xdma added — last rule needing init after the
+# Embedded SW Dev Tools install repair restored xguifrmwork.
 foreach _name $_broken_ip_names {
     if {$_xlnx_ip eq ""} { continue }
     set _ipdefs [get_ipdefs -quiet -filter "NAME == $_name"]
@@ -225,7 +228,7 @@ set_property -dict [list \
     CONFIG.PCW_IRQ_F2P_INTR            {1} \
     CONFIG.PCW_EN_CLK1_PORT            {1} \
     CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {90} \
-    CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {148.5} \
+    CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {74.25} \
     CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
     CONFIG.PCW_UART1_PERIPHERAL_IO      {MIO 48 .. 49} \
     CONFIG.PCW_UART1_BAUD_RATE          {115200} \
@@ -324,7 +327,7 @@ set_property -dict [list \
     CONFIG.HAS_AXI4_LITE        {false} \
     CONFIG.enable_generation    {true} \
     CONFIG.enable_detection     {false} \
-    CONFIG.VIDEO_MODE           {1080p} \
+    CONFIG.VIDEO_MODE           {720p} \
 ] [get_bd_cells v_tc_0]
 
 # vid_out: in-tree IP-XACT-packaged axis_to_video_bridge (URGENT_ASK_25).
@@ -336,7 +339,7 @@ create_bd_cell -type ip -vlnv user:user:axis_to_video_bridge:1.0 vid_out
 
 create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 set_property -dict [list \
-    CONFIG.kClkRange          {1} \
+    CONFIG.kClkRange          {2} \
     CONFIG.kRstActiveHigh     {true} \
     CONFIG.kGenerateSerialClk {true} \
 ] [get_bd_cells rgb2dvi_0]

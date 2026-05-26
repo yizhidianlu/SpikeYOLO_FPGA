@@ -14,8 +14,17 @@ if powershell.exe -NoProfile -Command "if (Get-Process -Id $PID -ErrorAction Sil
 else
   echo "DEAD  PID=$PID"
 fi
-echo "--- last 10 log lines (runs/datasets_download.log) ---"
-tail -n 10 runs/datasets_download.log 2>/dev/null || echo "(no log yet)"
+echo "--- last 10 log lines ---"
+if [ -f runs/datasets_download_aria2_stdout.log ]; then
+  # aria2 (Plan A): tail and pretty-print, filter to one-line-per-tick
+  tr '\r' '\n' < runs/datasets_download_aria2_stdout.log | tail -n 10
+elif [ -f runs/datasets_download.log ]; then
+  tail -n 10 runs/datasets_download.log
+else
+  echo "(no log yet)"
+fi
+echo "--- download info ---"
+[ -f runs/datasets_download_info.txt ] && cat runs/datasets_download_info.txt
 echo "--- disk usage (datasets/coco) ---"
 du -sh datasets/coco/ 2>/dev/null || echo "(missing)"
 echo "--- C: free space ---"

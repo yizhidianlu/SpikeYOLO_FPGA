@@ -1,0 +1,52 @@
+# A1 W10 real distillation on COCO train2017 118K (local RTX 5060 Laptop path).
+# Mirror of distill_config_real.yaml but pointing to the real train2017 set
+# (the W8 _real config used val2017 5K alias). Resumable every epoch under
+# runs/distill_train2017/resumable/.
+#
+# Wall time estimate (RTX 5060 Laptop 8GB, batch 16, imgsz 256):
+#   118287 imgs / 16 batch  = 7393 iter/epoch
+#   7393 iter / 1.27 it/s   ≈ 5821 sec  ≈ 97 min/epoch
+#   30 epoch                ≈ 48-50 hours (~2 days)
+#
+# Reboot-safe via:
+#   - atomic _save_resumable_ckpt(latest.pt) every epoch
+#   - graceful SIGINT/SIGTERM save before exit
+#   - start_train2017_training.bat auto-detects latest.pt and adds --resume-auto
+#   - worst-case forced kill loses ≤ 1 epoch (~97 min)
+
+optimizer:    AdamW
+lr:           5.0e-4
+lr_schedule:  cosine
+weight_decay: 1.0e-4
+epochs:       30
+batch_size:   16
+warmup_epochs: 3
+
+loss_weights:
+  det:        1.0                 # standard YOLO detection loss
+  kd_logits:  1.5                 # detect-head KD (cls KL@T + reg L1)
+  feat_align: 0.5                 # intermediate feature MSE
+  spike_rate: 0.3                 # SNN spike-rate L1 (binary proxy)
+
+kd_temperature: 4.0
+
+data:
+  dataset_yaml: ultralytics/cfg/datasets/coco_train2017_local.yaml
+  val_every:    0                 # skip val during train (ultralytics 8.0.197 val-path bug)
+  imgsz:        256
+
+freeze_teacher: true
+adapter_init:   "kaiming"
+seed:           42
+
+teacher_inference_mode: avgpool_from_640
+device:        cuda
+log_interval:  100                 # iterations between distill_log.csv rows (118K = 7393 iter/ep)
+ckpt_interval: 1                   # epochs between resumable + state_dict snapshot
+distill_alignment_layers: [5, 7, 8]
+amp:               false           # FP16 autocast triggers SNN val-path Half/float crash
+gradient_clip_norm: 1.0
+data_loader_workers: 2
+prefetch_factor:    2
+
+resume_dir: runs/distill_train2017/resumable/

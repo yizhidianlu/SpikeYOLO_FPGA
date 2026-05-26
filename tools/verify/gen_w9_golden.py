@@ -116,7 +116,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verbose:
         print(f"[golden] loading weights {weights_path}", file=sys.stderr)
-    net = numpy_reference.TinyFpgaNet.load_npz(str(weights_path))
+    # PBT-fix: TinyFpgaNet has no classmethod load_npz; construct via load_weights.
+    net = numpy_reference.TinyFpgaNet(
+        weights=numpy_reference.load_weights(str(weights_path))
+    )
 
     if args.verbose:
         print("[golden] running TinyFpgaNet forward (CPU, may take ~10-30s)…", file=sys.stderr)

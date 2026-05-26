@@ -377,9 +377,12 @@ def load_weights(path: str) -> Dict[int, Dict]:
                                        'L2.sep.pwconv1.w', ...
     Returns the nested dict consumed by TinyFpgaNet.
     """
-    raw = dict(np.load(path))
+    raw = dict(np.load(path, allow_pickle=True))
     out: Dict[int, Dict] = {}
     for key, arr in raw.items():
+        # Skip metadata keys emitted by weight_packer (e.g. __layout__).
+        if key.startswith('__'):
+            continue
         # Format: "L<idx>.<path>.<field>"
         head, _, field = key.rpartition('.')
         assert head.startswith('L'), f"bad key: {key}"

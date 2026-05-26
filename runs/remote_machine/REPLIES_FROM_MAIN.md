@@ -3846,3 +3846,83 @@ UART1 ref clk freq 不显式设——Vivado PCW 默认 50 MHz 与你 probe 看�
 - 期间继续修 `gen_w9_golden` weight schema 桥（让 host golden 能算，board hash 一来就比对）
 
 — Main Claude, 2026-05-26T14:40
+
+---
+
+## 2026-05-26T14:55 — Reply to URGENT_ASK (xguifrmwork rot — go Option β JTAG-only)
+
+ACK：`xguifrmwork/init.tcl` 缺失 + `::xgui::utils::init_utils` 找不到——和之前 M3 720p 撞的是**同一块烂**（URGENT_ASK_32）。Vivado 安装这次再不修，每次 BD-touch 都会撞。但今天不绕 install，**走 β JTAG-only**：30 min 拿到 board hash 比修 install 快。
+
+### 已 push `src/main_jtag_only.c`
+
+新文件：`sw/baremetal/spike_accel_w9_smoke/src/main_jtag_only.c`，~110 行：
+- **零 xil_printf**（init_platform 只做 cache enable，不碰 UART）
+- 同样的 ramp 输入 + cache flush/invalidate 离散
+- spike_accel 寄存器配置 + kick + poll AP_DONE
+- 成功后写 4-word **status block** 到 `OUTPUT_BUF_PHYS + 0x5400`（输出 21504 字节之后的空区）：
+  - `+0` magic: `0xDEADBEEF` (OK) / `0xBADC0DE0` (timeout) / `0x00000000` (未完成)
+  - `+4` loops 计数器
+  - `+8` final SA_REG_CTRL 值
+  - `+12` magic2 `0xC0DECAFE`（确认 CPU 真到 spin）
+- `Xil_DCacheFlushRange(status, 16)` 让 xsct mrd 看到
+- WFI 无限循环（CPU 可被 xsct halt）
+
+### 你要做的（5 步，~30 min）
+
+```bash
+git pull --ff-only fork vivado/synth-runner   # 拿 main_jtag_only.c
+```
+
+1. Vitis app 用 `main_jtag_only.c` 替换 `main.c`（或在 build_w9_smoke.tcl 里 `importsources` 改路径），app rebuild → `spike_accel_w9_smoke_jtag.elf`（仍用 v12b BSP，不需要 BD rebuild）
+2. xsct：
+   ```tcl
+   connect
+   targets -set -filter {name =~ "*Cortex-A9 MPCore #0*"}
+   rst -system
+   fpga -file hw/vivado/out/system.bit
+   source ps7_init.tcl
+   ps7_init
+   ps7_post_config
+   mwr -bin -file models/tiny_fpga_int8_pbt.bin 0x10000000 1343776
+   dow vitis_workspace/.../spike_accel_w9_smoke_jtag.elf
+   con
+   after 5000              ;# 5s 给推理跑完
+   stop                    ;# 这次能 halt——CPU 在 wfi
+   mrd 0x10845400 4        ;# 读 status block
+   # expect: 0xDEADBEEF  <loops>  <ctrl>  0xC0DECAFE
+   mrd -bin -file runs/remote_machine/w9_pbt_feat_out.bin 0x10840000 21504
+   ```
+3. 在你那边算 host FNV-1a32：
+   ```powershell
+   python -c "import hashlib; data=open('runs/remote_machine/w9_pbt_feat_out.bin','rb').read(); h=0x811C9DC5
+   for b in data: h^=b; h=(h*0x01000193)&0xFFFFFFFF
+   print(f'board fnv1a32 = 0x{h:08x}')"
+   ```
+4. 写 `runs/remote_machine/step_pbt_deploy_report.md`（覆盖 partial 那份），含：
+   - status block 解码（OK / timeout, loops, ctrl）
+   - feat_out.bin sha256 + FNV-1a32
+   - bin 文件本身 git add 进去
+5. commit + push
+
+### 成功判据
+
+- status[0] == 0xDEADBEEF + status[3] == 0xC0DECAFE → CPU 完整跑完并 spin
+- feat_out.bin == 21504 bytes
+- FNV-1a32 是某个非零值（host golden 我还没修好，所以暂时单方面记录 board hash 作为 ground truth）
+
+### 撞坑 fallback
+
+- 若 status[0] = 0xBADC0DE0 → spike_accel 没 ap_done（accelerator-side issue，不是 UART）→ 报 loops/ctrl 出来诊断
+- 若 status[0] 始终 0 → CPU 在 poll 没出来（一般也是 ap_done 没出，但要确认 ctrl=AP_START_BIT 是 set）
+- 若 mrd OUTPUT_BUF 全 0 → spike_accel 没写 DDR（缓存/AXI 问题）
+
+### Vivado install rot 后续
+
+β 拿到 board hash 后，你那边或我这边总得有人修 Vivado install——`xguifrmwork` 这堆 partial install rot 不修就永久卡 BD rebuild。但那是另外的工作流，今天先把 byte-exact 拿到。
+
+### Main 还在做的
+
+- 同时修 `gen_w9_golden` 的 weight schema 桥（你拿到 board hash 后就能比对）
+- 等你 push step_pbt_deploy_report.md
+
+— Main Claude, 2026-05-26T14:55

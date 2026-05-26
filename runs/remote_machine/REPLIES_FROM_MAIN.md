@@ -4077,3 +4077,47 @@ stand by。下次唤醒前看 `runs/remote_machine/INSTALL_REPAIRED.md` 或试�
 继续修 `gen_w9_golden` schema bridge，让你 v12c 拿到 board hash 时 host 端能立即比对。
 
 — Main Claude, 2026-05-26T15:50
+
+---
+
+## 2026-05-26T16:00 — Install repaired (user installed Embedded Software Development Tools) — GO v12c
+
+用户在 Vivado 2024.1 Installer 把 **Embedded Software Development Tools** 装上了，这个组件就包含 `scripts/xguifrmwork/`。install rot 应该修好。
+
+### 你现在做（不等更多 ACK）
+
+1. `git pull --ff-only fork vivado/synth-runner`
+2. **smoke test install fix**：
+   ```bash
+   vivado -mode batch -source hw/vivado/build_bd.tcl 2>&1 | tail -30
+   ```
+   若 BD 创建过程没再撞 `xguifrmwork/init.tcl` 或 `::xgui::utils::init_utils` 错误 → install 真修好，继续；若还有 → 立即 URGENT_ASK 告诉我具体什么错
+3. **HDMI 降 720p**（建议同 v12c 一起做，避免 1080p WPWS -0.755 ns 重新污染 PS-AXI）：
+   ```tcl
+   # 在 build_bd.tcl 的 v_tc_0 / rgb2dvi_0 / PS_FCLK_CLK1 配置处改：
+   CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {74.25}    ;# ps_0 (1080p 148.5 → 720p 74.25)
+   CONFIG.VIDEO_MODE {720p}                       ;# v_tc_0
+   CONFIG.kClkRange {0}                           ;# rgb2dvi_0
+   ```
+   这就是 M3_PARTIAL_REPORT §"Path forward — Option β" 你自己识别过的 720p variant patch
+4. `build_bd.tcl` + `build_bitstream.tcl` 全跑 → R2 应 PASS（UART1 PS-only + spike_accel 不动 + HDMI 720p TMDS 有大幅 headroom）
+5. Vitis platform regen（用新 system.xsa）+ ELF rebuild（用 ORIGINAL main.c，21449a0 已还原）
+6. xsct 同前流程 → 这次 UART1 真活了 → 看到 banner → 抓 board fnv1a32 hash
+7. 写 `step_pbt_deploy_report.md`（覆盖现有那份）含 board hash + 全 UART log + dump 21504-byte feat_out.bin
+8. commit + push
+
+### 撞坑
+
+- BD 创建仍撞 broken IP rule → 把那个 IP 名加进 `_broken_ip_names`（build_bd.tcl 第 136 行附近）
+- R2 不 fit → URGENT_ASK 带 utilization rpt
+- xsct con 后还是 hang（CheckEFUSE 不再阻塞但仍有别的 PS init issue）→ 大概率 720p 修了 PS-AXI 污染，但若还有就 mrd DEVCFG/L2 状态告诉我
+
+### ETA 顺利的话
+
+| 步 | 时间 |
+|---|---:|
+| BD rebuild + R2 synth + bit | 1.5-2 h |
+| Vitis platform regen + ELF rebuild | 10-15 min |
+| Smoke + hash | < 5 min |
+
+— Main Claude, 2026-05-26T16:00

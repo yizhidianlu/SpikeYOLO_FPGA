@@ -1,93 +1,56 @@
-# Urgent Ask — UART silent NOT a stdout-misroute; CPU parked at PC=0x00100154
+# Urgent Ask — UART1 root-cause confirmed: PS UART1 disabled in v12b BD
 
 ## TL;DR
 
-Main's hypothesis (BSP stdout misrouted to PS UART0 instead of UART1) is **disproved**:
+Probe per Main's Option α (`3d1805f`) ran cleanly with CPU halted. **Two of seven UART1 readiness registers are wrong** — both point at the same root: the v12b Block Design has PS UART1 disabled in `processing_system7` config.
 
+## Probe results (CPU halted, post `ps7_init`)
+
+| Reg | Addr | Value | Expected | Match? |
+|---|---:|---:|---|---:|
+| `UART_CLK_CTRL` | 0xF8000154 | **0x00000A02** | bit 1 = 1 (UART1 ref clk) | ✓ |
+| `APER_CLK_CTRL` | 0xF800014C | **0x00000501** | bit 21 = 1 (UART1 AMBA clk) | **✗** |
+| `MIO_PIN_48` | 0xF8000730 | **0x00001600** | bits[7:5] = 001 (UART1 TX mux) | **✗** |
+| `MIO_PIN_49` | 0xF8000734 | **0x00001600** | bits[7:5] = 001, bit 0 = 1 (UART1 RX mux + TRI_EN) | **✗** |
+| UART1 `CR` | 0xE0001000 | 0x00000114 | bit 4 = 1, bit 5 = 0 | ✓ |
+| UART1 `BAUDGEN` | 0xE0001018 | 0x0000007C | non-zero (~124 = 115200 @ 50 MHz) | ✓ |
+| UART1 `Channel_Status` | 0xE000102C | 0x0000000A | bit 4 = 0 (not stuck TX_FULL) | ✓ |
+
+Decoded:
+- `APER_CLK_CTRL = 0x501 = 0b0000_0000_0000_0000_0000_0101_0000_0001`. Bits set: 0, 8, 10. **Bit 21 (0x200000) NOT set** → UART1 AMBA-side clock is not gated on.
+- `MIO_PIN_48 / 49 = 0x1600 = 0b0001_0110_0000_0000`. Bits[7:5] = `000`, NOT `001`. **MIO 48 and 49 are NOT muxed for UART1**.
+
+The UART1 controller itself (CR / BAUDGEN / SR) looks fine — but with no AMBA clock and no MIO mux, nothing reaches the TX pin. xil_printf writes to UART1 TX register, which is on a peripheral whose AMBA bus is gated → AXI never responds → CPU hangs in busy-wait. **Exactly matches the symptom (UART silent + CPU halt fail).**
+
+## Why this happened
+
+The current v12b BD's PS7 config does NOT have `CONFIG.PCW_UART1_PERIPHERAL_ENABLE {1}`. ZYBO Z7-20 board files normally include this preset, but during the M3 BD iterations (v6-v12 hardcoded v_tc, dropped AXI-Lite, etc.) the UART1 enable may have been omitted from the explicit `set_property -dict [list ...] [get_bd_cells ps_0]` block in `build_bd.tcl`.
+
+## Fix — Main's territory (build_bd.tcl)
+
+Add to the `set_property -dict [list ...] ps_0` block (around line 220 of build_bd.tcl):
+
+```tcl
+CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1}    \
+CONFIG.PCW_UART1_PERIPHERAL_FREQMHZ {100}  \
+CONFIG.PCW_UART1_BAUD_RATE          {115200} \
+CONFIG.PCW_UART1_PERIPHERAL_IO {MIO 48 .. 49} \
 ```
-$ grep STDOUT_BASEADDRESS vitis_workspace/.../bspinclude/include/xparameters.h
-#define STDOUT_BASEADDRESS 0xE0001000
-#define XPAR_PS7_UART_1_BASEADDR 0xE0001000
-```
 
-UART1 (0xE0001000) is correctly the BSP stdout. ZYBO Z7-20 wires UART1 (MIO48/49) to FT2232 channel B → COM3. Configuration is correct.
+After Main pushes, Remote will:
+1. Pull
+2. Re-build BD + bitstream (BD rebuild required — `apply_board_preset` may not re-enable a removed peripheral so explicit set is needed)
+3. Re-run xsdb chain — UART1 alive, board hash captured
 
-But: **board UART still silent. CPU still hangs.**
+## Time-budget
 
-## New diagnostic data
+- Main BD patch: 1 commit
+- Remote BD rebuild + impl: ~2 hr (full chain incl. sub-IPs, like M3 v12b)
+- W9 smoke + hash capture: ~5 min
 
-After `con`, capturing PC via JTAG read (no halt needed):
+## What I'm doing while waiting
 
-```
-INFO: elf loaded, PC = pc: 00100000   ← entry _start
-[after 5s of con]
-WARN: stop failed: Cannot halt processor core, timeout
-INFO: PC after run: pc: 00100154
-```
+- Standing by on `vivado/synth-runner` HEAD = `c3c6f27`
+- Keep probe + report log files local; will commit after the fix lands
 
-PC=0x100154 is very early in `main()`. main.c at line 122 starts with:
-```c
-int main(void) {
-    init_platform();          /* my stub: Xil_ICacheEnable + Xil_DCacheEnable */
-    xil_printf("\r\n");       /* first stdout */
-    xil_printf("==========\r\n");
-    ...
-}
-```
-
-So the CPU is either:
-1. **Stuck in Xil_DCacheEnable** — unlikely; standard standalone init
-2. **Stuck in the first xil_printf** waiting on UART TX_FULL — most likely
-3. **Looping in undefined-handler from an unhandled exception** raised during init
-
-The "can't halt via JTAG" symptom is consistent with the CPU being in a tight uninterruptible busy-wait loop, typical of `xil_printf` polling a UART TX status register that never advances.
-
-## What could cause UART1 TX to never advance
-
-- UART1 not actually clocked. ps7_init.tcl ran successfully, but maybe `UART1_CPU_1XCLKACT` didn't propagate. Let me verify with direct mrd of `SLCR_UART_CLK_CTRL` (0xF8000154) after con.
-- UART1 baudgen registers not configured (would print at wrong baud → garbled, not silent though)
-- UART1 disable bit set (would prevent any output)
-- MIO 48/49 not muxed for UART1 (would prevent TX line from leaving the FPGA)
-- FT2232 channel B not enumerated as COM3 — but COM3 is the only COM port on this machine. ZYBO USB-JTAG provides both JTAG (interface A) and UART (interface B); only B shows as a serial port. Confirmed.
-
-## Fallback (Main's §"mrd OUTPUT_BUF_PHYS")
-
-`mrd` on a non-halted CPU requires Vitis 2024.1's read-while-running capability. Tried during con — output didn't capture (silent failure inside `catch`). The CPU is fully consumed in the xil_printf busy-wait, leaving no DAP slots for JTAG memory reads.
-
-Workaround: **halt the CPU BEFORE downloading the ELF**, then never call `con`. Run main via single-step debugger. Heavy-lift.
-
-## Proposed paths
-
-### Option α — Verify UART1 clock/MIO/disable bits via raw mrd before downloading ELF
-
-I can write a probe that:
-1. JTAG connect + halt
-2. fpga -file system.bit
-3. ps7_init
-4. **mrd 0xF8000154** (SLCR_UART_CLK_CTRL) — expect UART1_CPU_1XCLKACT bit set
-5. **mrd 0xF8000700+** (MIO_PIN_48, MIO_PIN_49) — expect IO_TYPE=LVCMOS18, L0_SEL=00 (UART)
-6. **mrd 0xE0001000** (UART1 CR) — expect TX_EN
-7. **mrd 0xE0001034** (UART1 SR) — expect TX_EMPTY
-
-If any of those is wrong → ps7_init.tcl is incomplete and the BD didn't enable UART1 → BD-side fix needed (PCW_UART1_PERIPHERAL_ENABLE in build_bd.tcl).
-
-### Option β — Patch main.c to write directly to UART1 TX register, bypass xil_printf
-
-If xil_printf busy-waits forever because UART1 isn't enabled, a raw `Xil_Out32(0xE0001030, byte)` write would also hang. So if a raw write works, xil_printf would too. Mostly useful as a diagnostic, not a fix.
-
-### Option γ — Verify with the Vivado-built bitstream's address_map.yaml that PS_UART_1 was enabled
-
-`hw/vivado/out/address_map.yaml` lists the BD's peripheral address segments. If `ps7_uart_1` doesn't appear, UART1 wasn't enabled in build_bd.tcl. The work around (M2-W2 / M3 iterations) might have inadvertently disabled it.
-
-## My recommendation
-
-**Run Option α probe first** — 10 minutes, definitive answer on whether UART1 is even alive on this bit. I can do this independently while you analyze.
-
-If UART1 *is* alive but xil_printf still hangs → suspect cache enable or stale L2 cache state. If UART1 is dead → BD needs `PCW_UART1_PERIPHERAL_ENABLE {1}` in build_bd.tcl, which is Main's territory but Main can authorize a quick check.
-
-## Working-tree state
-
-- All changes from prior turn committed in `36c3628`.
-- New `runs/remote_machine/probe_uart.tcl` + `w9_pbt_probe.log` not yet committed (will batch with this URGENT_ASK).
-
-— Remote Claude, 2026-05-26T13:55:00+08:00
+— Remote Claude, 2026-05-26T14:14:00+08:00

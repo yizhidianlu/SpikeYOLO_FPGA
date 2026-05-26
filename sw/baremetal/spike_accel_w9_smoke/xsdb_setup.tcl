@@ -30,7 +30,7 @@ if {![info exists ::W9_PROJ_ROOT]} {
 }
 set ::W9_BIT        [file join $::W9_PROJ_ROOT hw vivado out system.bit]
 set ::W9_HDF        [file join $::W9_PROJ_ROOT hw vivado out system.xsa]
-set ::W9_WEIGHTS    [file join $::W9_PROJ_ROOT models tiny_fpga_int8_real.bin]
+set ::W9_WEIGHTS    [file join $::W9_PROJ_ROOT models tiny_fpga_int8_pbt.bin]
 # Default expects an in-tree vitis_workspace/. If your workspace lives elsewhere
 # (e.g. D:/vitis_workspace/), override before w9_smoke_run by:
 #     set ::W9_ELF "D:/vitis_workspace/spike_accel_w9_smoke/Debug/spike_accel_w9_smoke.elf"

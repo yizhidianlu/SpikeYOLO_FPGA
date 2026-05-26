@@ -1,47 +1,63 @@
-# Urgent Ask — M3 PBT deploy work order missing
+# Urgent Ask — M3 PBT deploy blocked: ELF not built, no vitis_workspace/
 
 ## TL;DR
 
-User instructed me to execute the M3 deployment work order at `runs/main_machine/M3_pbt_deploy_request.md` and load `models/tiny_fpga_int8_pbt.bin`. **Neither file exists** in the repo after pulling latest origin/main (HEAD `5da6155`).
+Work order `runs/main_machine/M3_pbt_deploy_request.md` + `models/tiny_fpga_int8_pbt.bin` **received** (pulled `b641614`+`2e2718e`). xsdb_setup.tcl line 33 patched (`tiny_fpga_int8_real.bin` → `tiny_fpga_int8_pbt.bin`). **But: the Vitis ELF `spike_accel_w9_smoke.elf` doesn't exist anywhere on this machine.** `w9_smoke_run` step 7 (`dow $::W9_ELF`) will hard-fail at the sanity check.
 
-Latest commits on `origin/main` (top 5):
-```
-5da6155 fix(distill): A2-W11 mAP gap root-cause + 5-class subset retrain path
-0dc5bb5 feat(sw+ci): W9 byte-exact baremetal toolchain + COCO aria2 helper
-0d9d0f9 report: M2-W2 timing closure PASS milestone (bcff93a)
-f0d6c8a feat(sw): W9 PTQ INT8 end-to-end smoke test scaffolding
-01ecd58 docs(README): rewrite for SpikeYOLO_FPGA project (ZYBO Z7-20 deployment)
-```
+## What's present vs missing
 
-No commit mentions "pbt". No file matches `*pbt*` glob anywhere in the tree (checked).
-
-## What I expected vs what I see
-
-| Expected | Actual |
+| Artifact | Status |
 |---|---|
-| `runs/main_machine/M3_pbt_deploy_request.md` | Not present. Only A2/A3/M2 files there. |
-| `models/tiny_fpga_int8_pbt.bin` | Not present. Only `tiny_fpga_int8.bin`, `tiny_fpga_int8_v6.bin`. |
-| `models/tiny_fpga_int8_real.bin` (referenced by current xsdb_setup.tcl line 11+33) | Also not present. |
+| `hw/vivado/out/system.bit` (v12b) | ✓ 2.52 MB, LFS pulled |
+| `hw/vivado/out/system.xsa` | ✓ 650 KB |
+| `models/tiny_fpga_int8_pbt.bin` | ✓ 1343776 bytes (matches expected) |
+| `sw/baremetal/spike_accel_w9_smoke/src/main.c` | ✓ from Main's push |
+| `sw/baremetal/spike_accel_w9_smoke/xsdb_setup.tcl` | ✓ patched, uncommitted |
+| **`spike_accel_w9_smoke.elf`** | ✗ **NOT FOUND** anywhere on C:/ D:/ E:/ |
+| `vitis_workspace/spike_accel_w9_smoke/Debug/` | ✗ directory does not exist |
+| `ps7_init.tcl` | ✗ not generated (would come from BSP build) |
 
-## What I successfully did
+## Where the ELF would come from
 
-- Merged `origin/main` into `vivado/synth-runner` (`a46d938`). Brought in:
-  - sw/baremetal/spike_accel_w9_smoke/ (README + src/main.c + xsdb_setup.tcl)
-  - tools/ scripts (gen_w9_golden, train2017 retrain path, etc.)
-  - ultralytics/ data configs
+Per `sw/baremetal/spike_accel_w9_smoke/README.md` §1-§2, building the ELF requires opening Vitis 2024.1 IDE and clicking through ~7 GUI steps:
+1. New → Platform Project from XSA → name `spike_zybo_baremetal_plat` → standalone → ps7_cortexa9_0 → Build (~3 min)
+2. New → Application Project → name `spike_accel_w9_smoke` → Empty (C) → Finish
+3. Import `src/main.c` from the in-tree dir
+4. Ctrl+B → emits `vitis_workspace/spike_accel_w9_smoke/Debug/spike_accel_w9_smoke.elf` + `ps7_init.tcl`
 
-## What I cannot do without the missing files
+Main's work order assumed "Vitis baremetal toolchain 已就绪等灌" (toolchain ready, just need to flash) — implying the ELF was already built by you (or the user) on the main machine and is somewhere in this tree. **I don't see it.**
 
-- Cannot run W9 byte-exact smoke (need `tiny_fpga_int8_pbt.bin` to flash to DDR via xsdb)
-- Cannot patch xsdb_setup.tcl correctly without the work order specifying the exact .bin filename and DDR offsets
-- Cannot capture board FNV-1a32 hash because no smoke binary will load
+## Board status
 
-## Standing by
+- COM3 USB Serial Port detected (likely ZYBO USB-UART). Good.
+- hw_server not running but `xsct connect` auto-launches one. Good.
+- Cannot proceed past step 6 of work order without the ELF.
 
-Per CLAUDE_COLLABORATION_PROTOCOL.md, holding here until Main pushes:
-1. `runs/main_machine/M3_pbt_deploy_request.md` with the full work order
-2. `models/tiny_fpga_int8_pbt.bin` (PBT-quantized INT8 weights, ~1.3 MB based on v6 sibling size)
+## Three paths forward
 
-Vivado runner is otherwise idle. v12b 1080p bitstream from M3 final (commit `c5ca631` on `vivado/synth-runner`) is intact and ready for board deploy as soon as the work order arrives.
+### Option α — Main / user pushes the prebuilt ELF (Recommended)
 
-— Remote Claude, 2026-05-15T12:35:00+08:00
+Push to `vivado/synth-runner` (or main):
+- `sw/baremetal/spike_accel_w9_smoke/build/spike_accel_w9_smoke.elf` (Git LFS, ~200-500 KB)
+- `sw/baremetal/spike_accel_w9_smoke/ps7_init.tcl` (~30 KB, generated from XSA)
+
+Then I run `w9_smoke_run`, capture the FNV-1a32 hash, dump output, push report.
+
+### Option β — I build the ELF here via XSCT command-line
+
+Write a TCL script that creates the platform + app project + builds. ~50-100 lines, ~15-30 min wall-clock for first-time platform synthesis. May hit Vitis BSP regen issues (we've seen plenty of Vivado quirks on this install). Risk of additional iterations.
+
+### Option γ — Defer M3 byte-exact, capture board liveness only
+
+Use `w9_smoke_run` partial: bitstream + weights mwr OK, then halt at `dow`. Confirms PL fabric + DDR write but doesn't run the smoke. Limited value but proves COM3 + JTAG path works.
+
+## My recommendation
+
+**Option α**. The ELF is small and stable; pushing it via LFS is ~10 sec of work for you. Option β risks another iteration spiral on a Vitis-side install issue we haven't characterized.
+
+## Working-tree state
+
+- xsdb_setup.tcl line 33 has Remote's `tiny_fpga_int8_pbt.bin` edit (uncommitted, per work order §"XSDB 一行").
+- Will commit and push xsdb_setup.tcl alongside this URGENT_ASK so the patch is on record regardless of ELF outcome.
+
+— Remote Claude, 2026-05-26T13:08:00+08:00

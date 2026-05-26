@@ -43,7 +43,7 @@ set ::W9_WEIGHTS_BYTES 1343776
 proc w9_smoke_run {} {
     puts ""
     puts "============================================================"
-    puts "[w9-smoke] xsdb automation start"
+    puts "\[w9-smoke\] xsdb automation start"
     puts "  proj root : $::W9_PROJ_ROOT"
     puts "  bitstream : $::W9_BIT"
     puts "  weights   : $::W9_WEIGHTS ($::W9_WEIGHTS_BYTES bytes @ $::W9_WEIGHTS_ADDR)"
@@ -53,7 +53,7 @@ proc w9_smoke_run {} {
     # 1. Sanity check
     foreach f [list $::W9_BIT $::W9_WEIGHTS $::W9_ELF] {
         if {![file exists $f]} {
-            error "[w9-smoke] missing file: $f"
+            error "\[w9-smoke\] missing file: $f"
         }
     }
 
@@ -61,39 +61,43 @@ proc w9_smoke_run {} {
     connect
 
     # 3. Target the ARM Cortex-A9 #0
-    targets -set -filter {name =~ "*Cortex-A9 #0*"}
+    # Match name actually emitted by Vitis 2024.1 hw_server: "ARM Cortex-A9 MPCore #0"
+    targets -set -filter {name =~ "*Cortex-A9 MPCore #0*"}
 
     # 4. Reset and program the PL
     rst -system
     after 200
-    puts "[w9-smoke] programming bitstream..."
+    puts "\[w9-smoke\] programming bitstream..."
     fpga -file $::W9_BIT
 
     # 5. Init PS DDR via ps7_init (Vitis generates this from XSA; you can
     #    alternatively source the platform-provided psu_init helper).
     if {[file exists $::W9_PS7_INIT]} {
-        puts "[w9-smoke] sourcing ps7_init.tcl..."
+        puts "\[w9-smoke\] sourcing ps7_init.tcl..."
         source $::W9_PS7_INIT
         ps7_init
         ps7_post_config
     } else {
-        puts "[w9-smoke] WARN: ps7_init.tcl not found — falling back to BSP init"
+        puts "\[w9-smoke\] WARN: ps7_init.tcl not found — falling back to BSP init"
     }
 
     # 6. Load weights blob into DDR (PL DMA region)
-    puts "[w9-smoke] loading weights into DDR @ $::W9_WEIGHTS_ADDR..."
+    puts "\[w9-smoke\] loading weights into DDR @ $::W9_WEIGHTS_ADDR..."
     mwr -bin -file $::W9_WEIGHTS $::W9_WEIGHTS_ADDR [expr $::W9_WEIGHTS_BYTES / 4]
 
     # Spot-check: read back first 16 bytes so user can sanity-compare with host hexdump
-    puts "[w9-smoke] DDR @ $::W9_WEIGHTS_ADDR readback (4x u32):"
+    puts "\[w9-smoke\] DDR @ $::W9_WEIGHTS_ADDR readback (4x u32):"
     set vals [mrd -force $::W9_WEIGHTS_ADDR 4]
     puts "  $vals"
 
     # 7. Download the elf and let it rip
-    puts "[w9-smoke] downloading elf..."
+    puts "\[w9-smoke\] downloading elf..."
     dow $::W9_ELF
-    puts "[w9-smoke] elf loaded, PC = [print -e]"
-    puts "[w9-smoke] >>> con — watch your UART terminal for results"
+    # Vitis 2024.1 dropped `print -e`; use `rrd pc` instead.
+    set _pc ""
+    catch { set _pc [rrd pc] }
+    puts "\[w9-smoke\] elf loaded, PC = $_pc"
+    puts "\[w9-smoke\] >>> con — watch your UART terminal for results"
     con
 }
 
@@ -102,8 +106,8 @@ proc w9_dump_output {{path "feat_out_baremetal.bin"}} {
     set addr 0x10840000
     set bytes 21504
     mrd -bin -file $path $addr [expr $bytes / 4]
-    puts "[w9-smoke] dumped $bytes bytes from $addr to $path"
+    puts "\[w9-smoke\] dumped $bytes bytes from $addr to $path"
 }
 
-puts "[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start."
-puts "[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run."
+puts "\[w9-smoke\] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start."
+puts "\[w9-smoke\]                   or:  w9_dump_output ?path?   after a successful run."

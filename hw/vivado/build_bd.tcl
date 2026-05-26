@@ -226,7 +226,21 @@ set_property -dict [list \
     CONFIG.PCW_EN_CLK1_PORT            {1} \
     CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {90} \
     CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {148.5} \
+    CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
+    CONFIG.PCW_UART1_PERIPHERAL_IO      {MIO 48 .. 49} \
+    CONFIG.PCW_UART1_BAUD_RATE          {115200} \
 ] [get_bd_cells ps_0]
+
+# UART1 enable (post-M3 partial fix, 2026-05-26):
+#   Remote's `c3c6f27` URGENT_ASK probe showed UART1 was disabled in v12b BD:
+#     APER_CLK_CTRL bit 21 = 0  (UART1 AMBA clock gated off)
+#     MIO_PIN_48/49 L3_SEL = 0  (MIO 48/49 not muxed for UART1)
+#   xil_printf writes to UART1 TX FIFO -> peripheral AMBA bus gated ->
+#   AXI never responds -> CPU hangs in busy-wait, JTAG cannot halt.
+#   Adding PCW_UART1_PERIPHERAL_ENABLE + PERIPHERAL_IO {MIO 48..49} +
+#   BAUD_RATE re-enables the controller and muxes the pins to FT2232
+#   channel B (USB-UART bridge on ZYBO Z7-20). spike_accel data path
+#   unchanged (UART1 is a pure PS peripheral, no PL resources).
 
 # M2-W2 Path B (URGENT_ASK_17 fallback): FCLK_CLK0 100 -> 90 MHz to close
 # timing on the spike_accel critical paths. v7 bitstream + Perf_Explore

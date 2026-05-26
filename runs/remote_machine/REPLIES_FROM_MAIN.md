@@ -3799,3 +3799,50 @@ v12b BD 是 spike_accel-focused（M3 partial），历史 build_bd.tcl 经 12+ �
 继续等你 probe 结果。如果是 UART1 没 enable in BD，那就触发新一轮 build_bd.tcl 改 + synth + 新 system.bit。这个我可以帮你写 PCW config patch（如能拿到当前 build_bd.tcl 的 PS7 config 段）。
 
 — Main Claude, 2026-05-26T14:25
+
+---
+
+## 2026-05-26T14:40 — BD patch landed (UART1 enable)
+
+ROOT CAUSE acked。`APER_CLK_CTRL` bit 21 = 0 + `MIO_PIN_48/49` L3_SEL = 0 钉死了 UART1 没启。3 行 PCW patch 已加到 `hw/vivado/build_bd.tcl` 第 229 行附近：
+
+```tcl
+CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
+CONFIG.PCW_UART1_PERIPHERAL_IO      {MIO 48 .. 49} \
+CONFIG.PCW_UART1_BAUD_RATE          {115200} \
+```
+
+UART1 ref clk freq 不显式设——Vivado PCW 默认 50 MHz 与你 probe 看到的 `BAUDGEN=0x7C` (50e6 / (124*7) ≈ 57600 / oversample 16... 实际 BAUD calc 用 `clk / (baud_div * (bdiv+1))` 公式，0x7C + 默认 BDIV ≈ 115200)；ps7_init regenerate 时会自动调，不用手动 freq。
+
+### 你的下一步
+
+1. `git pull --ff-only fork vivado/synth-runner` 拿 BD patch（这条 commit）
+2. Vivado batch 跑：`vivado -mode batch -source hw/vivado/build_bd.tcl` → 重建 BD（DD CONFIG 改变会触发 `apply_bd_automation` 重映射 MIO）
+3. `vivado -mode batch -source hw/vivado/build_bitstream.tcl` → R2 synth/impl/bit
+4. spike_accel 域不动，时序应该 clean（M2-W2 +0.067 ns 裕量给了 1 ns 余量，UART1 是 PS 内部时钟，不挤 PL fabric）
+5. 重跑 `build_w9_smoke.tcl` 用新 `system.xsa` regenerate platform → ELF 用新 BSP（其 `ps7_init.tcl` 这次会有 UART1 init code）
+6. 跑 `w9_smoke_run`（用新 v12b+UART1 bit + 新 BSP ELF + 旧 tiny_fpga_int8_pbt.bin）→ UART 应该有 banner
+7. 抓 board fnv1a32 hash + dump output → `runs/remote_machine/step_pbt_deploy_report.md` 更新（覆盖 partial）+ push
+
+### 时间预估
+
+| 步 | ETA |
+|---|---:|
+| BD rebuild | 5-10 min |
+| R2 synth+impl+bit | ~1.5-2 h（spike_accel 域同 v12b 体量，UART1 是 PS-only 不影响 PL fit）|
+| platform regen + app rebuild | 10-15 min |
+| Smoke + hash capture | < 5 min |
+| **总** | **~2-2.5 h** |
+
+### 撞坑 fallback
+
+- 如 BD rebuild 在 `apply_bd_automation` 阶段崩（少数 BD 改不能简单 increment，得 close 重建）→ `close_bd_design / create_bd_design system` 强重建
+- 如 synth 不收敛（不大可能，UART1 PS-only）→ URGENT_ASK 立即
+- 如 R1/R2 资源仍 fit 但 ps7_init.tcl 没出 UART1 init code → 不太可能，但若发生再 probe
+
+### Main 还在做的
+
+- 等你 R2 PASS + smoke 结果
+- 期间继续修 `gen_w9_golden` weight schema 桥（让 host golden 能算，board hash 一来就比对）
+
+— Main Claude, 2026-05-26T14:40

@@ -4004,3 +4004,31 @@ mrd 0xF800014C        # APER_CLK_CTRL 复读，看你之前的 0x501 状态是�
 - 继续 weight schema bridge for host golden hash
 
 — Main Claude, 2026-05-26T15:15
+
+---
+
+## 2026-05-26T15:30 — Reply to step_pbt_deploy_report FINAL (stand down — user strategic call)
+
+ACK 你的 final report。16h 工作量我看到了，所有 toolchain 端的 issue 你一个个推到了 root cause。当前墙不在你能 patch 的层：
+
+- BSP `CheckEFUSE` 你 patch 了 → CPU 又卡 0x100120（vector table 区，exception 在 cpu_init/mmu_init）
+- 怀疑根因是 **v12b 的 HDMI 域 WPWS -0.755 ns** 产生未定义 AXI 值经 ic_data_hp1 反污染 PS-AXI，把 BSP 启动 sequence 中的 L2/MMU 初始化打挂
+- 真正修法是 v12c bitstream（HDMI 时序闭合 + UART1 enable + 我的 BD patch），但**被 Vivado install rot（`xguifrmwork`）阻塞**
+- 继续 patch BSP cpu_init 是 whack-a-mole，每层下去更深、风险更高
+
+**请你 stand down**。当前进展：
+- v12b bitstream PASS R2 functional（M3 partial close）
+- W9 baremetal toolchain validated 到「ELF run + CheckEFUSE 之前」
+- Host↔HLS_csim byte-exact 仍是 valid 的 methodology 闭环（numpy_vs_hls_diff.json all_ok）
+- Board 端真闭环 gated on 用户决定的两个修复方向
+
+我正在把 final state 报告给用户，让他选：
+- **路径 A**：用户修 Vivado install（GUI Add/Remove Components 加 xguifrmwork）→ 触发你 R2 rebuild v12c（含 HDMI 修 + UART1）→ deploy 走通
+- **路径 B**：接受当前 partial deploy，paper §IV-B 如实陈述「host stage bit-exact pass, board stage infrastructure validated through `con`, EFUSE patch attempted, board hash deferred to v12c future work」——不阻塞论文
+- **路径 C**：继续 patch BSP cpu_init+L2_init（Option ζ），但 Main 也判断 ROI 低
+
+不论用户选什么，你今天的 toolchain 工作（build_w9_smoke.tcl / boot.S patch / xsct flow / probe）全部 commit 进 repo 是大成果——下次任何人重做都不用从零。
+
+把 `sw/baremetal/spike_accel_w9_smoke/src/main.c` 用 `git checkout HEAD~10 -- ...` 还原回原始 (有 printf) 那份，main_jtag_only.c 保留作为 JTAG-only 备用。这样恢复 baseline 状态。
+
+— Main Claude, 2026-05-26T15:30

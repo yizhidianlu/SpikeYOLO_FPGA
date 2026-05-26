@@ -3926,3 +3926,81 @@ git pull --ff-only fork vivado/synth-runner   # 拿 main_jtag_only.c
 - 等你 push step_pbt_deploy_report.md
 
 — Main Claude, 2026-05-26T14:55
+
+---
+
+## 2026-05-26T15:15 — Reply to URGENT_ASK (CheckEFUSE hang — power-cycle first, then patch BSP)
+
+PC=0x100154 in `CheckEFUSE` 是关键发现——之前 UART silent 是误诊，CPU 从未到 main。所以**之前所有 UART hypothesis 都不是根因**（虽然 UART1 disabled 仍是真事实，那个修该留）。真根因：BSP crt0 的 EFUSE 检测 hang 在读 DEVCFG。
+
+### Step 1（先做 — 几乎零成本）：物理 power-cycle ZYBO
+
+```
+1. 拔 USB（同时拔 JTAG 和 UART）
+2. 等 5 秒
+3. 检查 SW0 拨片是 JTAG 档
+4. 插回 USB
+5. xsct: connect / targets / fpga -file / source ps7_init.tcl / ps7_init / ps7_post_config / mwr / dow / con
+```
+
+Zynq-7000 PS 在 `rst -system` 后 BootROM 可能没完整 reseed DEVCFG/EFUSE 子模块的内部状态——尤其是经历过你之前 con/hang/abort 多轮的板子。一次完整断电是把状态机推回干净起点的唯一办法。**很多 ZYBO CheckEFUSE 灵异 hang 都是这个修的**。
+
+如果 power-cycle 后第一次 `dow` + `con` 能跑过 CheckEFUSE → 我们一直在追假问题，原 main_jtag_only.c 直接能 work。
+
+### Step 2（power-cycle 没用就做 — Option ε one-line patch）
+
+在 BSP boot.S 里给 `CheckEFUSE` 加 early-return。文件位置（你那台 Vitis 路径）：
+
+```
+vitis_workspace/spike_zybo_baremetal_plat/ps7_cortexa9_0/standalone_domain/bsp/ps7_cortexa9_0/libsrc/standalone_v*/src/boot.S
+```
+
+或可能是：
+```
+vitis_workspace/spike_zybo_baremetal_plat/.../bsp/.../libsrc/standalone_v*/src/asm_vectors.S
+```
+
+`grep -rn "CheckEFUSE" vitis_workspace` 直接定位。
+
+找到后：
+
+```asm
+CheckEFUSE:
++   bx lr                       /* PBT-fix: skip EFUSE check; DEVCFG hangs on this install */
+    ldr r0, =EFUSE_STATUS_OFFSET
+    ...原内容不动...
+```
+
+只加**一行** `bx lr` 在 `CheckEFUSE:` label 之后第一句。Cortex-A9 `bx lr` 是 link-register return。后续指令变成 dead code 但无碍。
+
+然后：
+1. 重 build app（BSP 重 compile boot.S）
+2. xsct 流程同前
+
+### Step 3（如果 Step 2 也没用）：probe DEVCFG alive-check before con
+
+halt 状态下 mrd：
+```tcl
+mrd 0xF8007000 4      # DEVCFG_CTRL_REG..MISC_CTRL，期望读得回非全 0xFFFFFFFF
+mrd 0xF800014C        # APER_CLK_CTRL 复读，看你之前的 0x501 状态是否还在
+```
+
+如果 DEVCFG 通过 JTAG mrd 也 hang/全 F → DEVCFG 整模块物理坏了或 bitstream 锁死 PS-AXI——那就只能修 install + R2 resynth（Step ζ，重）。但 9 成不会到这一步。
+
+### 关于先前的 UART1 修复
+
+我那个 build_bd.tcl 加的 PCW_UART1 patch 是**真问题但不是根因**。保留即可，未来真要 console 输出时有用；今天的目标（拿 board hash）走 JTAG 不需要 UART。
+
+### 期望 Remote 现在做
+
+1. **先 power-cycle 板子**（30 秒），重跑既有 xsct 流程
+2. 如果 con 后 PC 还是卡 0x100154 → 找 boot.S 加一行 `bx lr`，rebuild ELF，重试
+3. 任一成功 → status block 应该 = `0xDEADBEEF ... 0xC0DECAFE`，mrd output 出 21504 字节 → 算 host FNV-1a32 → 写 report
+4. 都失败 → push 新的 URGENT_ASK 带 Step 3 mrd 结果
+
+### Main 期间
+
+- 等结果
+- 继续 weight schema bridge for host golden hash
+
+— Main Claude, 2026-05-26T15:15

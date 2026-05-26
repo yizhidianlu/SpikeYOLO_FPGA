@@ -3733,3 +3733,69 @@ Device Manager 通常会列两个 COM。如果你打开的是 Converter A 那个
 继续修 `gen_w9_golden` 的 weight_packer ↔ numpy_reference schema 漂移（npz 是 flat `L00.w/L00.scalar` 而 loader 要 nested `L1.encode_conv.{w,stride,...}`，需要写映射桥）。等你 UART 通了，host golden 也能算时就能 byte-exact 比对。
 
 — Main Claude, 2026-05-26T14:10
+
+---
+
+## 2026-05-26T14:25 — Reply to URGENT_ASK (UART1 hardware-level probe)
+
+诊断 acked，反驳合理。PC=0x100154 + STDOUT_BASEADDRESS=0xE0001000 → 在 xil_printf 第一次访问 UART1 时 busy-wait → UART1 寄存器没响应。
+
+**走 Option α**。给精确寄存器+期望值（Zynq-7000 UG585 Ch 19 + Appendix B SLCR）：
+
+### 必读的 5 个寄存器 + 期望 bit pattern
+
+| Addr | Reg | 期望（UART1 alive）| 不对 = 什么坏 |
+|---:|---|---|---|
+| `0xF8000154` | `UART_CLK_CTRL` | bit 1 = 1 (`CLKACT[1]`) | UART1 时钟没开 → ps7_init 没 enable UART1 clock |
+| `0xF800014C` | `APER_CLK_CTRL` | bit 21 = 1 (UART1 AMBA clock) | AMBA-side 时钟没开 → 同上 |
+| `0xF8000730` | `MIO_PIN_48` | `L3_SEL=0b001`（bits[7:5]）= UART | MIO 48 没复用为 UART1 TX |
+| `0xF8000734` | `MIO_PIN_49` | `L3_SEL=0b001`（bits[7:5]）= UART1 RX，且 `TRI_ENABLE=1`（bit 0） | MIO 49 没复用为 UART1 RX |
+| `0xE0001000` | UART1 `CR` | bit 4 = 1 (`TX_EN`), bit 5 = 0 (`TXDIS=0`) | UART1 控制器没启用 TX |
+
+bonus 验证：
+- `0xE000102C` UART1 `Channel_Status_Reg` —— `TX_FULL`(bit 4) 期望 0；如果一直读到 0x10 = TX_FULL 永久卡死 → 时钟没开导致 baud gen 不走、TX FIFO 永不 drain
+- `0xE0001018` UART1 `BAUD_GEN_REG` —— 期望 ~0x7C (115200@ref_clk_50MHz) 或类似，不能是 0
+
+### XSCT 命令模板（你接 c3c6f27 的 probe 框架）
+
+```tcl
+# 在 ps7_init.tcl 之后，download elf 之前
+foreach {name addr expect} {
+    UART_CLK_CTRL  0xF8000154  "bit1=1"
+    APER_CLK_CTRL  0xF800014C  "bit21=1"
+    MIO_PIN_48     0xF8000730  "bits[7:5]=001"
+    MIO_PIN_49     0xF8000734  "bits[7:5]=001 bit0=1"
+    UART1_CR       0xE0001000  "bit4=1 bit5=0"
+    UART1_BAUDGEN  0xE0001018  "non-zero"
+    UART1_SR       0xE000102C  "bit4=0 (not stuck TX_FULL)"
+} {
+    puts "[w9-probe] $name @$addr expect: $expect"
+    mrd -force $addr
+}
+```
+
+### 如果有任意一个不对：根因映射
+
+| 异常 | 根因 | 修法 |
+|---|---|---|
+| `UART_CLK_CTRL` bit 1 = 0 | PS7 PCW config 没 enable UART1 clock | **build_bd.tcl 必须改**：在 PS7 config 加 `CONFIG.PCW_UART1_PERIPHERAL_ENABLE {1}` + `CONFIG.PCW_UART1_PERIPHERAL_FREQMHZ {100}` + `CONFIG.PCW_UART1_BAUD_RATE {115200}` |
+| `MIO_PIN_48/49` 不是 UART | PS7 MIO map 没把 48/49 给 UART1 | build_bd.tcl 加 `CONFIG.PCW_MIO_48_PULLUP/IOTYPE/SLEW` + UART1 选 MIO 48-49 |
+| UART1 CR bit 4 = 0 | UART1 控制器没启 TX | ps7_init.tcl 不全；regenerate from XSA |
+| `BAUD_GEN` = 0 | baud 没配 | 同上 |
+| 都对但还 silent | 物理 RTS/CTS 流控；或 FT2232 channel B 真不通 | 用示波器/逻辑分析仪测 MIO 48 引脚 |
+
+### 极可能的根因猜测
+
+v12b BD 是 spike_accel-focused（M3 partial），历史 build_bd.tcl 经 12+ 轮迭代（URGENT_ASK_18 → #29 v1→v12b）大概率**没显式 enable UART1**。Vivado 默认 PS7 IP 把 UART0 和 UART1 都 disabled，需要 PCW config 显式开。如果 build_bd.tcl 没那行 → UART1 全死 → console 无救。
+
+**如果是这个，你只需在 build_bd.tcl 加 3 行（PCW_UART1_PERIPHERAL_ENABLE/FREQ/BAUD）+ MIO 48/49 选 UART1**，重 synth → 这是不到 1h 的 R2-fit。spike_accel 域不动，时序裕量足。
+
+### 关于 mrd-while-running
+
+你说 con 后 mrd 拿不到——因为 CPU 在 UART busy-wait 把 AXI 通道占满。Option α 是**先 halt → ps7_init → 不 download elf**，CPU 处于 halt 状态时所有 mrd 都能通。你 probe_uart.tcl 应该用这套流程，不要 con。
+
+### Main 还在做的
+
+继续等你 probe 结果。如果是 UART1 没 enable in BD，那就触发新一轮 build_bd.tcl 改 + synth + 新 system.bit。这个我可以帮你写 PCW config patch（如能拿到当前 build_bd.tcl 的 PS7 config 段）。
+
+— Main Claude, 2026-05-26T14:25

@@ -38,6 +38,10 @@ sys.path.insert(0, str(REPO_ROOT))
 # HLS csim regressions (Contract 2). It accepts a single int8 [1,3,256,256]
 # image and returns int8 [1,48,16,16] pre-NMS feature output.
 from tools.fpga import numpy_reference  # type: ignore
+# to_numpy_reference bridges the weight_packer flat schema (L00..LNN + meta JSON)
+# into the nested dict TinyFpgaNet consumes. Required for any .npz emitted by
+# run_ptq.py (the legacy fold_bn.py loader is gone).
+from tools.quant.to_numpy_reference import load_for_tinyfpga  # type: ignore
 
 INPUT_H = 256
 INPUT_W = 256
@@ -78,7 +82,9 @@ def build_input(pattern: str, path: str | None) -> np.ndarray:
         arr = np.frombuffer(raw, dtype=np.int8).copy()
     else:
         raise SystemExit(f"unknown --input pattern {pattern!r}")
-    return arr.reshape(1, INPUT_C, INPUT_H, INPUT_W)
+    # numpy_reference.TinyFpgaNet.forward_backbone expects (C, H, W) and
+    # prepends the T=1 axis internally via img_i8[np.newaxis, ...].
+    return arr.reshape(INPUT_C, INPUT_H, INPUT_W)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -116,9 +122,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.verbose:
         print(f"[golden] loading weights {weights_path}", file=sys.stderr)
-    # PBT-fix: TinyFpgaNet has no classmethod load_npz; construct via load_weights.
     net = numpy_reference.TinyFpgaNet(
-        weights=numpy_reference.load_weights(str(weights_path))
+        weights=load_for_tinyfpga(weights_path)
     )
 
     if args.verbose:

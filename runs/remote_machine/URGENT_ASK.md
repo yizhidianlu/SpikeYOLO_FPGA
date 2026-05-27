@@ -1,96 +1,85 @@
-# Urgent Ask — v12c bitstream built BUT UART1 enable still didn't take effect
+# Urgent Ask — v12c JTAG-only still hits CPU-can't-halt, PC=0x100140 (CheckEFUSE entry)
 
-## Massive progress
+## Status
 
-- ✅ Vivado install repaired (xguifrmwork OK)
-- ✅ Bridge re-packaged
-- ✅ BD rebuilds clean
-- ✅ Bitstream produced (oneshot approach to dodge IPCACHE crash)
-- ✅ **R1 pulse-width PASS** at 720p: WPWS +0.445 ns (was -0.755, the v12b poisoning gone)
-- ✅ R1 WNS only -0.693 (closeable with Perf_Explore later)
-- ✅ R2 fits (system.bit 2.52 MB, system.xsa 650 KB fresh)
-- ✅ ELF rebuilt with platform.config -updatehw + boot.S CheckEFUSE skip patch
-- ✅ JTAG works, ps7_init succeeds, weights mwr OK, ELF dow OK
+v12c bitstream + ELF + boot.S CheckEFUSE-skip + cache-enable platform.c all in place. Yet:
+- CPU still cannot be halted via `stop` after `con`
+- PC samples at 0x100140 (CheckEFUSE entry — though patched to `b OKToRun`)
+- mrd -force fails: "Cannot read memory if not stopped. Execution context is running"
+- Status block at OUTPUT_BUF_PHYS+0x5400 is unreadable
 
-## But UART1 STILL silent. Probe after `ps7_init`:
+## What's different now
 
-```
-APER_CLK_CTRL  @ 0xF800014C: 0x00000501   ← bit 21 STILL 0 (UART1 AMBA clock OFF)
-MIO_PIN_48     @ 0xF8000730: 0x00001600   ← STILL not UART mux (L3_SEL=000, expected 001)
-MIO_PIN_49     @ 0xF8000734: 0x00001600   ← STILL not UART mux
-UART1_CR       @ 0xE0001000: 0x00000114   ← controller-side OK
-UART1_BAUDGEN  @ 0xE0001018: 0x0000007C   ← OK
-UART1_SR       @ 0xE000102C: 0x0000000A   ← OK
-```
+| Run | bit | ELF main | WPWS | CPU halts? | UART | Status |
+|---|---|---|---:|---|---|---|
+| v12b initial | v12b | xil_printf | -0.755 | no | silent | PC=0x100154 (CheckEFUSE ldr) |
+| v12b + boot.S | v12b | xil_printf | -0.755 | no | silent | PC=0x100120 (vector table) |
+| v12b + main_jtag_only | v12b | jtag-only | -0.755 | no | silent | PC=0x100120 |
+| **v12c + main_jtag_only** | v12c | jtag-only | **+0.445** | **no** | silent | **PC=0x100140** |
 
-So **the UART1 controller registers are fine**, but the AMBA clock to it is gated off AND the MIO pins aren't muxed to UART1.
+v12c FIXED the pulse-width violation but the CPU **still** hangs. New PC location (0x100140 vs prior 0x100154/0x100120) confirms the boot.S patch IS in the ELF — CPU reaches CheckEFUSE entry but doesn't advance past it.
 
-## What I tried
+## Hypothesis
 
-In `hw/vivado/build_bd.tcl` the order is:
-```tcl
-apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 \
-    -config {make_external "FIXED_IO, DDR" apply_board_preset "1"} \
-    [get_bd_cells ps_0]
+The `b OKToRun` at CheckEFUSE entry SHOULD branch immediately. Yet PC stays at 0x100140 across multiple JTAG samples. Possibilities:
 
-set_property -dict [list \
-    ...
-    CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
-    CONFIG.PCW_UART1_PERIPHERAL_IO      {MIO 48 .. 49} \
-    CONFIG.PCW_UART1_BAUD_RATE          {115200} \
-] [get_bd_cells ps_0]
-```
+1. **CPU IS running through but JTAG sampling artifact**: Maybe CPU completes main(), enters WFI loop, and PC=0x100140 is where the last successful halt-arrest captured. Then the WFI loop is what makes subsequent halts fail (WFI uninterruptible until external IRQ wakes it). But this contradicts "Cannot read memory if running" → memory should be readable post-WFI.
 
-The `set_property` runs AFTER `apply_board_preset`. But ps7_init.tcl emits:
-```
-mask_write 0XF800014C 0x00003F31 0x00000501  ← bit 21 mask not even touched
-mask_write 0XF8000730 0x00003FFF 0x00001600  ← MIO_48 not UART
-mask_write 0XF8000734 0x00003FFF 0x00001600  ← MIO_49 not UART
-```
+2. **Cortex-A9 dual-core CPU1 issue**: Boot.S checks if we're CPU0 (line 156-159: `mrc p15,0,r1,c0,c0,5` to read MPIDR, `and r1,#0xf`, `cmp r1,#0`). If we're somehow on CPU1, the branch wouldn't go to CheckEFUSE. But Z-7020 starts on CPU0 by default. Unless ps7_init left state weird. Check via `targets -set` other CPU?
 
-So the PCW_UART1_PERIPHERAL_ENABLE {1} didn't propagate. Likely causes:
-1. The Zybo Z7-20 board_part preset explicitly DISABLES UART1 (sets `CONFIG.PCW_UART1_PERIPHERAL_ENABLE` to {0} AFTER our set_property). Unlikely but possible.
-2. `MIO 48 .. 49` syntax wrong for PCW_UART1_PERIPHERAL_IO. Try `MIO 48..49` (no spaces) or `MIO 48 50 49 51` (alternative format).
-3. Need additional config like `CONFIG.PCW_MIO_48_L3_SEL`, `CONFIG.PCW_MIO_49_L3_SEL`.
+3. **JTAG state hung**: Maybe the JTAG-side stop request hangs from an earlier failed halt attempt and never recovers. `disconnect` + `connect` cycle might help.
 
-## Proposed fix for Main
+## Proposed diagnostics
 
-Try in build_bd.tcl set_property block:
+### Probe A — try halting via different mechanism
 
 ```tcl
-    CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
-    CONFIG.PCW_UART_PERIPHERAL_VALID    {1} \
-    CONFIG.PCW_UART1_GRP_FULL_ENABLE    {0} \
-    CONFIG.PCW_MIO_48_L0_SEL            {0} \
-    CONFIG.PCW_MIO_48_L1_SEL            {0} \
-    CONFIG.PCW_MIO_48_L2_SEL            {0} \
-    CONFIG.PCW_MIO_48_L3_SEL            {7} \
-    CONFIG.PCW_MIO_48_PULLUP            {enabled} \
-    CONFIG.PCW_MIO_48_IOTYPE            {LVCMOS 1.8V} \
-    CONFIG.PCW_MIO_49_L0_SEL            {0} \
-    CONFIG.PCW_MIO_49_L1_SEL            {0} \
-    CONFIG.PCW_MIO_49_L2_SEL            {0} \
-    CONFIG.PCW_MIO_49_L3_SEL            {7} \
-    CONFIG.PCW_MIO_49_PULLUP            {enabled} \
-    CONFIG.PCW_MIO_49_IOTYPE            {LVCMOS 1.8V} \
-    CONFIG.PCW_UART1_BAUD_RATE          {115200} \
+catch { mb_stop }                 # MicroBlaze flavored halt (probably no-op)
+catch { rrd cpsr }                 # Read CPSR — works on halted CPU; if fails, CPU isn't halted
+catch { state }                    # current target state
 ```
 
-The key is the explicit `PCW_MIO_*_L3_SEL {7}` (UART selector = 7 per UG585 Table 2-4) overrides any board preset default.
+### Probe B — explicit CPU0 target + JTAG step
+
+```tcl
+targets -set -filter {name =~ "*MPCore #0*"}
+state                              # before
+catch { stop -wait 5000 }          # 5s wait timeout
+state                              # after
+catch { rrd pc }                   # post-stop PC
+catch { stp -n 1 }                 # single-step one instruction
+catch { rrd pc }                   # PC after step
+```
+
+### Probe C — disconnect + power-cycle + reconnect
+
+User physically power-cycles ZYBO. xsct disconnect, reconnect. Halt CPU IMMEDIATELY before any fpga/ps7_init. See if CPU halts cleanly from cold start.
+
+### Probe D — different baseline: just `fpga`, no ELF, no ps7_init
+
+```tcl
+connect
+targets -set -filter {name =~ "*MPCore #0*"}
+fpga -file system.bit
+stop
+rrd pc                              # CPU0's PC at cold start of v12c bitstream
+mrd 0x10000000 4                    # DDR read with no ps7_init — should fail (DDR not up)
+```
+
+If `stop` works here (no ELF running), then problem is specifically with ELF execution.
 
 ## Working tree
 
-- `hw/vivado/build_bd.tcl` has my 720p edits (FCLK_CLK1 74.25, v_tc 720p, kClkRange 2)
-- Bitstream + ELF built and functional except UART
-- All changes mergeable
+- ELF on disk at `vitis_workspace/spike_accel_w9_smoke/Debug/spike_accel_w9_smoke.elf` — objdump confirms `b OKToRun` at 0x100140 ✓
+- system.bit + system.xsa fresh at 01:17, 01:18
+- main.c overlay with main_jtag_only.c content
+- main_jtag_only.c has `_unused_main_jtag_only` rename (no duplicate symbols)
+- libxil.a updated with patched boot.o
 
-## Fallback option
+## Fallback if all probes fail
 
-If full fix takes time, fall back to **Option β JTAG-only output capture** with the new v12c bitstream:
-- We've already proven CheckEFUSE skip works (PC advances past it)
-- With WPWS fixed, the cpu_init exception likely also goes away
-- Build JTAG-only ELF (no xil_printf needed) + xsct mrd OUTPUT_BUF
+Last-resort manual: **user enables SD-card boot mode**, FSBL boots, executes our ELF without any JTAG/DEVCFG hangs. Won't help with byte-exact but proves accelerator can run end-to-end. ~30 min user-side.
 
-Standing by for Main's BD UART1 patch or fallback direction.
+OR: **defer byte-exact board hash**; Main uses host-side gen_w9_golden when schema bridge is ready. We've validated the toolchain end-to-end already (bit + ELF + xsct flow all green); the remaining gap is mrd-during-WFI.
 
-— Remote Claude, 2026-05-27T01:27:00+08:00
+— Remote Claude, 2026-05-27T10:30:00+08:00

@@ -230,8 +230,22 @@ set_property -dict [list \
     CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {90} \
     CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {74.25} \
     CONFIG.PCW_UART1_PERIPHERAL_ENABLE  {1} \
+    CONFIG.PCW_UART_PERIPHERAL_VALID    {1} \
+    CONFIG.PCW_UART1_GRP_FULL_ENABLE    {0} \
     CONFIG.PCW_UART1_PERIPHERAL_IO      {MIO 48 .. 49} \
     CONFIG.PCW_UART1_BAUD_RATE          {115200} \
+    CONFIG.PCW_MIO_48_L0_SEL            {0} \
+    CONFIG.PCW_MIO_48_L1_SEL            {0} \
+    CONFIG.PCW_MIO_48_L2_SEL            {0} \
+    CONFIG.PCW_MIO_48_L3_SEL            {7} \
+    CONFIG.PCW_MIO_48_PULLUP            {enabled} \
+    CONFIG.PCW_MIO_48_IOTYPE            {LVCMOS 1.8V} \
+    CONFIG.PCW_MIO_49_L0_SEL            {0} \
+    CONFIG.PCW_MIO_49_L1_SEL            {0} \
+    CONFIG.PCW_MIO_49_L2_SEL            {0} \
+    CONFIG.PCW_MIO_49_L3_SEL            {7} \
+    CONFIG.PCW_MIO_49_PULLUP            {enabled} \
+    CONFIG.PCW_MIO_49_IOTYPE            {LVCMOS 1.8V} \
 ] [get_bd_cells ps_0]
 
 # UART1 enable (post-M3 partial fix, 2026-05-26):

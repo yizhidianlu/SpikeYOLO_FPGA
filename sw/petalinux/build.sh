@@ -114,10 +114,43 @@ fi
 
 # ---------------------------------------------------------------------------
 # 2. Overlay our customisations into the freshly-generated project-spec/.
+#
+# Two buckets — must NOT be merged:
+#
+#   meta-user/  — Main owns wholesale (recipes-apps, recipes-bsp,
+#                 recipes-kernel, recipes-core). Safe to rsync --delete.
+#
+#   configs/config — Petalinux owns the base (~500 lines incl. essential
+#                    CONFIG_SUBSYSTEM_ARCH_ARM=y, CONFIG_SYSTEM_ZYNQ=y, …).
+#                    SPEC_DIR/configs/config is a ~21-line OVERRIDE subset
+#                    that must be APPENDED to the base, not replace it.
+#                    Bug history: doing `rsync -a --delete` here wiped the
+#                    base and made petalinux-config --get-hw-description
+#                    blow up with IsADirectoryError because ARCH was empty
+#                    (Cloud Claude URGENT_ASK 1bf2f0f, 2026-05-28).
 # ---------------------------------------------------------------------------
 run rsync -a --delete \
     --exclude .git \
-    "${SPEC_DIR}/" "${PROJ_DIR}/project-spec/"
+    "${SPEC_DIR}/meta-user/" "${PROJ_DIR}/project-spec/meta-user/"
+
+if [ -f "${SPEC_DIR}/configs/config" ]; then
+    CFG_DST="${PROJ_DIR}/project-spec/configs/config"
+    MARKER="# === sw/petalinux/project-spec/configs/config overrides applied ==="
+    if [ "${DRY_RUN}" = "1" ]; then
+        echo "[dry-run] append ${SPEC_DIR}/configs/config to ${CFG_DST} (if marker absent)"
+    elif [ -f "${CFG_DST}" ] && grep -qF "${MARKER}" "${CFG_DST}" 2>/dev/null; then
+        echo "[build.sh] config overrides already applied — skipping append (rerun)"
+    elif [ -f "${CFG_DST}" ]; then
+        {
+            echo ""
+            echo "${MARKER}"
+            cat "${SPEC_DIR}/configs/config"
+        } >> "${CFG_DST}"
+        echo "[build.sh] appended config overrides from ${SPEC_DIR}/configs/config"
+    else
+        echo "[build.sh] WARN: ${CFG_DST} not present yet — petalinux-create did not generate it?" >&2
+    fi
+fi
 
 # ---------------------------------------------------------------------------
 # 3. Pull in C2/C3 source via the sibling fetch script.

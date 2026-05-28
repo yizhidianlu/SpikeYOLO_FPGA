@@ -1,0 +1,48 @@
+[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start.
+[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run.
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+PROBE_H halted cold, PC=pc: ffffff28
+
+PROBE_H: weights loaded; first 4 u32:
+PROBE_H: elf loaded, PC=pc: 00100000
+
+==Now CPU is running; try mrd -memmap (DAP MEM-AP)==
+memmap @ 0x10845400: <fail>  (err=bad option '-memmap': -target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access -help)
+memmap @ 0x10845404: <fail>  (err=bad option '-memmap': -target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access -help)
+memmap @ 0x10845408: <fail>  (err=bad option '-memmap': -target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access -help)
+memmap @ 0x1084540C: <fail>  (err=bad option '-memmap': -target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access -help)
+==Output buf first 16 bytes==:
+==Dump full 21504-byte feat_out via -memmap==
+memmap dump fail: bad option '-memmap': -target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access -help

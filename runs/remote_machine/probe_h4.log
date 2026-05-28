@@ -1,0 +1,42 @@
+[w9-smoke] xsdb_setup.tcl loaded. Type:  w9_smoke_run   to start.
+[w9-smoke]                   or:  w9_dump_output ?path?   after a successful run.
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.1.0
+  **** Build date : Mar  6 2024 at 20:50:54
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2024.1.0
+
+  **** Build date : Mar  6 2024 at 20:50:54
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+==Try mrd -address-space PA with running CPU==
+PA fail: Cannot read memory if not stopped. Execution context is running
+==targets list==:
+==target -info on current==
+==Try mrd with -force --? not valid here. Use just mrd -force==
+==Dump via PA==:
+PA dump fail: Cannot read memory if not stopped. Execution context is running

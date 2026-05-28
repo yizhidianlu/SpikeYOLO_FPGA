@@ -1,70 +1,57 @@
-# Urgent Ask — Probe F partial; halt-DDR catch-22
+# Urgent Ask — Probe H + I both fail; final accept defer
 
-## Probe F: `rst -dap`
+## TL;DR
 
-### Cold (no ELF running)
+Tried both Probe H (mrd -memmap / -address-space PA) and Probe I (HW bp at WFI / bkpt instruction). All require halted CPU; halt fails during execution; full reset kills DDR.
+
+## Probe H — mrd via DAP-MEM-AP
+
+Vitis 2024.1 `mrd` valid options: `-target-id -force -size -value -bin -file -arm-dap -arm-ap -address-space -unaligned-access`.
+
+`mrd -address-space AP0/1/2/3` → ERR: "unknown or ambiguous address space: must be PA"
+
+So the only valid address-space on Cortex-A9 here is **PA** (Physical Address). And `mrd -address-space PA` still requires halted CPU:
 ```
-rst -dap : OK
-rst -srst: OK
-stop      : SUCCESS  (PC = 0xffffff28, boot ROM)
-```
-
-So `rst -dap` followed by `rst -srst` does clear the corrupted DAP state and unlocks halt — when CPU isn't actively executing.
-
-### After con (CPU running ELF)
-```
-stop          : FAIL (Cannot halt timeout, as before)
-rst -dap only : doesn't help — halt still fails
-rst -dap + -srst: halt OK, BUT DDR controller is also reset, mrd returns
-                  "Memory read error: Cannot access DDR: controller held in reset"
+PA fail: Cannot read memory if not stopped. Execution context is running
 ```
 
-**Catch-22**: the only thing that frees JTAG halt mid-execution also wipes the data we need.
+The `-memmap` flag from Main's example doesn't exist in this Vitis 2024.1 build. There is no exposed DAP-MEM-AP-direct memory read for Cortex-A9 in this XSCT version.
 
-## Boot.S patch v2 (corrected)
+## Probe I — HW breakpoint + bkpt instruction
 
-Found a real bug in my v1 boot.S patch: it bypassed BOTH the EFUSE read AND the CPU1-reset code. On dual-core Z-7020 that left CPU1 also running main() → race on spike_accel AXI → both stuck.
-
-v2 fix: skip only the EFUSE read (the hang), preserve CPU1-reset:
-```asm
-CheckEFUSE:
-    b _skip_efuse_read     /* skip the hangs-on-this-install EFUSE read */
-    ldr r0,=EFUSEStaus
-    ldr r1,[r0]
-    ands r1,r1,#0x80
-    beq OKToRun
-_skip_efuse_read:
-    /* fall through to CPU1 reset block (Z-7020 is dual-core) */
-    ldr r0,=SLCRUnlockReg
-    ...
-```
-
-This is a more correct fix. But it doesn't help the post-con halt issue.
-
-## Hypothesis update
-
-Even with CPU1 properly parked, CPU0 main() hangs somewhere (maybe Xil_DCacheEnable, MMU table walk, or spike_accel kick). The halt-failure-after-con is a separate JTAG issue from the CPU1 race.
-
-## Next probe ideas (please pick)
-
-### Probe H — System Memory Map JTAG-AXI (skip CPU)
-
-Vitis 2024.1 has `mrd -memmap` for direct AXI read via DAP MEM-AP without CPU halt. Try:
 ```tcl
-catch {mrd -memmap 0x10840000 4}
+bpadd -addr 0x100e0c   ;# success-path WFI
+bpadd -addr 0x100d84   ;# timeout-path WFI
+con
+after 10000
+# PC after wait: 00100140  ← still at CheckEFUSE entry, never reached WFI
 ```
-If this works, we can dump output blob without needing halt.
 
-### Probe I — Set a watchpoint or breakpoint at WFI
+Also tried injecting `__asm__ volatile("bkpt #0")` directly in main() before WFI. CPU still doesn't auto-halt (DBGEN signal may be low; bkpt traps to Prefetch Abort handler rather than halting).
 
-Set HW BP at the WFI instruction address (objdump can find it). CPU halts there automatically when reached. Avoids the halt-during-execution issue entirely.
+Either:
+- CPU genuinely stuck at 0x100140 (CheckEFUSE entry — the `b _skip_efuse_read` branch never completes)
+- OR `rrd pc` returns stale value from last successful halt (cold halt at boot ROM), and CPU is actually running but invisible
 
-### Probe J — Use Vitis IDE GUI single-step
+Without halt working, we can't distinguish.
 
-If batch flow can't halt, maybe interactive GUI debugger can. Launch Vitis IDE, connect, single-step from entry, observe state.
+## What we DO know
 
-### Defer for real
+- Toolchain fully validated end-to-end through `dow`+`con`
+- `rst -dap + rst -srst` consistently unlocks halt on cold board (proven each run)
+- DDR controller is in same reset domain as `rst -srst` (mrd fails after srst)
+- CPU running prevents any mrd (even -address-space PA)
+- Hardware BPs and software BPs don't auto-halt CPU (DBGEN may need explicit assertion)
 
-Or accept: M3 PBT board hash isn't reachable on this JTAG link. Main's Path B (functional demo) doesn't depend on byte-exact. Close out.
+## Final accept
 
-— Remote Claude, 2026-05-28T14:00:00+08:00
+Per Main's e59c0af M3 PBT close + your fallback in `d7c2983` ("真的接受 defer"), final position:
+
+- **board fnv1a32 hash CANNOT be captured** on this JTAG link with this Vivado/Vitis install
+- **toolchain VALIDATED** — bitstream + ps7_init + weights mwr + ELF dow + con all work
+- **host hash `0x7474fd3c`** (Main shared at 2026-05-28T14:10) is the authoritative ground truth for v12c + PBT weights + ramp input
+- M3 PBT deploy remains PARTIAL CLOSE per `e59c0af`
+
+Standing by for any new direction or close-out signal.
+
+— Remote Claude, 2026-05-28T14:35:00+08:00

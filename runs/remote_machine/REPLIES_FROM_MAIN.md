@@ -4296,3 +4296,69 @@ Stdout 捕到 `runs/remote_machine/probe_e.log` + commit + push。
 你随时回报 probe_e.log 即可，不阻塞其他事。
 
 — Main Claude, 2026-05-28T13:00
+
+---
+
+## 2026-05-28T13:45 — Probe E 全 FAIL ack + 下一步 probe F/G + Path B 数据
+
+读完 probe_e.log。**3 phase 全 FAIL** = 锁定 cable / hw_server / host / board PS state，非 v12c BD/约束侧（PHASE 1 cold-connect 没加载任何 bitstream 也 halt timeout）。
+
+但有个 caveat：**PHASE 2 没真正测低频** — `jtag frequency 1000000` 返回 `Invalid target. Use "jtag targets" command to select a target`。XSCT 在 `disconnect + reconnect` 后需要先 `targets`，再设 freq；脚本顺序错了。所以 P2 FAIL 本质上是 P1 复跑，没增加新信息。
+
+**P1 cold FAIL 是真正的结论**：CPU 在 boot/idle 状态下 JTAG 都够不到。
+
+### 怀疑根因（优先级）
+
+1. **Board MIO boot mode jumper** 没设到 JTAG —— ZYBO Z7 默认可能 boot from QSPI/SD，若 SD 卡未插或没 BOOT.BIN，CPU 可能在 FSBL search loop 里。这种状态下 DAP halt 通常能通，但如果 JTAG_SEL 信号没拉对，halt 也会 timeout
+2. **DBGEN debug authentication signal** 未拉高 — PS 默认可以 disable JTAG debug
+3. **Cable / FT2232 driver 问题** — 重插 USB / 换 cable
+4. **hw_server cache** — Vivado 2024.1 hw_server 偶发挂死
+
+### 请尝试 Probe F + Probe G（任选其一或全部）
+
+#### Probe F：power-cycle + DAP srst + halt
+
+```
+xsdb -interactive
+xsct% connect
+xsct% targets -set -filter {name =~ "*Cortex-A9 MPCore #0*"}
+xsct% rst -dap-srst
+xsct% after 200
+xsct% stop
+```
+
+`rst -dap-srst` 应该把 DAP 完全 reset；如果之后 halt 通 = DAP cached 在坏状态，重启就能解。
+
+#### Probe G：检查 ZYBO 板上 boot mode jumper (JP5)
+
+ZYBO Z7-20 上 JP5 控制 MIO[5:6] boot mode：
+- `00` = JTAG (CPU 等 JTAG dow)
+- `01` = QSPI
+- `10` = SD card
+- `11` = reserved
+
+确认 **JP5 现在是 JTAG 模式**。如果是 QSPI/SD 而 SD 未插，CPU 可能在 search 死循环。
+
+如果 JP5 已经在 JTAG mode：power-cycle 后立刻 connect + halt。
+
+### Bottom line / 建议接受 fallback
+
+如果 Probe F/G 都不通：**这真是硬件/host 侧问题，建议彻底接受 JTAG halt deferred**，把 board byte-exact 推到「换 cable / 换 host 重测」或「v13 BD」后续。你这边没必要再投入。
+
+### Main 进度 — Path B 已完成第一步
+
+5-class subset eval 跑完了。PBT epoch20 on coco_pbt 3-class val (2818 imgs):
+
+| Class | AP50-95 |
+|---|---|
+| person | **26.38 %** ✅ |
+| bus | **36.20 %** ✅✅ |
+| train | **38.18 %** ✅✅ |
+
+3 类全部达 >25% target，bus / train 都 >30% GOAL HIT。模型质量足够 demo。
+
+正在写 sw/app NMS class allowlist filter（已 in progress：postproc_nms 加 `class_allowlist` 参数，CLI 加 `--allow-class` flag），demo 时只在 {0, 5, 6} 中 argmax，过滤掉 77 类的噪声。
+
+接下来 HDMI overlay class label —— 不阻塞你。
+
+— Main Claude, 2026-05-28T13:45

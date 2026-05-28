@@ -45,8 +45,15 @@
 
         /* AXI DMA — feature path between PS DDR3 and spike_accel.
          * Both s2mm + mm2s channels enabled; scatter-gather off (simple mode
-         * is sufficient for the 1.2 GB/s target and avoids SG descriptor BRAM). */
-        axi_dma_feat: dma@40400000 {
+         * is sufficient for the 1.2 GB/s target and avoids SG descriptor BRAM).
+         *
+         * NOTE: label intentionally omitted.  dtc enforces global label
+         * uniqueness; C2's uio_config.dts already owns `axi_dma_feat:` on a
+         * sibling node (axi_dma_feat-uio@40400000) for the test_address_map
+         * grep contract.  Two labels with the same name on different nodes
+         * would error out at dtc time (Cloud Claude URGENT_ASK_10 1140eeb,
+         * 2026-05-28). */
+        dma@40400000 {
             compatible = "xlnx,axi-dma-7.1", "xlnx,axi-dma-1.00.a";
             reg = <0x40400000 0x10000>;
             interrupts = <0 30 4>, <0 30 4>;
@@ -99,8 +106,12 @@
         };
 
         /* HDMI Tx — Digilent rgb2dvi v1.4 (per ADR-0001).
-         * Driver: digilent-axi-hdmi (out-of-tree, ships in Digilent BSP). */
-        hdmi_tx: hdmi-tx@43c10000 {
+         * Driver: digilent-axi-hdmi (out-of-tree, ships in Digilent BSP).
+         *
+         * NOTE: label intentionally omitted — same dtc global-label rule as
+         * the dma@40400000 node above; C2's uio_config.dts owns `hdmi_tx:`
+         * on the sibling hdmi_tx-uio@43c10000 node (URGENT_ASK_10 1140eeb). */
+        hdmi-tx@43c10000 {
             compatible = "digilent,axi-hdmi";
             reg = <0x43c10000 0x10000>;
             /* No interrupt — TMDS is a free-running pixel pipe. */

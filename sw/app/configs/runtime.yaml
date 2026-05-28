@@ -7,7 +7,11 @@
 runtime:
   backend: stub                # stub | uio  (advisory; SDK picks at build time)
   weights_bin: /lib/firmware/tiny_fpga_int8.bin
-  weights_sha256: d5385c05de1930d05d08202c96d4ae681db904c3d97ea19047f524ce8baa365a
+  # SHA of the PBT (person/bus/train) ep20 weights baked by
+  # sw/petalinux/scripts/fetch_app_sources.sh.  Override at build time via
+  # SA_WEIGHTS_BIN env.  This field is lineage-only — the SDK does not gate
+  # on it; demo postproc applies the {0,5,6} class allowlist regardless.
+  weights_sha256: dc3786d62da3567aa0072a94550044509dd70cfd322934f6883d5a2bf7085e83
 
 input:
   source: /dev/video0          # v4l2 device path

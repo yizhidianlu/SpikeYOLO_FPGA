@@ -14,6 +14,20 @@ mkdir -p "${RECIPE}/sdk"   "${RECIPE}/app"   "${RECIPE}/firmware"
 rsync -a --delete "${ROOT}/sw/sdk/"  "${RECIPE}/sdk/"
 rsync -a --delete "${ROOT}/sw/app/"  "${RECIPE}/app/"
 
+# Device-tree: pull in the C2-generated UIO overlay so the C1 system-user.dtsi
+# can /include/ "uio_config.dts" at dtc preprocessing time.  Source lives in
+# sw/driver/ (Contract 4 ownership); copied into the device-tree recipe's
+# files/ subdir where the bbappend's FILESEXTRAPATHS picks it up
+# (Cloud Claude URGENT_ASK_9 376e2c5, 2026-05-28).
+DT_RECIPE="${ROOT}/sw/petalinux/project-spec/meta-user/recipes-bsp/device-tree/files"
+mkdir -p "${DT_RECIPE}"
+if [ -f "${ROOT}/sw/driver/uio_config.dts" ]; then
+    cp "${ROOT}/sw/driver/uio_config.dts" "${DT_RECIPE}/uio_config.dts"
+    echo "[fetch_app_sources] DT overlay: sw/driver/uio_config.dts -> ${DT_RECIPE}/uio_config.dts"
+else
+    echo "[fetch_app_sources] WARN: sw/driver/uio_config.dts missing — system-user.dtsi /include/ will fail at dtc" >&2
+fi
+
 # Pick the source INT8 weight set baked into the image.
 #   SA_WEIGHTS_BIN env: override source filename (under models/).
 #   Default: PBT (person/bus/train) ep20 — Path B demo-grade model.

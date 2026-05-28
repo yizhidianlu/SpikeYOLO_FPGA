@@ -37,9 +37,15 @@ target_include_directories(spike_accel_demo
         ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include
 )
 
-if(SA_APP_NO_V4L2)  target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_V4L2=1) endif()
-if(SA_APP_NO_DRM)   target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_DRM=1)  endif()
-if(SA_APP_STUB_SDK) target_compile_definitions(spike_accel_demo PRIVATE SA_STUB_BACKEND=1) endif()
+if(SA_APP_NO_V4L2)
+    target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_V4L2=1)
+endif()
+if(SA_APP_NO_DRM)
+    target_compile_definitions(spike_accel_demo PRIVATE SA_APP_NO_DRM=1)
+endif()
+if(SA_APP_STUB_SDK)
+    target_compile_definitions(spike_accel_demo PRIVATE SA_STUB_BACKEND=1)
+endif()
 
 # Link against libspike_accel built in ../sdk/. Honor a parent project
 # providing the imported target, otherwise look up via pkg-config.

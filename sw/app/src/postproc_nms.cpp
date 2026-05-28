@@ -61,6 +61,9 @@ std::vector<Detection> nms(std::vector<Detection> boxes, float iou_thresh)
 }
 
 
+/* 7-arg form forwards to the 8-arg form with nullptr allowlist.  Kept
+ * separate from the 8-arg form because MSYS2 g++ 5.3 ICEs on two
+ * consecutive defaulted parameters. */
 std::vector<Detection> decode_and_nms(const int8_t *feat,
                                       int nc,
                                       int grid_h, int grid_w, int stride,
@@ -68,21 +71,46 @@ std::vector<Detection> decode_and_nms(const int8_t *feat,
                                       float iou_thresh,
                                       float scale_factor)
 {
+    return decode_and_nms(feat, nc, grid_h, grid_w, stride,
+                          conf_thresh, iou_thresh, scale_factor, nullptr);
+}
+
+std::vector<Detection> decode_and_nms(const int8_t *feat,
+                                      int nc,
+                                      int grid_h, int grid_w, int stride,
+                                      float conf_thresh,
+                                      float iou_thresh,
+                                      float scale_factor,
+                                      const std::vector<int> *class_allowlist)
+{
     std::vector<Detection> raw;
     raw.reserve(static_cast<size_t>(grid_h) * grid_w);
     const int CH = nc + 4;
+
+    /* Build a bool lookup so the inner argmax stays a single branch (and
+     * cache-friendly): allowed[c] = true iff allowlist null/empty OR c in list. */
+    std::vector<unsigned char> allowed(nc, 1);
+    if (class_allowlist != nullptr && !class_allowlist->empty()) {
+        std::fill(allowed.begin(), allowed.end(), 0);
+        for (int c : *class_allowlist) {
+            if (c >= 0 && c < nc) allowed[c] = 1;
+        }
+    }
+
     for (int y = 0; y < grid_h; y++) {
         for (int x = 0; x < grid_w; x++) {
-            /* Find argmax of class scores at this cell. */
-            int   best_cls = 0;
+            /* Find argmax of class scores at this cell, restricted to allowed. */
+            int   best_cls = -1;
             float best_score = -1e9f;
             for (int c = 0; c < nc; c++) {
+                if (!allowed[c]) continue;
                 const float s = feat[((c + 4) * grid_h + y) * grid_w + x] * scale_factor;
                 if (s > best_score) {
                     best_score = s;
                     best_cls = c;
                 }
             }
+            if (best_cls < 0) continue;  /* allowlist empty after intersection */
             const float conf = sigmoid(best_score);
             if (conf < conf_thresh) continue;
 

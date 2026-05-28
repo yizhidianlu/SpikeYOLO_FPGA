@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional, Sequence
 
 import numpy as np
 
@@ -58,15 +58,34 @@ def decode_and_nms(feat: np.ndarray,
                    grid_h: int, grid_w: int, stride: int,
                    conf_thresh: float,
                    iou_thresh: float,
-                   scale_factor: float = 1.0 / 64.0) -> List[Detection]:
-    """feat shape: ((nc+4), grid_h, grid_w) int8."""
+                   scale_factor: float = 1.0 / 64.0,
+                   class_allowlist: Optional[Sequence[int]] = None) -> List[Detection]:
+    """feat shape: ((nc+4), grid_h, grid_w) int8.
+
+    When ``class_allowlist`` is non-empty, the per-cell argmax is restricted
+    to those class ids. This mirrors the C++ side and is the demo-time
+    filter for the PBT 3-class model (only 0/5/6 are trained — letting
+    untrained channels enter argmax injects noise).
+    """
     raw: List[Detection] = []
     feat_f = feat.astype(np.float32) * scale_factor
+    allowed_idx = None
+    if class_allowlist:
+        allowed_idx = np.array([c for c in class_allowlist if 0 <= c < nc],
+                               dtype=np.int64)
+        if allowed_idx.size == 0:
+            return []  # allowlist set but empty intersect -> nothing
     for y in range(grid_h):
         for x in range(grid_w):
             cls_scores = feat_f[4:, y, x]
-            best_cls = int(np.argmax(cls_scores))
-            best_score = float(cls_scores[best_cls])
+            if allowed_idx is not None:
+                sub = cls_scores[allowed_idx]
+                local = int(np.argmax(sub))
+                best_cls = int(allowed_idx[local])
+                best_score = float(sub[local])
+            else:
+                best_cls = int(np.argmax(cls_scores))
+                best_score = float(cls_scores[best_cls])
             conf = sigmoid(best_score)
             if conf < conf_thresh:
                 continue

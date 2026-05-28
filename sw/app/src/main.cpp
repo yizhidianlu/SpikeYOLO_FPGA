@@ -378,8 +378,12 @@ static void stage_display(DrmDisplay &disp, const Cfg &cfg, const Letterbox &lb,
                           FpsMeter &fm)
 {
     auto t0 = std::chrono::steady_clock::now();
+    /* PBT demo: only argmax over person/bus/train so noise on the other
+     * 77 (untrained) channels can't win the per-cell vote. */
+    static const std::vector<int> PBT_ALLOWLIST = {0, 5, 6};
     auto dets = decode_and_nms(feat_out.data(), 80, 16, 16, 16,
-                               cfg.conf_thresh, cfg.iou_thresh);
+                               cfg.conf_thresh, cfg.iou_thresh,
+                               1.0f / 64.0f, &PBT_ALLOWLIST);
 
     const float fx = static_cast<float>(cfg.fb_w) / cfg.cam_w;
     const float fy = static_cast<float>(cfg.fb_h) / cfg.cam_h;
@@ -396,7 +400,16 @@ static void stage_display(DrmDisplay &disp, const Cfg &cfg, const Letterbox &lb,
 
     auto t2 = std::chrono::steady_clock::now();
     std::memset(fb.data(), 32, fb.size());
-    overlay_detections(fb.data(), cfg.fb_w, cfg.fb_h, fb_dets, {});
+    /* Class-id-indexed names so overlay can render readable labels.  Only
+     * the 3 PBT-trained classes carry a name; others fall back to "Cnn". */
+    static const std::vector<std::string> CLASS_NAMES = []() {
+        std::vector<std::string> v(80);
+        v[0] = "PERSON";
+        v[5] = "BUS";
+        v[6] = "TRAIN";
+        return v;
+    }();
+    overlay_detections(fb.data(), cfg.fb_w, cfg.fb_h, fb_dets, CLASS_NAMES);
 
     char osd[64];
     std::snprintf(osd, sizeof(osd), "FPS:%d.%d",

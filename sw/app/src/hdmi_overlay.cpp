@@ -48,13 +48,59 @@ static Glyph G_DIGIT(int d) {
     return g;
 }
 
+/* Subset of A-Z drawn so PBT demo can render "PERSON" / "BUS" / "TRAIN".
+ * Letters not in this table fall back to the filled BLOCK glyph; covers
+ * the 11 distinct uppercase letters needed: P E R S O N B U T A I.
+ * Each pattern is the 8x8 bitmap MSB-leftmost, same encoding as digits. */
+static Glyph G_LETTER(char ch) {
+    Glyph g{};
+    switch (ch) {
+    case 'A': { static const uint8_t p[8] = {0x18,0x3C,0x66,0x66,0x7E,0x66,0x66,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'B': { static const uint8_t p[8] = {0x7C,0x66,0x66,0x7C,0x66,0x66,0x7C,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'E': { static const uint8_t p[8] = {0x7E,0x60,0x60,0x7C,0x60,0x60,0x7E,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'I': { static const uint8_t p[8] = {0x3C,0x18,0x18,0x18,0x18,0x18,0x3C,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'N': { static const uint8_t p[8] = {0x63,0x73,0x7B,0x6F,0x67,0x63,0x63,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'O': { static const uint8_t p[8] = {0x3C,0x66,0x66,0x66,0x66,0x66,0x3C,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'P': { static const uint8_t p[8] = {0x7C,0x66,0x66,0x7C,0x60,0x60,0x60,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'R': { static const uint8_t p[8] = {0x7C,0x66,0x66,0x7C,0x78,0x6C,0x66,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'S': { static const uint8_t p[8] = {0x3C,0x66,0x60,0x3C,0x06,0x66,0x3C,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'T': { static const uint8_t p[8] = {0x7E,0x18,0x18,0x18,0x18,0x18,0x18,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    case 'U': { static const uint8_t p[8] = {0x66,0x66,0x66,0x66,0x66,0x66,0x3C,0x00};
+        for (int i = 0; i < 8; i++) g.rows[i] = p[i]; return g; }
+    default: return BLOCK;
+    }
+}
+
 static Glyph glyph_for(char c) {
     if (c >= '0' && c <= '9') return G_DIGIT(c - '0');
+    if (c >= 'A' && c <= 'Z') return G_LETTER(c);
+    if (c >= 'a' && c <= 'z') return G_LETTER((char)(c - 'a' + 'A'));
     if (c == ' ') { Glyph g{}; return g; }
     if (c == '.') { Glyph g{}; g.rows[6] = 0x18; return g; }
     if (c == ':') { Glyph g{}; g.rows[2] = 0x18; g.rows[5] = 0x18; return g; }
     /* Fallback for anything we did not hand-engineer. */
     return BLOCK;
+}
+
+
+Color color_for_class(int cls)
+{
+    switch (cls) {
+    case 0:  return {  0, 255,   0};   /* person  -> green */
+    case 5:  return {  0, 128, 255};   /* bus     -> blue  */
+    case 6:  return {255,  64,  64};   /* train   -> red   */
+    default: return CLR_BOX;
+    }
 }
 
 
@@ -115,12 +161,22 @@ void overlay_detections(uint8_t *rgb, int fb_w, int fb_h,
                         const std::vector<std::string> &class_names)
 {
     for (const auto &d : dets) {
+        const Color box_clr = color_for_class(d.cls);
         draw_rect(rgb, fb_w, fb_h,
-                  (int)d.x1, (int)d.y1, (int)d.x2, (int)d.y2, CLR_BOX);
+                  (int)d.x1, (int)d.y1, (int)d.x2, (int)d.y2, box_clr);
+
+        /* Label: "NAME PP" where PP is conf*100; falls back to "C<cls> PP"
+         * when class_names is missing the entry (or the OSD font can't draw
+         * a non-letter char in the name). */
         char buf[64];
-        std::snprintf(buf, sizeof(buf), "%d %d",
-                      d.cls, (int)(d.conf * 100));
-        (void)class_names;  /* label rendering uses class id for now */
+        if (d.cls >= 0 && (size_t)d.cls < class_names.size()
+                && !class_names[d.cls].empty()) {
+            std::snprintf(buf, sizeof(buf), "%s %d",
+                          class_names[d.cls].c_str(), (int)(d.conf * 100));
+        } else {
+            std::snprintf(buf, sizeof(buf), "C%d %d",
+                          d.cls, (int)(d.conf * 100));
+        }
         draw_text(rgb, fb_w, fb_h, (int)d.x1, std::max(0, (int)d.y1 - 18),
                   std::string(buf), CLR_LABEL, /*scale=*/2);
     }

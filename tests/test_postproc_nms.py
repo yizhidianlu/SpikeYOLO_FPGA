@@ -115,3 +115,55 @@ class TestDecodeAndNms:
         out_low = decode_and_nms(feat, 80, 16, 16, 16,
                                  conf_thresh=0.1, iou_thresh=0.45)
         assert len(out_low) > 0  # something at sigmoid(0)=0.5 > 0.1
+
+
+@pytest.mark.contract
+class TestClassAllowlist:
+    """PBT demo: argmax restricted to {0, 5, 6} so untrained-class channel
+    noise cannot win. Matches sw/app/src/postproc_nms.cpp 8-arg overload."""
+
+    def _two_class_feat(self):
+        # cell (7, 5): class 3 strong noise (120), class 5 weaker signal (80)
+        # cell (2, 2): class 0 (person) strong (100)
+        feat = np.zeros((84, 16, 16), dtype=np.int8)
+        feat[4 + 3, 7, 5] = 120
+        feat[4 + 5, 7, 5] = 80
+        feat[4 + 0, 2, 2] = 100
+        return feat
+
+    def test_no_filter_class3_wins(self):
+        feat = self._two_class_feat()
+        out = decode_and_nms(feat, 80, 16, 16, 16,
+                             conf_thresh=0.6, iou_thresh=0.45)
+        cls = sorted(d.cls for d in out)
+        assert 3 in cls  # noise channel wins without filter
+
+    def test_allowlist_filters_noise(self):
+        feat = self._two_class_feat()
+        out = decode_and_nms(feat, 80, 16, 16, 16,
+                             conf_thresh=0.6, iou_thresh=0.45,
+                             class_allowlist=[0, 5, 6])
+        cls = sorted(d.cls for d in out)
+        assert 3 not in cls       # class 3 was excluded
+        assert 5 in cls and 0 in cls
+
+    def test_none_equiv_default(self):
+        feat = self._two_class_feat()
+        out_default = decode_and_nms(feat, 80, 16, 16, 16, 0.6, 0.45)
+        out_none = decode_and_nms(feat, 80, 16, 16, 16, 0.6, 0.45,
+                                  class_allowlist=None)
+        assert sorted(d.cls for d in out_default) == sorted(d.cls for d in out_none)
+
+    def test_empty_list_equiv_default(self):
+        """C++ side treats empty vector same as nullptr — keep Python in sync."""
+        feat = self._two_class_feat()
+        out_default = decode_and_nms(feat, 80, 16, 16, 16, 0.6, 0.45)
+        out_empty = decode_and_nms(feat, 80, 16, 16, 16, 0.6, 0.45,
+                                   class_allowlist=[])
+        assert sorted(d.cls for d in out_default) == sorted(d.cls for d in out_empty)
+
+    def test_out_of_range_only_returns_empty(self):
+        feat = self._two_class_feat()
+        out = decode_and_nms(feat, 80, 16, 16, 16, 0.6, 0.45,
+                             class_allowlist=[100, 200])
+        assert out == []

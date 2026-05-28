@@ -20,6 +20,10 @@ constexpr Color CLR_BOX   = {0,   255, 0};
 constexpr Color CLR_LABEL = {255, 255, 0};
 constexpr Color CLR_OSD   = {255, 255, 255};
 
+/* Per-class box colour for the PBT demo (3 trained classes).  Untrained
+ * classes get the default CLR_BOX so an unfiltered call still renders. */
+Color color_for_class(int cls);
+
 
 /* Draw a 1-px hollow rectangle. Coordinates are clipped to the framebuffer. */
 void draw_rect(uint8_t *rgb, int fb_w, int fb_h,

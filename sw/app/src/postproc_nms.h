@@ -45,6 +45,22 @@ std::vector<Detection> decode_and_nms(const int8_t *feat,
                                       float iou_thresh,
                                       float scale_factor = 1.0f / 64.0f);
 
+/* Decode + NMS with class allowlist.  When `class_allowlist` is non-null and
+ * non-empty, argmax is restricted to these class ids so noise from unused
+ * channels (PBT model: only 0/5/6 trained) cannot win.  Pass nullptr or an
+ * empty vector to behave identically to the 7-arg form.
+ *
+ * (Separate overload instead of a defaulted parameter to avoid an MSYS2
+ *  g++ 5.3 ICE that triggers on two consecutive defaulted args.)
+ */
+std::vector<Detection> decode_and_nms(const int8_t *feat,
+                                      int nc,
+                                      int grid_h, int grid_w, int stride,
+                                      float conf_thresh,
+                                      float iou_thresh,
+                                      float scale_factor,
+                                      const std::vector<int> *class_allowlist);
+
 
 /* Standalone NMS (operates on a pre-decoded list). Sorts by confidence and
  * suppresses overlapping boxes greedily. Public so tests can compare against

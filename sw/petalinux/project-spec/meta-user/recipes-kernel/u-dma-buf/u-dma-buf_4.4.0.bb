@@ -27,7 +27,11 @@ inherit module
 
 SRC_URI = "git://github.com/ikwzm/udmabuf.git;protocol=https;branch=master \
            file://u-dma-buf-init.conf"
-SRCREV = "v4.4.0"
+# Peeled SHA of refs/tags/v4.4.0^{} — bitbake's strict-fetch rejects
+# floating tag strings; needs a 40-char commit SHA. Verified upstream
+# via `git ls-remote https://github.com/ikwzm/udmabuf.git refs/tags/v4.4.0^{}`
+# (Cloud Claude URGENT_ASK_5 7bb6971, 2026-05-28).
+SRCREV = "c1e008a3b82f6f835196c9905d0dfdb3497f88aa"
 
 S = "${WORKDIR}/git"
 

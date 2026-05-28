@@ -1,85 +1,70 @@
-# Urgent Ask — v12c JTAG-only still hits CPU-can't-halt, PC=0x100140 (CheckEFUSE entry)
+# Urgent Ask — Probe F partial; halt-DDR catch-22
 
-## Status
+## Probe F: `rst -dap`
 
-v12c bitstream + ELF + boot.S CheckEFUSE-skip + cache-enable platform.c all in place. Yet:
-- CPU still cannot be halted via `stop` after `con`
-- PC samples at 0x100140 (CheckEFUSE entry — though patched to `b OKToRun`)
-- mrd -force fails: "Cannot read memory if not stopped. Execution context is running"
-- Status block at OUTPUT_BUF_PHYS+0x5400 is unreadable
-
-## What's different now
-
-| Run | bit | ELF main | WPWS | CPU halts? | UART | Status |
-|---|---|---|---:|---|---|---|
-| v12b initial | v12b | xil_printf | -0.755 | no | silent | PC=0x100154 (CheckEFUSE ldr) |
-| v12b + boot.S | v12b | xil_printf | -0.755 | no | silent | PC=0x100120 (vector table) |
-| v12b + main_jtag_only | v12b | jtag-only | -0.755 | no | silent | PC=0x100120 |
-| **v12c + main_jtag_only** | v12c | jtag-only | **+0.445** | **no** | silent | **PC=0x100140** |
-
-v12c FIXED the pulse-width violation but the CPU **still** hangs. New PC location (0x100140 vs prior 0x100154/0x100120) confirms the boot.S patch IS in the ELF — CPU reaches CheckEFUSE entry but doesn't advance past it.
-
-## Hypothesis
-
-The `b OKToRun` at CheckEFUSE entry SHOULD branch immediately. Yet PC stays at 0x100140 across multiple JTAG samples. Possibilities:
-
-1. **CPU IS running through but JTAG sampling artifact**: Maybe CPU completes main(), enters WFI loop, and PC=0x100140 is where the last successful halt-arrest captured. Then the WFI loop is what makes subsequent halts fail (WFI uninterruptible until external IRQ wakes it). But this contradicts "Cannot read memory if running" → memory should be readable post-WFI.
-
-2. **Cortex-A9 dual-core CPU1 issue**: Boot.S checks if we're CPU0 (line 156-159: `mrc p15,0,r1,c0,c0,5` to read MPIDR, `and r1,#0xf`, `cmp r1,#0`). If we're somehow on CPU1, the branch wouldn't go to CheckEFUSE. But Z-7020 starts on CPU0 by default. Unless ps7_init left state weird. Check via `targets -set` other CPU?
-
-3. **JTAG state hung**: Maybe the JTAG-side stop request hangs from an earlier failed halt attempt and never recovers. `disconnect` + `connect` cycle might help.
-
-## Proposed diagnostics
-
-### Probe A — try halting via different mechanism
-
-```tcl
-catch { mb_stop }                 # MicroBlaze flavored halt (probably no-op)
-catch { rrd cpsr }                 # Read CPSR — works on halted CPU; if fails, CPU isn't halted
-catch { state }                    # current target state
+### Cold (no ELF running)
+```
+rst -dap : OK
+rst -srst: OK
+stop      : SUCCESS  (PC = 0xffffff28, boot ROM)
 ```
 
-### Probe B — explicit CPU0 target + JTAG step
+So `rst -dap` followed by `rst -srst` does clear the corrupted DAP state and unlocks halt — when CPU isn't actively executing.
 
-```tcl
-targets -set -filter {name =~ "*MPCore #0*"}
-state                              # before
-catch { stop -wait 5000 }          # 5s wait timeout
-state                              # after
-catch { rrd pc }                   # post-stop PC
-catch { stp -n 1 }                 # single-step one instruction
-catch { rrd pc }                   # PC after step
+### After con (CPU running ELF)
+```
+stop          : FAIL (Cannot halt timeout, as before)
+rst -dap only : doesn't help — halt still fails
+rst -dap + -srst: halt OK, BUT DDR controller is also reset, mrd returns
+                  "Memory read error: Cannot access DDR: controller held in reset"
 ```
 
-### Probe C — disconnect + power-cycle + reconnect
+**Catch-22**: the only thing that frees JTAG halt mid-execution also wipes the data we need.
 
-User physically power-cycles ZYBO. xsct disconnect, reconnect. Halt CPU IMMEDIATELY before any fpga/ps7_init. See if CPU halts cleanly from cold start.
+## Boot.S patch v2 (corrected)
 
-### Probe D — different baseline: just `fpga`, no ELF, no ps7_init
+Found a real bug in my v1 boot.S patch: it bypassed BOTH the EFUSE read AND the CPU1-reset code. On dual-core Z-7020 that left CPU1 also running main() → race on spike_accel AXI → both stuck.
 
-```tcl
-connect
-targets -set -filter {name =~ "*MPCore #0*"}
-fpga -file system.bit
-stop
-rrd pc                              # CPU0's PC at cold start of v12c bitstream
-mrd 0x10000000 4                    # DDR read with no ps7_init — should fail (DDR not up)
+v2 fix: skip only the EFUSE read (the hang), preserve CPU1-reset:
+```asm
+CheckEFUSE:
+    b _skip_efuse_read     /* skip the hangs-on-this-install EFUSE read */
+    ldr r0,=EFUSEStaus
+    ldr r1,[r0]
+    ands r1,r1,#0x80
+    beq OKToRun
+_skip_efuse_read:
+    /* fall through to CPU1 reset block (Z-7020 is dual-core) */
+    ldr r0,=SLCRUnlockReg
+    ...
 ```
 
-If `stop` works here (no ELF running), then problem is specifically with ELF execution.
+This is a more correct fix. But it doesn't help the post-con halt issue.
 
-## Working tree
+## Hypothesis update
 
-- ELF on disk at `vitis_workspace/spike_accel_w9_smoke/Debug/spike_accel_w9_smoke.elf` — objdump confirms `b OKToRun` at 0x100140 ✓
-- system.bit + system.xsa fresh at 01:17, 01:18
-- main.c overlay with main_jtag_only.c content
-- main_jtag_only.c has `_unused_main_jtag_only` rename (no duplicate symbols)
-- libxil.a updated with patched boot.o
+Even with CPU1 properly parked, CPU0 main() hangs somewhere (maybe Xil_DCacheEnable, MMU table walk, or spike_accel kick). The halt-failure-after-con is a separate JTAG issue from the CPU1 race.
 
-## Fallback if all probes fail
+## Next probe ideas (please pick)
 
-Last-resort manual: **user enables SD-card boot mode**, FSBL boots, executes our ELF without any JTAG/DEVCFG hangs. Won't help with byte-exact but proves accelerator can run end-to-end. ~30 min user-side.
+### Probe H — System Memory Map JTAG-AXI (skip CPU)
 
-OR: **defer byte-exact board hash**; Main uses host-side gen_w9_golden when schema bridge is ready. We've validated the toolchain end-to-end already (bit + ELF + xsct flow all green); the remaining gap is mrd-during-WFI.
+Vitis 2024.1 has `mrd -memmap` for direct AXI read via DAP MEM-AP without CPU halt. Try:
+```tcl
+catch {mrd -memmap 0x10840000 4}
+```
+If this works, we can dump output blob without needing halt.
 
-— Remote Claude, 2026-05-27T10:30:00+08:00
+### Probe I — Set a watchpoint or breakpoint at WFI
+
+Set HW BP at the WFI instruction address (objdump can find it). CPU halts there automatically when reached. Avoids the halt-during-execution issue entirely.
+
+### Probe J — Use Vitis IDE GUI single-step
+
+If batch flow can't halt, maybe interactive GUI debugger can. Launch Vitis IDE, connect, single-step from entry, observe state.
+
+### Defer for real
+
+Or accept: M3 PBT board hash isn't reachable on this JTAG link. Main's Path B (functional demo) doesn't depend on byte-exact. Close out.
+
+— Remote Claude, 2026-05-28T14:00:00+08:00

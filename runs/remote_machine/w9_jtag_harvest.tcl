@@ -9,7 +9,12 @@ source $::W9_PS7_INIT
 
 connect
 targets -set -filter {name =~ "*Cortex-A9 MPCore #0*"}
-rst -system
+# Probe F fix (2026-05-28): DAP cache can be in stale state where `stop`
+# times out. `rst -dap` then `rst -srst` clears it cleanly. Without this,
+# halt fails repeatedly and no mrd is possible.
+catch {rst -dap}
+after 200
+catch {rst -srst}
 after 200
 fpga -file $::W9_BIT
 ps7_init
@@ -28,13 +33,18 @@ puts "HARVEST: elf loaded, PC = [rrd pc]"
 
 # Run for 5 seconds (accelerator typically completes well within 1s @ 90MHz).
 con
-after 5000
+after 2000
 
-# CPU should be in WFI now; halt should succeed.
+# CPU should be in WFI now; halt should succeed. If first stop fails,
+# Probe F showed `rst -dap` clears stale DAP state. Try that path.
 if {[catch {stop} _err]} {
-    puts "HARVEST WARN: stop failed: $_err — try again"
-    after 1000
-    catch {stop}
+    puts "HARVEST WARN: stop failed first: $_err — trying dap-only reset (preserves DDR)"
+    catch {rst -dap}
+    after 500
+    catch {targets -set -filter {name =~ "*Cortex-A9 MPCore #0*"}}
+    if {[catch {stop} _err2]} {
+        puts "HARVEST WARN: stop still failed after dap reset: $_err2"
+    }
 }
 puts "HARVEST: CPU halted (post-run), PC = [rrd pc]"
 

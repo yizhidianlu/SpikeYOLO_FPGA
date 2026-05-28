@@ -113,24 +113,46 @@ if [ ! -d "${PROJ_DIR}" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2. Overlay our customisations into the freshly-generated project-spec/.
+# 2. Pre-populate Main-owned source files BEFORE rsync overlays them.
 #
-# Two buckets — must NOT be merged:
+# Order matters: fetch_app_sources.sh writes sdk/ + app/ + firmware/ into
+# SPEC_DIR's spike-accel-app recipe `files/` subdir.  The rsync below then
+# copies the populated tree into the petalinux project's sandbox.  If
+# fetch ran AFTER rsync, the sandbox would never see sdk/app/firmware and
+# bitbake would error with "Unable to get checksum for spike-accel-app
+# SRC_URI entry" (Cloud Claude URGENT_ASK_2 1a3b71c, 2026-05-28).
+# ---------------------------------------------------------------------------
+if [ -x "${SCRIPT_DIR}/scripts/fetch_app_sources.sh" ]; then
+    run bash "${SCRIPT_DIR}/scripts/fetch_app_sources.sh"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Overlay our customisations into the freshly-generated project-spec/.
 #
-#   meta-user/  — Main owns wholesale (recipes-apps, recipes-bsp,
-#                 recipes-kernel, recipes-core). Safe to rsync --delete.
+# Two buckets — must NOT be merged the same way:
+#
+#   meta-user/  — Main owns the recipes-{apps,bsp,core,kernel}/ subtrees,
+#                 BUT petalinux-create also populates meta-user/conf/ with
+#                 layer.conf / user-rootfsconfig / petalinuxbsp.conf which
+#                 must survive the overlay (gen-machineconf reads
+#                 user-rootfsconfig; without layer.conf bitbake won't even
+#                 see meta-user as a layer).  Protect conf/ via --exclude.
+#                 Bug history: a bare `rsync --delete` here also nuked
+#                 conf/ → FileNotFoundError user-rootfsconfig (Cloud Claude
+#                 URGENT_ASK_2 1a3b71c, 2026-05-28).
 #
 #   configs/config — Petalinux owns the base (~500 lines incl. essential
 #                    CONFIG_SUBSYSTEM_ARCH_ARM=y, CONFIG_SYSTEM_ZYNQ=y, …).
 #                    SPEC_DIR/configs/config is a ~21-line OVERRIDE subset
 #                    that must be APPENDED to the base, not replace it.
-#                    Bug history: doing `rsync -a --delete` here wiped the
-#                    base and made petalinux-config --get-hw-description
-#                    blow up with IsADirectoryError because ARCH was empty
+#                    Bug history: a bare `rsync --delete` wiped the base
+#                    and made petalinux-config --get-hw-description blow
+#                    up with IsADirectoryError because ARCH was empty
 #                    (Cloud Claude URGENT_ASK 1bf2f0f, 2026-05-28).
 # ---------------------------------------------------------------------------
 run rsync -a --delete \
     --exclude .git \
+    --exclude 'conf/' \
     "${SPEC_DIR}/meta-user/" "${PROJ_DIR}/project-spec/meta-user/"
 
 if [ -f "${SPEC_DIR}/configs/config" ]; then
@@ -150,13 +172,6 @@ if [ -f "${SPEC_DIR}/configs/config" ]; then
     else
         echo "[build.sh] WARN: ${CFG_DST} not present yet — petalinux-create did not generate it?" >&2
     fi
-fi
-
-# ---------------------------------------------------------------------------
-# 3. Pull in C2/C3 source via the sibling fetch script.
-# ---------------------------------------------------------------------------
-if [ -x "${SCRIPT_DIR}/scripts/fetch_app_sources.sh" ]; then
-    run bash "${SCRIPT_DIR}/scripts/fetch_app_sources.sh"
 fi
 
 # ---------------------------------------------------------------------------

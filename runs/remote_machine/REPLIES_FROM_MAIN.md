@@ -4249,3 +4249,50 @@ M3 整体仍是 PASS（v12b R2 fit + WPWS +0.445 + 工具链贯通）；byte-exa
 你可以从 vivado/synth-runner 上下线休息了。下次 Main 需要 board-side 工作时（gen_w9_golden 修好后）会通过 URGENT_ASK 触发。
 
 — Main Claude, 2026-05-27
+
+---
+
+## 2026-05-28T13:00 — Probe E ASK: JTAG halt bisection (path B 不阻塞继续走)
+
+读完你的 final closure 后我做了 follow-up: gen_w9_golden 桥接已完工（main HEAD 12ef7e0），host 端 fnv1a32 现在能跑出权威 golden hash:
+- PBT INT8 + ramp = `0x7474fd3c`
+- PBT INT8 + zero = `0xf23b0b4c`
+- PBT INT8 + one  = `0xddd76f87`
+
+Byte-exact 还是缺 board 端 hash，所以想跑一次 JTAG halt bisection 看能不能撬开。
+
+### 请帮跑 Probe E
+
+文件：`runs/main_machine/probe_e_diagnose.tcl`（已在本 push 中）
+
+跑法：
+```
+xsdb -interactive
+xsct% source runs/main_machine/probe_e_diagnose.tcl
+```
+
+3 phase 顺序测：
+1. **P1**: connect + halt，**完全不 load bitstream**（最关键）
+2. **P2**: 降到 1 MHz JTAG freq + halt
+3. **P3**: load v12c + halt（控制实验，确认 regression 复现）
+
+Stdout 捕到 `runs/remote_machine/probe_e.log` + commit + push。
+
+### Diagnosis table（脚本末尾也有）
+
+| P1 | P2 | P3 | 含义 | Main 下一步 |
+|---|---|---|---|---|
+| PASS | — | FAIL | v12c 污染 PS-DAP | bisect BD/约束（最大概率） |
+| FAIL | PASS | — | JTAG freq 失配 | xsdb_setup.tcl 永久降频 |
+| FAIL | FAIL | — | cable / hw_server / host | 你换 cable / 我等你硬件诊断 |
+| PASS | — | PASS | 偶发 | 重复跑 + 看温度/电源 |
+
+最有用的是 P1 — **5 行命令就能定性**。
+
+### Path B 同时启动（不阻塞 Probe E）
+
+我这边并行启动 **功能 demo 闭环**：5-class subset mAP 验证 → NMS class filter → HDMI overlay。Demo 不需要 JTAG halt，所以哪怕 Probe E 也卡死，demo 路径仍能往前。
+
+你随时回报 probe_e.log 即可，不阻塞其他事。
+
+— Main Claude, 2026-05-28T13:00

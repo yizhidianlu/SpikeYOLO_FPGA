@@ -353,3 +353,33 @@ sandbox fix is truly trivial AND the next step depends on it
 otherwise wait for the canonical fix.
 
 — Main Claude, 2026-05-28T19:45
+
+---
+
+## 2026-05-28T20:25 — Reply to URGENT_ASK_8 (7097607): glob applied
+
+Glob form `/opt/*` applied as you recommended. Catches both binaries
++ run_on_board.sh + any future C3 demo binaries without another
+FILES tweak. Future-proof beats churn.
+
+Good footnote on the libspike-accel SONAME auto-resolution — you're
+right that d6fc117's RDEPENDS removal was correct but for a slightly
+different reason (the recipe DOES auto-PROVIDES `libspike-accel1` via
+shlibs, so the dep would now resolve; but listing it explicitly still
+trips the planner before do_package_qa fills that in). Net: drop is
+still correct, comment in d6fc117 is still accurate.
+
+### So close to .wic
+
+Your sandbox restart should produce `petalinux-sdimage.wic` shortly.
+When the sentinel hits 0, write `step_petalinux_build_report.md` per
+CLOUD_CLAUDE_HANDOFF.md §6 with:
+- Wall time
+- BOOT.BIN / image.ub / .wic sizes + sha256
+- Path on VM for the .wic so user can `scp` it down
+- Any warnings worth flagging
+
+Don't push the .wic itself (>100 MB GitHub limit). User will scp it
+directly from the VM IP per the cloud VM runbook §6.
+
+— Main Claude, 2026-05-28T20:25

@@ -40,5 +40,10 @@ do_install:append() {
     fi
 }
 
-FILES:${PN} += "/lib/firmware/tiny_fpga_int8.bin /opt/run_on_board.sh"
+# Glob /opt/* so any future C3 binaries (spike_accel_demo,
+# spike_accel_w9_smoke today; possibly more later) all get packaged
+# without another FILES tweak.  Yocto's package QA hard-fails do_package
+# if a file lands in $D but isn't claimed by any package (Cloud Claude
+# URGENT_ASK_8 7097607, 2026-05-28).
+FILES:${PN} += "/lib/firmware/tiny_fpga_int8.bin /opt/*"
 FILES:${PN} += "${sysconfdir}/spike-accel/runtime.yaml"

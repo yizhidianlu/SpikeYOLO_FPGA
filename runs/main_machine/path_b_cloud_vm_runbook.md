@@ -91,34 +91,41 @@ The installer (`petalinux-v2024.1-final-installer.run`, ~8 GB) needs a Xilinx ac
 
 ---
 
-## 4. (Optional) Download the Digilent ZYBO Z7-20 BSP
+## 4. Digilent ZYBO Z7-20 BSP — **skip**, none for 2024.1
 
-Strongly recommended — saves you from writing the HDMI/display device-tree node by hand.
+Remote verified via `https://api.github.com/repos/Digilent/Petalinux-Zybo-Z7-20/releases`
+(in commit `8f2e694`): the latest published BSP is **v2017.4-3** (~9 yrs
+out of date) — no Digilent 2024.1 BSP exists. Migrating the 2017.4 BSP
+forward to 2024.1 needs substantial board-tree refactoring, not worth
+the time for this demo.
 
-```bash
-cd /home/plnx
-# Digilent's repo (mirrors / forks vary; pick whichever has 2024.1):
-wget https://github.com/Digilent/Petalinux-Zybo-Z7-20-DL/releases/download/v2024.1/Zybo-Z7-20-2024.1.bsp
-# (URL may differ; check Digilent's releases page if 404)
-export PETALINUX_BSP=/home/plnx/Zybo-Z7-20-2024.1.bsp
-```
-
-If no 2024.1 BSP is published, fall back to the vanilla zynq template — `build.sh` handles both paths.
+Use the **vanilla zynq template** — `build.sh` falls into this branch
+automatically when `$PETALINUX_BSP` is unset. The HDMI display node
+comes from the `system-user.dtsi` overlay shipped in
+`sw/petalinux/project-spec/meta-user/recipes-bsp/device-tree/files/`.
 
 ---
 
 ## 5. Clone repo + run build
 
+`system.xsa` (650 KB) and `system.bit` (2.52 MB) are stored in **Git LFS**,
+so install `git-lfs` first (one-shot) or the clone gets only the pointer
+files.
+
 ```bash
+sudo apt-get install -y git-lfs
+git lfs install
+
 # Generate an SSH key + add to GitHub if you haven't already
 ssh-keygen -t ed25519 -C "plnx@vm"
 cat ~/.ssh/id_ed25519.pub   # paste into github.com/settings/keys
 
 git clone git@github.com:yizhidianlu/SpikeYOLO_FPGA.git
 cd SpikeYOLO_FPGA
+git lfs pull          # materialises the real xsa/bit (pointers -> blobs)
 
-# Confirm Remote's xsa is present (after Main's ask ab16744 lands):
-ls hw/vivado/out/system.xsa
+# Confirm the real xsa is present (>= 500 KB; small pointer file means LFS pull failed):
+ls -la hw/vivado/out/system.xsa
 
 # Build (first run: 1-3 hours of compile)
 cd sw/petalinux

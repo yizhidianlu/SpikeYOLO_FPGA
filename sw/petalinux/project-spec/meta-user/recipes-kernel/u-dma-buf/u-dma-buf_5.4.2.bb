@@ -1,4 +1,4 @@
-# u-dma-buf_4.4.0.bb — ikwzm/udmabuf kernel module.
+# u-dma-buf_5.4.2.bb — ikwzm/udmabuf kernel module.
 #
 # Required by sw/sdk/src/dma_buf.c which opens /dev/udmabuf{0,1,2} for
 # weights / input / output DMA-coherent memory.  Without this module
@@ -11,7 +11,13 @@
 # Buffer sizes are baked into u-dma-buf-init.conf, installed under
 # /etc/modules-load.d/ + /etc/modprobe.d/.
 #
-# Cloud Claude URGENT_ASK_3 b2056e5, 2026-05-28.
+# Version pinned to v5.4.2 (was v4.4.0): kernel 6.4 changed
+# class_create() from a 2-arg macro to a 1-arg function; v4.4.0 was
+# tagged in March 2023 and fails to compile against the petalinux-2024.1
+# kernel 6.6.10. v5.4.2 handles both APIs via LINUX_VERSION_CODE guard
+# (Cloud Claude URGENT_ASK_11 5622f09, 2026-05-28).
+#
+# Original recipe authored per Cloud Claude URGENT_ASK_3 b2056e5.
 
 SUMMARY = "User-space mappable DMA-coherent buffer kernel module (ikwzm/udmabuf)"
 HOMEPAGE = "https://github.com/ikwzm/udmabuf"
@@ -26,11 +32,12 @@ inherit module
 
 SRC_URI = "git://github.com/ikwzm/udmabuf.git;protocol=https;branch=master \
            file://u-dma-buf-init.conf"
-# Peeled SHA of refs/tags/v4.4.0^{} — bitbake's strict-fetch rejects
-# floating tag strings; needs a 40-char commit SHA. Verified upstream
-# via `git ls-remote https://github.com/ikwzm/udmabuf.git refs/tags/v4.4.0^{}`
-# (Cloud Claude URGENT_ASK_5 7bb6971, 2026-05-28).
-SRCREV = "c1e008a3b82f6f835196c9905d0dfdb3497f88aa"
+# Peeled SHA of refs/tags/v5.4.2^{} — bumped from v4.4.0 for kernel 6.6
+# compatibility (URGENT_ASK_11 5622f09). LICENSE md5 happens to be
+# identical between v4.4.0 and v5.4.2 so LIC_FILES_CHKSUM is unchanged.
+# Verified upstream:
+#   git ls-remote https://github.com/ikwzm/udmabuf.git refs/tags/v5.4.2^{}
+SRCREV = "cff954eb557db73a5196f12d16c687c5cb96eb32"
 
 S = "${WORKDIR}/git"
 

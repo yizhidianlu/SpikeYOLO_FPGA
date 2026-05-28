@@ -17,11 +17,10 @@ SUMMARY = "User-space mappable DMA-coherent buffer kernel module (ikwzm/udmabuf)
 HOMEPAGE = "https://github.com/ikwzm/udmabuf"
 LICENSE = "BSD-2-Clause"
 
-# Note: LIC_FILES_CHKSUM is the md5 of the upstream LICENSE file at this
-# SRCREV. If it changes upstream, bitbake prints the new hash — copy it
-# here and re-run. The placeholder below is a guess pending verification
-# on first cloud-VM build.
-LIC_FILES_CHKSUM = "file://LICENSE;md5=58e54c03ca7f821dd3967e2a2cd1596e"
+# LIC_FILES_CHKSUM verified via `md5sum LICENSE` after first do_fetch on
+# the cloud VM (Cloud Claude URGENT_ASK_6 1ed91c2, 2026-05-28). LICENSE
+# remains BSD-2-Clause; only the hash changed from the initial guess.
+LIC_FILES_CHKSUM = "file://LICENSE;md5=bebf0492502927bef0741aa04d1f35f5"
 
 inherit module
 

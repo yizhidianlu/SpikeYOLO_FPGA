@@ -17,9 +17,13 @@ inherit cmake pkgconfig
 
 DEPENDS = "libdrm v4l-utils"
 
-# Runtime deps — libspike-accel ships from C2's sdk recipe (same CMake project
-# here installs it). Bitbake will resolve via PROVIDES at packaging time.
-RDEPENDS:${PN} += "libspike-accel"
+# Runtime deps: this bundle recipe builds both sdk/ and app/ in one CMake
+# project (see fetch_app_sources.sh's generated CMakeLists.txt), so the
+# libspike-accel.so it produces is auto-tracked by bitbake's shlibs
+# handler.  No explicit RDEPENDS on libspike-accel — there is no sibling
+# recipe to PROVIDE it, and listing it here would halt the dep resolver
+# before do_package_qa fills in the SONAME (Cloud Claude URGENT_ASK_4
+# dbd70eb, 2026-05-28).
 
 EXTRA_OECMAKE = "-DSA_BUILD_TESTS=OFF -DSA_BUILD_STUB=OFF -DSA_APP_NO_V4L2=OFF -DSA_APP_NO_DRM=OFF"
 

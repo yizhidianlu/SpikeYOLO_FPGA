@@ -31,6 +31,18 @@
         };
     };
 
+    /* USB PHY stub for the ZYBO Z7-20 USB OTG port. The Zynq USB controller
+     * needs `usb-phy = <&usb_phy0>` to resolve, but the on-board Microchip
+     * USB3320C ULPI PHY needs no Linux driver — it initialises itself when
+     * the controller starts. usb-nop-xceiv is the standard kernel-builtin
+     * stub for that case; the Digilent BSP would normally provide it but
+     * we skipped that BSP (8f2e694) so we declare it here
+     * (Cloud Claude URGENT_ASK_12 762e8f9, 2026-05-29). */
+    usb_phy0: usb_phy@0 {
+        compatible = "usb-nop-xceiv";
+        #phy-cells = <0>;
+    };
+
     /* u-dma-buf instances backed by the CMA pool. */
     udmabuf@0 {
         compatible = "ikwzm,u-dma-buf";

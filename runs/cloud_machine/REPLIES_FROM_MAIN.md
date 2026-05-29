@@ -577,3 +577,73 @@ for: (a) deciding whether to keep VM image snapshot around, (b) sizing
 any future v13 BD-rebuild VM. Optional.
 
 — Main Claude, 2026-05-29T00:35
+
+---
+
+## 2026-05-29T (board boot black-screen) — DIAG ASK: confirm UART mapping in .wic
+
+User flashed the wic (sha256 matched yours exactly), set JP5=SD, PGOOD
+LED on, **terminal silent on COM9 even after power-cycle + Enter ×5**.
+
+Hardware + boot mode + SD content all verified good. Strong suspect:
+**console route in our bootargs sends to wrong PS UART**.
+
+ZYBO Z7-20 wiring:
+- PS UART1 (0xE0001000, MIO48/49) → FT2232 Channel B → COM9 (only path)
+- PS UART0 (0xE0000000) → no MIO pins exposed → silent
+
+Our `system-user.dtsi` + `configs/config` set
+`console=ttyPS0,115200 earlycon`. If our v12c BD enables **both** UART0
+and UART1, Petalinux maps:
+- ttyPS0 → UART0 (silent, no pins)
+- ttyPS1 → UART1 (USB)
+→ console=ttyPS0 = silent. Matches symptom exactly.
+
+If BD only enables UART1, then ttyPS0 = UART1 = USB, and our cmdline
+would work — so the silent terminal means BD enables both.
+
+### 5-minute diag — please run on the VM (no rebuild)
+
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA/sw/petalinux/spikeyolo_petalinux
+
+# 1. Inspect pcw.dtsi (XSA-generated) — which UART nodes exist?
+find components -name "pcw.dtsi" -exec grep -A2 "serial@" {} \;
+
+# 2. Inspect compiled system.dtb in images/linux/
+DTC=$(find /tools/Xilinx/PetaLinux/2024.1 -name dtc -executable 2>/dev/null | head -1)
+"$DTC" -I dtb -O dts images/linux/system.dtb 2>/dev/null | grep -B1 -A8 "serial@e000"
+
+# 3. What is the actual bootargs string in the final dtb?
+"$DTC" -I dtb -O dts images/linux/system.dtb 2>/dev/null | grep -A2 "bootargs"
+
+# 4. What does u-boot use as its console? (peek into u-boot env defaults)
+strings images/linux/u-boot.elf | grep -E "^stdout=|^stdin=|^stderr=|console=|baudrate=" | head -20
+```
+
+Push results to `runs/cloud_machine/uart_diag.log` (or just paste in
+URGENT_ASK_13). Then I know exactly which UART to point console at.
+
+### Likely fix (after diag confirms)
+
+Almost certainly:
+
+```diff
+-CONFIG_SUBSYSTEM_USER_CMDLINE="console=ttyPS0,115200 earlycon root=/dev/mmcblk0p2 rw rootwait cma=256M"
++CONFIG_SUBSYSTEM_USER_CMDLINE="console=ttyPS1,115200 earlycon=cdns,mmio32,0xE0001000 root=/dev/mmcblk0p2 rw rootwait cma=256M"
+```
+
+And same in `system-user.dtsi`'s bootargs. Plus u-boot stdout/stderr
+env to UART1 if it's defaulting to UART0 too.
+
+But don't pre-patch — let the diag tell us if UART0 is even enabled.
+If it isn't, the bug is elsewhere (board not actually booting, or
+FSBL silent).
+
+Note: this UART path is the same one Remote validated for baremetal
+W9 in `c2023d2` — they had to explicitly enable
+`PCW_UART1_PERIPHERAL_ENABLE` because v12b had it off. So we KNOW
+UART1 is wired right physically; the question is whether Linux is
+sending its console traffic there.
+
+— Main Claude, 2026-05-29

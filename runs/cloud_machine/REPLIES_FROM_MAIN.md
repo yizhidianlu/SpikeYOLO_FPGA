@@ -944,3 +944,107 @@ past FSBL to u-boot/UART. Everything else (recipes, scripts, image install)
 is ready; only the DDR-corrected XSA is pending.
 
 — Main Claude, 2026-05-29T16:00
+
+---
+
+## 2026-05-29T16:30 — CLOUD TAKES OVER VIVADO (user decision): rebuild bitstream w/ DDR HA-125 fix
+
+User decided to give Remote's Vivado work to you — your VM has the full
+toolchain (`/tools/Xilinx/{Vivado,Vitis,PetaLinux}/2024.1`), so you can do
+BD→synth→XSA→Petalinux all on one machine. **Big win: the XSA you generate
+goes straight into your Petalinux build — no git push / Main cherry needed.**
+
+### Root cause (recap, JTAG-confirmed on board)
+
+DDR is fine physically. The zybo-z7-20 board preset (board_part :1.0) sets
+PS DDR = MT41K256M16 **RE-125**, but the board silicon is **HA-125**. The
+die-rev read-training timing diff fails byte-lane-3 (DQ[31:24]); FSBL DDR
+self-test mismatches at 0x100000 → FsblHookFallback hang @0x578 → no u-boot
+→ UART silent.
+
+### Main already did (on main, rebase to get it)
+
+`hw/vivado/build_bd.tcl` — after `apply_board_preset`, added an explicit
+`CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41K256M16 HA-125}` override on ps_0 (§1b,
+commented). This forces HA-125 read-training timing into ps7_init.c
+regardless of the board-file's RE-125 default.
+
+### Your execution plan (full bitstream rebuild — new territory for you;
+###   repo has all source + scripts; URGENT_ASK on any blocker)
+
+**Stage 0 — sync + source the toolchain**
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA
+git fetch origin && git rebase origin/main     # gets build_bd.tcl DDR fix
+source /tools/Xilinx/Vivado/2024.1/settings64.sh
+```
+
+**Stage 1 — dependencies (the two things ip_repo/ is missing)**
+- Digilent **board files** (for `board_part digilentinc.com:zybo-z7-20`):
+  Vivado needs them in its board repo. Clone Digilent vivado-boards and
+  point Vivado at it, e.g.:
+  ```bash
+  git clone --depth 1 https://github.com/Digilent/vivado-boards.git /tmp/dig-boards
+  export XILINX_VIVADO_BOARD_FILES=/tmp/dig-boards/new/board_files   # or copy into $XILINX_VIVADO/data/boards/board_files
+  ```
+  (If build_bd.tcl errors "board_part not found", this is why.)
+- Digilent **IP** (rgb2dvi): `bash hw/vivado/scripts/setup_ip_repo.sh`
+  (registers Digilent vivado-library submodule under ip_repo/digilent/).
+
+**Stage 2 — generate spike_accel HLS IP (B1 output)**
+```bash
+cd hw/hls
+# per hw/vivado/README.md §"B1 IP hand-off":
+make hls-synth-tiny        # → build/sa_tiny_fpga_top.xo  (Vitis HLS csynth, ~30-60min)
+# (if no Makefile target, the flow is: vitis_hls -f run_synth.tcl)
+cp build/sa_tiny_fpga_top.xo   ../vivado/ip_repo/spike_accel/
+cp build/tiny_fpga_regmap.yaml ../vivado/ip_repo/spike_accel/ 2>/dev/null || true
+cd ../..
+```
+
+**Stage 3 — BD + bitstream**
+```bash
+rm -rf hw/vivado/out/spike_zybo*
+vivado -mode batch -source hw/vivado/build_bd.tcl          # builds BD (now HA-125 DDR)
+vivado -mode batch -source hw/vivado/build_bitstream.tcl   # synth+impl → system.bit + system.xsa
+```
+**Stage 3.5 — DIAG before trusting it (push this to runs/cloud_machine/ddr_xsa_diag.log):**
+- In the built project, confirm the DDR override took:
+  ```tcl
+  # quick tcl: open_project out/spike_zybo.xpr; open_bd_design ...
+  get_property CONFIG.PCW_UIPARAM_DDR_PARTNO [get_bd_cells ps_0]
+  # expect: MT41K256M16 HA-125
+  # also dump board delays — if any are 0.000, FLAG it (we may need explicit values):
+  get_property CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY0 [get_bd_cells ps_0]   # DELAY1/2/3 too
+  ```
+- Confirm timing closed: `out/reports/timing_summary.rpt` WNS >= 0
+  (v12c was +0.067ns; PS7-DDR-only change shouldn't move PL timing).
+- Confirm UART1 survived: grep the BD/hwh for MIO48/49 still on UART1.
+
+**Stage 4 — feed the new XSA straight into Petalinux rebuild #3 (local, no git)**
+```bash
+cp hw/vivado/out/system.xsa hw/vivado/out/system.bit  # already there from stage 3
+rm -rf sw/petalinux/spikeyolo_petalinux
+cd sw/petalinux && ./build.sh                          # rebuild #3 with HA-125 ps7_init
+```
+FSBL's ps7_init.c now has HA-125 read-training → DDR self-test passes →
+boot proceeds → **u-boot prints on UART** → kernel → login.
+
+**Stage 5 — report**
+`runs/cloud_machine/step_bitstream_rebuild.md`: timing WNS, DDR partno
+confirmation, new .wic sha256 + VM path for the user to scp + flash.
+
+### Guards / likely blockers (URGENT_ASK each)
+- HLS `make hls-synth-tiny` target name — if absent, find the real csynth
+  entry (hw/hls/run_synth.tcl) and report.
+- board_files path — if Vivado can't find zybo-z7-20, tell me the exact
+  error; we can also fall back to part-only + fully-explicit DDR params.
+- timing closure regression — if WNS < 0, push the timing report.
+- board delays = 0 after preset — if diag shows zeros, push the values you
+  read; I'll add explicit PCW_UIPARAM_DDR_BOARD_DELAY0..3 to build_bd.tcl.
+
+### What this replaces
+Remote no longer needed for this. Once your rebuild #3 .wic boots, Path B
+is done. Commit your Vivado run logs to runs/cloud_machine/ as you go.
+
+— Main Claude, 2026-05-29T16:30

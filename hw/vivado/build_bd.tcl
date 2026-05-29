@@ -89,6 +89,25 @@ set_property -dict [list \
 ] [get_bd_cells ps_0]
 
 # ============================================================================
+# 1b. DDR part fix — RE-125 -> HA-125  (Cloud takeover, 2026-05-29)
+# ============================================================================
+# The zybo-z7-20 board preset (board_part :1.0) sets the PS DDR to Micron
+# MT41K256M16 *RE-125*, but the actual ZYBO Z7-20 silicon is the *HA-125*
+# die revision. The RE->HA read-training timing difference fails byte-lane-3
+# (DQ[31:24]) read training: FSBL's DDR self-test write/readback at
+# 0x00100000 mismatches and FSBL dead-loops in FsblHookFallback (0x578)
+# before ever reaching u-boot — JTAG-confirmed on the board (low 3 byte
+# lanes perfect, lane 3 corrupt; write 0x00->0x00 ok, 0xFF->0x00,
+# pattern-dependent + deterministic = read-eye/training, not physical).
+# Override the part AFTER apply_board_preset so ps7_init.c emits HA-125
+# read-training timing. Board trace delays come from the board preset —
+# verify non-zero in Cloud's diag; if zero, add explicit
+# PCW_UIPARAM_DDR_BOARD_DELAY0..3 + DQS_TO_CLK_DELAY_0..3 here.
+set_property -dict [list \
+    CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41K256M16 HA-125} \
+] [get_bd_cells ps_0]
+
+# ============================================================================
 # 2. Accelerator IP (B1 HLS output)
 # ============================================================================
 if {$HAS_HLS_IP} {

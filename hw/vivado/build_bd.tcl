@@ -186,8 +186,15 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_ctrl
 set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {3}] [get_bd_cells ic_ctrl]
 
 # ic_data_hp0 aggregates the 5 spike_accel gmem* masters into S_AXI_HP0.
+# HAS_HLS_IP gated: its 5 slaves are ALL spike_accel gmem* masters (also
+# HAS_HLS_IP-gated below), so in the Phase-A placeholder build it would have
+# 5 dangling AXI slaves → synth optimises the instance to a black box →
+# opt_design DRC [INBB-3] fails (Cloud Claude URGENT_ASK_19 d607cba). Only
+# create it when the spike_accel masters exist.
+if {$HAS_HLS_IP} {
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp0
 set_property -dict [list CONFIG.NUM_SI {5} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp0]
+}
 
 # ic_data_hp1 aggregates AXI-DMA (MM2S+S2MM) and VDMA MM2S into S_AXI_HP1.
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp1
@@ -240,10 +247,12 @@ if {$HAS_HLS_IP} {
             [get_bd_intf_pins spike_accel_0/m_axi_gmem$i] \
             [get_bd_intf_pins ic_data_hp0/$s]
     }
+    # M00 -> PS HP0: only when ic_data_hp0 exists (URGENT_ASK_19 d607cba).
+    # PS_USE_S_AXI_HP0 stays 1; the HP0 slave just sits idle in Phase A.
+    connect_bd_intf_net -intf_net ic_data_hp0_to_ps \
+        [get_bd_intf_pins ic_data_hp0/M00_AXI] \
+        [get_bd_intf_pins ps_0/S_AXI_HP0]
 }
-connect_bd_intf_net -intf_net ic_data_hp0_to_ps \
-    [get_bd_intf_pins ic_data_hp0/M00_AXI] \
-    [get_bd_intf_pins ps_0/S_AXI_HP0]
 
 connect_bd_intf_net -intf_net dma_mm2s_to_hp1 \
     [get_bd_intf_pins axi_dma_feat/M_AXI_MM2S] \

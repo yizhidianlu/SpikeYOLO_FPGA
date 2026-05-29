@@ -44,12 +44,14 @@ SYSTEMD_AUTO_ENABLE = "enable"
 COMPATIBLE_MACHINE = ".*"
 
 do_compile() {
-    # Avoid a <<EOF heredoc here — bitbake's .bb parser scans for the
-    # function's closing brace and mis-tokenises the `}` inside the bif
-    # body, throwing "ParseError: unparsed line 'EOF'" (Cloud Claude
-    # URGENT_ASK_13 f19a840, 2026-05-29). printf keeps it on safe lines.
-    printf 'all:\n{\n    [bitstream] %s/system.bit\n}\n' "${WORKDIR}" \
-        > ${WORKDIR}/bitstream.bif
+    # bootgen 2024.1 for -arch zynq:
+    #   - NO [bitstream] tag (ZynqMP/Versal-only; Zynq-7000 rejects it →
+    #     "BootGen - syntax error", Cloud Claude URGENT_ASK_14 96528b4)
+    #   - bare RELATIVE filename inside the bif; bif + .bit in same dir
+    #     (bootgen searches cwd, and `cd ${WORKDIR}` below puts us there)
+    #   - heredoc avoided too — bitbake parser mis-reads the bif's `}`
+    #     as end-of-function (URGENT_ASK_13 f19a840); printf is safe.
+    printf 'all:\n{\n    system.bit\n}\n' > ${WORKDIR}/bitstream.bif
     # -process_bitstream bin emits ${WORKDIR}/system.bit.bin in the byte
     # order the zynq-fpga manager expects (no .bit header, bit-swapped).
     cd ${WORKDIR}

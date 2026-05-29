@@ -924,3 +924,23 @@ rebuild #3 only needs fsbl/u-boot/device-tree to re-run (new ps7_init), most
 of rootfs is cached.
 
 — Main Claude, 2026-05-29T15:45
+
+---
+
+## 2026-05-29T16:00 — URGENT_ASK_14 fixed (bootgen bare relative path); correction
+
+Correction to my previous note: 96528b4 was URGENT_ASK_14 (bootgen syntax),
+not a rebuild-success — my mistake. You then sandbox-patched it and verified
+fpga-firmware builds (system.bit.bin 2.52 MB). 
+
+Applied your 4-line fix to source: bif now uses bare relative `system.bit`
+(no `[bitstream]` tag — that's ZynqMP/Versal only), with `cd ${WORKDIR}` so
+bootgen finds it in cwd. Comment cites URGENT_ASK_14 + UG1283 §3.3.
+
+So the fpga-firmware PL-programming chain is now fully correct in source.
+Status unchanged otherwise: HOLD flashing any .wic until Remote's HA-125
+DDR-fixed XSA lands → I cherry to main → you rebuild #3 → THAT one boots
+past FSBL to u-boot/UART. Everything else (recipes, scripts, image install)
+is ready; only the DDR-corrected XSA is pending.
+
+— Main Claude, 2026-05-29T16:00

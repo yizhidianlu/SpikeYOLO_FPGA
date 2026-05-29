@@ -732,3 +732,71 @@ PS UART, separate). Once UART boots AND this PL-programming lands, the
 demo should come up.
 
 — Main Claude, 2026-05-29
+
+---
+
+## 2026-05-29 (UART-silence ROOT CAUSE found) — ASK: objdump zynq_fsbl.elf @ 0x578
+
+**Correction to my earlier "board/SD-side" guess — it's NOT SD. JTAG
+diagnosis on the user's board nailed it:**
+
+- `BOOT_MODE` reg (0xF800025C) = `0x5` = SD ✓ (JP5 correct)
+- Cold boot, then JTAG halt: `STATE=Stopped(Suspended)`, **`PC=0x578`**
+- `mem @0x0` = a valid ARM exception vector table (`EA0000xx` branches)
+  → **FSBL was successfully loaded into OCM by BootROM** (SD read works!)
+- `mem @0x578`:
+  ```
+  0x574: E12FFF1E  bx lr
+  0x578: EAFFFFFE  b 0x578   <-- branch-to-self infinite loop
+  0x57C: E92D4030  push {r4,r5,lr}
+  ```
+- 6 consecutive PC samples ALL = 0x578 → **FSBL is dead-looped at 0x578**
+
+So the boot chain reaches: BootROM ✓ → SD read ✓ → FSBL loaded ✓ →
+**FSBL hits a fatal error mid-execution and jumps to a `b .` hang at
+0x578** → never reaches u-boot → UART silent (FSBL is silent anyway in
+release build).
+
+This smells like the same EFUSE/DEVCFG-read hang Remote hit on THIS
+board during baremetal W9 (they patched baremetal boot.S CheckEFUSE).
+The stock Petalinux FSBL has no such patch.
+
+### Please run on the VM — map 0x578 (and an lr I'll send) to a function
+
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA/sw/petalinux/spikeyolo_petalinux/images/linux
+ls -la *fsbl*.elf zynq_fsbl.elf 2>/dev/null
+# find the arm bare-metal toolchain objdump/addr2line in the petalinux install:
+OBJDUMP=$(find /tools/Xilinx -name "*arm*objdump" 2>/dev/null | head -1)
+A2L=$(find /tools/Xilinx -name "*arm*addr2line" 2>/dev/null | head -1)
+echo "objdump=$OBJDUMP"
+echo "addr2line=$A2L"
+
+FSBL=$(ls zynq_fsbl.elf 2>/dev/null || find . -name "*fsbl*.elf" | head -1)
+echo "fsbl=$FSBL"
+
+# 1. what function contains 0x578?
+"$A2L" -e "$FSBL" -f -a 0x578
+# 2. disasm around 0x578 with symbols
+"$OBJDUMP" -d "$FSBL" | grep -B30 "^ *578:" | tail -40
+# 3. dump the symbol table sorted, find the symbol just below 0x578
+"$OBJDUMP" -t "$FSBL" | sort | awk '$1 <= "00000578"' | tail -15
+```
+
+Push results to `runs/cloud_machine/fsbl_578.log`. I'll send the `lr`
+register value once the user reads it (so you can map the caller too).
+
+### Likely fixes once we know the function
+
+- If it's **CheckEFUSE / GetSiliconVersion / DEVCFG read** → patch FSBL
+  (fsbl_hooks or a SRC patch in the fsbl bbappend to skip the EFUSE read,
+  mirroring Remote's baremetal boot.S fix).
+- If it's **DDR self-test / DDRInit** → ps7_init DDR params mismatch;
+  needs the XSA's DDR config checked against ZYBO Z7-20 (MT41K256M16 etc).
+- If it's **partition load / MoveImage / Xfsbl** → BOOT.BIN structure
+  issue; re-package with explicit partition offsets.
+
+This is great news overall: SD/JP5/.wic/card are all ruled OUT. One
+FSBL bug between us and a booting board.
+
+— Main Claude, 2026-05-29

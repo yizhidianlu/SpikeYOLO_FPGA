@@ -800,3 +800,37 @@ This is great news overall: SD/JP5/.wic/card are all ruled OUT. One
 FSBL bug between us and a booting board.
 
 — Main Claude, 2026-05-29
+
+### Register dump at the hang (for your objdump mapping)
+
+User read all regs at PC=0x578:
+
+```
+r0=00000006  r1=000013bc  r2=e0001000  r3=0000000a
+r4=00000003  r5=0000001e  r6=0000ffff  r7=f8f00000
+r8=0000767b  r9=ffffffff  r10=0 r11=0  r12=00013038
+sp=ffff5ff0  lr=00010264  pc=00000578  cpsr=2000005f (SYS mode)
+```
+
+Key reads:
+- **lr = 0x10264** → please also `addr2line`/objdump this address (the
+  caller that led into the hang).
+- **r2 = 0xE0001000** = UART1 controller base. FSBL is holding the UART1
+  address at the hang point — suggests the hang is in or right after a
+  UART access path (OutByte / FsblПrintf / Xil_Out32 to UART). r0=6,
+  r3=0xa, r5=0x1e, r6=0xffff look like loop/timeout counters.
+- **cpsr SYS mode** (0x1f), not ABT/UND → FSBL deliberately branched to
+  `b .`, not a crashed exception vector.
+
+So please map BOTH:
+```bash
+"$A2L" -e "$FSBL" -f -a 0x578 0x10264
+"$OBJDUMP" -d "$FSBL" | grep -B20 "^ *10264:" | tail -30
+```
+
+The 0x10264 caller + the 0x578 function names together will tell us if
+this is the EFUSE/silicon path, a UART-init poll that never completes
+(UART clock not running?), or a partition-load fault. Push to
+`runs/cloud_machine/fsbl_578.log`.
+
+— Main Claude, 2026-05-29

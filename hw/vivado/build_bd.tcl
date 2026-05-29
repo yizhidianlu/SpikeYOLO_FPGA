@@ -51,6 +51,18 @@ if {![file exists "${HLS_DIR}/sa_tiny_fpga_top.xo"] &&
     set HAS_HLS_IP 1
 }
 
+# HDMI video-out (rgb2dvi) gate. The rgb2dvi v1.4 IP takes a parallel `vid_io`
+# RGB input, NOT AXI-Stream — so vdma_disp.M_AXIS_MM2S can't connect to it
+# directly; it needs a v_axi4s_vid_out (+ v_tc) converter in between, which
+# isn't wired yet (Cloud Claude URGENT_ASK_18 5b81062, 2026-05-29 — the
+# original line-249 connect to a non-existent rgb2dvi/s_axis_video pin never
+# csynth'd on 2024.1). Until the converter chain is added (Phase B), gate the
+# whole HDMI block off so Phase A (DDR-fix validation: boot→UART) can build.
+# Override to 1 on the command line once the converter is in:
+#   vivado -mode batch -source build_bd.tcl -tclargs HAS_HDMI=1
+set HAS_HDMI 0
+foreach a $argv { if {$a eq "HAS_HDMI=1"} { set HAS_HDMI 1 } }
+
 file mkdir $OUT_DIR
 create_project -force $PROJECT $OUT_DIR -part $PART
 set_property board_part $BOARD_PART [current_project]
@@ -156,13 +168,16 @@ set_property -dict [list \
 ] [get_bd_cells vdma_disp]
 
 # Digilent's rgb2dvi IP (community-maintained for ZYBO HDMI out).
-# Post W5: this is a hard requirement once setup_ip_repo.sh has been run.
+# Gated by HAS_HDMI — see the flag definition near the top. Needs a
+# v_axi4s_vid_out converter (Phase B) before it can connect to VDMA's AXIS.
+if {$HAS_HDMI} {
 create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 set_property -dict [list \
     CONFIG.kClkRange    {1} \
     CONFIG.kGenerateSerialClk {true} \
     CONFIG.kRstActiveHigh     {true} \
 ] [get_bd_cells rgb2dvi_0]
+}
 
 # ============================================================================
 # 5. AXI Smartconnect — control plane + two HP data planes
@@ -244,8 +259,13 @@ connect_bd_intf_net -intf_net ic_data_hp1_to_ps \
     [get_bd_intf_pins ps_0/S_AXI_HP1]
 
 # ============================================================================
-# 10. HDMI video stream: VDMA M_AXIS_MM2S -> rgb2dvi.s_axis_video
+# 10. HDMI video stream: VDMA M_AXIS_MM2S -> rgb2dvi  (HAS_HDMI gated)
 # ============================================================================
+# NOTE: rgb2dvi takes parallel vid_io, not AXIS. This direct connect to a
+# non-existent rgb2dvi/s_axis_video pin is a Phase-B placeholder — the real
+# wiring needs v_axi4s_vid_out (AXIS->vid_io) + v_tc between VDMA and rgb2dvi
+# (Cloud Claude URGENT_ASK_18 5b81062). Gated off for Phase A.
+if {$HAS_HDMI} {
 connect_bd_intf_net -intf_net vdma_to_rgb2dvi \
     [get_bd_intf_pins vdma_disp/M_AXIS_MM2S] \
     [get_bd_intf_pins rgb2dvi_0/s_axis_video]
@@ -262,6 +282,7 @@ connect_bd_net [get_bd_ports hdmi_out_tmds_data_p] [get_bd_pins rgb2dvi_0/TMDS_D
 connect_bd_net [get_bd_ports hdmi_out_tmds_data_n] [get_bd_pins rgb2dvi_0/TMDS_Data_n]
 connect_bd_net [get_bd_ports hdmi_out_tmds_clk_p]  [get_bd_pins rgb2dvi_0/TMDS_Clk_p]
 connect_bd_net [get_bd_ports hdmi_out_tmds_clk_n]  [get_bd_pins rgb2dvi_0/TMDS_Clk_n]
+}
 
 # ============================================================================
 # 11. Clock distribution (100 MHz to data/control plane, 148.5 MHz already wired)

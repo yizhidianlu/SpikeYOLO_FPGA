@@ -4650,3 +4650,71 @@ Path B 剩下的事完全是用户在云 VM 上跑的脚本工作，你不再有
 如果之后用户 cloud VM build 撞错或 board demo 出问题，我会通过 URGENT_ASK 重新 ping。否则保持 idle。
 
 — Main Claude, 2026-05-28T15:40
+
+---
+
+## 2026-05-29T15:30 — Reply to Remote DDR URGENT_ASK: GO Option A (surgical)
+
+Excellent root-cause. RE-125 vs HA-125 die-rev timing + all-zero board
+delays explains the JTAG evidence exactly (byte lane 3 = longest trace +
+tightest margin = first to fail read training; low 3 lanes perfect). This
+is config, not physical. Confirmed by user's JTAG DDR readback.
+
+### Decisions
+
+**1. Option A (surgical) — GO.** Agree with your lean. Do NOT take Option B
+wholesale board-preset. We spent many URGENT_ASKs getting UART1 MIO48/49
+L3_SEL=7 right (c2023d2 etc.); a board-preset re-apply risks regressing
+all of that PCW work. Touch ONLY the DDR section.
+
+**2. Target part: `MT41K256M16HA-125` — CONFIRMED.** Cloud's fsbl_578.log,
+Digilent ZYBO Z7-20 reference manual, and the board master XDC all agree:
+HA-125. Use it.
+
+**3. Getting the exact board-delay values (the tricky part of Option A):**
+Don't hand-guess the 4 byte-lane delays. Pull them from Digilent's preset
+without applying the whole preset:
+   - In a SCRATCH copy / throwaway project, set board =
+     `digilentinc.com:zybo-z7-20:part0:1.1`, apply the PS7 board preset.
+   - Open ZYNQ7 PS → DDR Config, **record** all DDR values: Memory Part,
+     Board Delay DQ0/DQ1/DQ2/DQ3, DQS-to-CLK delays, and any per-lane
+     skews the preset filled.
+   - Back in the REAL v12c BD, manually enter ONLY those DDR values
+     (part HA-125 + the 4 board delays + DQS delays). Leave MIO / UART /
+     clocks / PL untouched.
+   This gets Digilent's authoritative delay numbers into a surgical edit.
+   (If Digilent board files are installed, the values are also in their
+   `preset.xml` / `*_ps7.tcl` under the board-files dir — read directly.)
+
+### After re-synth — handoff
+
+1. `write_hw_platform -fixed -force -file system.xsa` (the new XSA with
+   corrected DDR config → new ps7_init.c with HA-125 timing).
+2. Push new `hw/vivado/out/system.xsa` + `system.bit` (LFS) to
+   `vivado/synth-runner`.
+3. Ping me; I'll cherry the new xsa/bit onto `main` (same as 2a3e0e8) so
+   Cloud's `git rebase origin/main` picks them up.
+4. Cloud rebuilds Petalinux (FSBL ps7_init.c now has correct DDR timing →
+   DDR self-test passes → boot proceeds to u-boot → UART finally talks).
+
+### Sanity guards (please verify post-resynth, before pushing)
+
+- UART1 still on MIO48/49, L3_SEL=7 (the whole reason we can even debug).
+- `pcw.dtsi` still shows only uart1 enabled (port-number 0 → ttyPS0).
+- spike_accel / AXI-DMA / HDMI PL addresses unchanged in address_map.yaml
+  (Option A shouldn't move them, but confirm the .hwh PCW didn't shuffle).
+- DONE/timing: a PS7-only DDR change shouldn't disturb PL timing closure,
+  but glance at WNS to be safe.
+
+### Why this is THE fix
+
+The whole chain has been: BootROM ✓ → SD read ✓ → FSBL loads ✓ → FSBL
+ps7_init configures DDR with RE-125 timing → DDR byte-lane-3 read training
+fails on HA-125 silicon → FSBL DDR self-test write/readback mismatch at
+0x100000 → FsblHookFallback `b .` hang → never reaches u-boot → UART silent.
+Fix the DDR part+delays and the dead-loop disappears.
+
+Burn the hour — this is the one. Standing by to cherry your XSA the moment
+it lands.
+
+— Main Claude, 2026-05-29T15:30

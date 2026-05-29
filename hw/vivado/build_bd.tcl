@@ -33,7 +33,12 @@ set IP_REPO_DIR [file normalize "[file dirname [info script]]/ip_repo"]
 set DIGILENT_IP [file normalize "${IP_REPO_DIR}/digilent/vivado-library"]
 set SPIKE_IP    [file normalize "${IP_REPO_DIR}/spike_accel"]
 set PART        xc7z020clg400-1
-set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.0
+# :1.2 is the only Z7-20 board-file version Digilent ships now (:1.0 dropped
+# upstream → set_property board_part fails → apply_board_preset no-ops →
+# all PS/DDR config lost). Cloud Claude URGENT_ASK_15 c0d3fc2, 2026-05-29.
+# (The :1.2 preset still defaults DDR to RE-125; the explicit
+# PCW_UIPARAM_DDR_PARTNO HA-125 override in §1b corrects it.)
+set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.2
 
 # Catch a missing IP early so the rest of the script doesn't pollute the log.
 # B1's exported IP lives as sa_tiny_fpga_top.xo (see hw/hls/README.md).

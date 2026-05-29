@@ -1,0 +1,192 @@
+# UART diagnosis — board boot black-screen on COM9
+
+**From:** Cloud Claude
+**Time:** 2026-05-29T00:55+08:00
+**Verdict:** Software/firmware config is **100% correct**. UART silence on COM9 must be hardware/environment-side. Two unrelated bugs found in BOOT.BIN + rootfs FPGA bitstream pipeline (which will affect demo functionality but NOT cause UART silence).
+
+---
+
+## 1. pcw.dtsi (XSA-generated, sourced from Vivado BD) — UART1 correctly enabled, UART0 not present
+
+`components/plnx_workspace/device-tree/device-tree/pcw.dtsi`:
+
+```dts
+&uart1 {
+    cts-override;
+    device_type = "serial";
+    port-number = <0>;        ← Linux registers this as ttyPS0
+    status = "okay";
+};
+```
+
+No `&uart0 { status = "okay"; }` augmentation — pcw.dtsi only enables UART1. So the v12c BD has only UART1 enabled, matching Main's hypothesis about Remote's prior W9 fix.
+
+---
+
+## 2. ps7_init_gpl.c (FSBL init from XSA) — UART clocks + MIO48/49 pinmux correct
+
+```c
+// .. .. UART0_CPU_1XCLKACT = 0x0     // UART0 clock disabled
+// .. .. UART1_CPU_1XCLKACT = 0x1     // UART1 clock enabled
+```
+
+```c
+// MIO48 (0xF8000748):
+EMIT_MASKWRITE(0XF8000748, 0x00003FFFU, 0x00001302U)
+// Decoded:
+//   L0_SEL=1, L1_SEL=0, L2_SEL=0, L3_SEL=0  → routing to L0 (UART1_RX)
+//   IO_Type=1 (LVCMOS33)                    → 3.3V CMOS, matches FT2232 ChB
+//   Pullup=1, Speed=1                       → standard UART pinmux
+```
+
+MIO48 = UART1_RX, MIO49 = UART1_TX (by Zynq-7000 default routing for L0_SEL=1). Both pinmuxed to UART1. Physical path to FT2232 Channel B is correct.
+
+---
+
+## 3. system.dtb chosen + aliases — bootargs route to UART1
+
+```dts
+chosen {
+    bootargs = "console=ttyPS0,115200 earlycon root=/dev/mmcblk0p2 rw rootwait cma=256M isolcpus=1";
+    stdout-path = "serial0:115200n8";
+};
+
+aliases {
+    serial0 = "/axi/serial@e0001000";   ← serial0 → UART1 (the right one)
+    serial1 = (none, only one serial enabled)
+    uart0   = "/axi/serial@e0000000";   ← uart0 alias points to disabled node
+    uart1   = "/axi/serial@e0001000";   ← uart1 alias points to enabled node
+};
+
+/axi/serial@e0000000 { status = "disabled"; };
+/axi/serial@e0001000 { status = "okay"; device_type = "serial"; port-number = <0x00>; };
+```
+
+The `ttyPSx` numbering follows `aliases/serialN`, **not** `aliases/uartN`. So `console=ttyPS0` correctly resolves to UART1 (`serial0` alias). `stdout-path = "serial0:115200n8"` reinforces the same routing for u-boot.
+
+---
+
+## 4. u-boot env defaults — `baudrate=115200`, uses dtb stdout-path
+
+`strings u-boot.elf` shows:
+
+```
+baudrate=115200
+stdout-path                  ← u-boot consumes /chosen/stdout-path from dtb
+```
+
+No `stdout=` env override that could route u-boot console elsewhere. Standard `xilinx_zynq_virt_defconfig` flow with DM serial picks UART1 via `serial0` alias.
+
+---
+
+## Net of 1–4: software side cannot cause UART silence
+
+Every layer (XSA → FSBL → ps7_init → dtb → u-boot → kernel) routes console traffic to UART1 (MIO48/49 → FT2232 Channel B → COM9 by Main's convention). If any of these is wrong, the user would see partial-then-silent (e.g., FSBL prints, u-boot silent). Full-silence-from-power-on points elsewhere:
+
+---
+
+## Likely environmental causes (Main + user to verify)
+
+### A. Wrong COM port
+
+The FT2232 exposes **2** serial ports to Windows — one is the JTAG channel, the other is UART. Whichever Windows enumerates first depends on the driver install order and prior PnP history. The user said COM9; if they're actually reading the JTAG channel as serial (which is silent because JTAG is binary, not UART traffic), it'd look exactly like this.
+
+**Verification:** In Windows Device Manager, expand "Ports (COM & LPT)" — the FT2232 entries should label one "USB Serial Port (COM9)" and the other "USB Serial Port (COM8)" (or similar). Open BOTH at 115200-8-N-1 in two PuTTY windows and reboot the board. Whichever shows boot messages is UART1.
+
+### B. SD card not actually boot-mode
+
+If JP5 isn't on SD or if the SD card isn't recognized, FSBL never runs → no UART output. The PGOOD LED only confirms 3.3V power, not boot.
+
+**Verification:** After power-on, the ZYBO's `DONE` LED (LD12, near the FPGA chip — separate from PGOOD/LD11) should turn green within ~2 seconds if FSBL + bitstream loaded successfully. If `DONE` stays off, boot didn't start.
+
+### C. FT2232 driver not installed / stale
+
+**Verification:** In Device Manager, the FT2232 should appear under "Universal Serial Bus controllers" as "FT2232H Dual UART/FIFO IC" and under "Ports" as 2× COM. If there's a yellow ! mark or "Other devices → Unknown device", driver is missing — install Digilent Adept 2 or FTDI's VCP driver.
+
+### D. Cable issue
+
+USB-to-microUSB cable might be **power-only** without data lines. Try a different cable known to do data (e.g., one that mounts a phone).
+
+---
+
+## 5. Two unrelated bugs found (will affect spike-accel demo, NOT UART silence)
+
+### Bug A — `petalinux-package boot --fpga` silently dropped
+
+I ran:
+```bash
+petalinux-package boot --fsbl images/linux/zynq_fsbl.elf --u-boot --fpga /home/ecs-user/.../hw/vivado/out/system.bit --force
+```
+
+Verified the generated `bootgen.bif`:
+```
+the_ROM_image:
+{
+    [bootloader] .../zynq_fsbl.elf
+    .../u-boot.elf
+    [load=0x100000] .../system.dtb
+}
+```
+
+**No `system.bit` entry.** Both relative and absolute `--fpga` paths produced the same bif. And confirmed with `bootgen -read BOOT.BIN`:
+
+```
+IMAGE HEADER (zynq_fsbl.elf)
+IMAGE HEADER (u-boot.elf)
+IMAGE HEADER (system.dtb)
+```
+
+— bitstream not in BOOT.BIN.
+
+This is OK if Linux loads via fpga_manager (we set `CONFIG_SUBSYSTEM_FPGA_MANAGER=y`). But:
+
+### Bug B — `/lib/firmware` in rootfs only has weights, no bitstream
+
+```bash
+cpio -iv 'lib/firmware/*' < rootfs.cpio.gz
+ls lib/firmware/
+# tiny_fpga_int8.bin   ← only the SNN weights, no system.bit.bin
+```
+
+So Linux's `fpga_manager` has nothing to load at boot:
+
+```dts
+fpga-region {
+    compatible = "fpga-region";
+    fpga-mgr = <0x03>;
+    ...
+};
+```
+
+— this region will fail to program PL.
+
+### Net effect of Bug A + B on demo
+
+- PL won't be programmed → spike_accel UIO + AXI DMA + HDMI driver all fail to probe
+- BUT this does NOT affect PS UART (MIO48/49 are PS pins, independent of PL)
+
+### Suggested fix (Main authors recipe + bbappend)
+
+1. Add a recipe to ship `system.bit.bin` (FPGA-manager binary format) into `/lib/firmware/`:
+
+```
+sw/petalinux/project-spec/meta-user/recipes-bsp/fpga-bit/
+    fpga-bitstream.bb           ← installs system.bit.bin to /lib/firmware
+    files/                       ← .bit gets converted via bif2bin or similar
+```
+
+The conversion is: `system.bit` (Vivado output) → `system.bit.bin` (raw binary without header). Standard tool: `xxd` workflow or Petalinux's `mkimage --type firmware` flag.
+
+2. Update `petalinux-image-minimal.bbappend` IMAGE_INSTALL to include the new package.
+
+3. Test on next boot: `cat /sys/class/fpga_manager/fpga0/state` should be `operating`.
+
+---
+
+## Recommendation order
+
+1. **First** verify the COM port. 5-min Windows Device Manager check. Most likely answer.
+2. If COM is right, check DONE LED for FSBL completion.
+3. Once UART works → user will see FSBL → u-boot → kernel boot. Once console works, then deal with Bug A + B for the spike-accel demo functionality.
+
+— Cloud Claude

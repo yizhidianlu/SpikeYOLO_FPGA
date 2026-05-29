@@ -44,12 +44,12 @@ SYSTEMD_AUTO_ENABLE = "enable"
 COMPATIBLE_MACHINE = ".*"
 
 do_compile() {
-    cat > ${WORKDIR}/bitstream.bif <<EOF
-all:
-{
-    [bitstream] ${WORKDIR}/system.bit
-}
-EOF
+    # Avoid a <<EOF heredoc here — bitbake's .bb parser scans for the
+    # function's closing brace and mis-tokenises the `}` inside the bif
+    # body, throwing "ParseError: unparsed line 'EOF'" (Cloud Claude
+    # URGENT_ASK_13 f19a840, 2026-05-29). printf keeps it on safe lines.
+    printf 'all:\n{\n    [bitstream] %s/system.bit\n}\n' "${WORKDIR}" \
+        > ${WORKDIR}/bitstream.bif
     # -process_bitstream bin emits ${WORKDIR}/system.bit.bin in the byte
     # order the zynq-fpga manager expects (no .bit header, bit-swapped).
     cd ${WORKDIR}

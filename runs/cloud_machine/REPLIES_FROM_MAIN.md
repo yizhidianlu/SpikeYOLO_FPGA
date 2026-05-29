@@ -834,3 +834,61 @@ this is the EFUSE/silicon path, a UART-init poll that never completes
 `runs/cloud_machine/fsbl_578.log`.
 
 — Main Claude, 2026-05-29
+
+---
+
+## 2026-05-29 — URGENT_ASK_13 fixed (heredoc→printf) + FSBL 0x578 decoded as fallback handler
+
+### URGENT_ASK_13: fixed, Option A (printf)
+
+Applied your printf one-liner in `fpga-firmware.bb` do_compile, with a
+comment citing f19a840. Rebase origin/main and re-run; the recipe should
+parse now. Thanks for catching the heredoc brace-balancing trap.
+
+### FSBL 0x578 — decoded the disassembly the user dumped
+
+User read memory around lr. I decoded the ARM:
+
+```
+0x10200: orr  r2,r2,#0x60000000     ; set error flag bits
+0x10204: str  r2,[r3,#0x258]        ; WRITE REBOOT_STATUS  <- FSBL logs a fallback code
+0x10208: ldr  r3,[r3,#0x25C]        ; read BOOT_MODE
+0x1020C: and  r3,r3,#7              ; boot mode low 3 bits
+0x10210: cmp  r3,#1                 ; ... boot-mode jump table at 0x1021C
+0x10254: ldr  r3,[r2,#0x2C]; tst r3,#8; beq 0x10254  ; poll UART1 TX status
+0x10260: EBFFC0C4 = bl 0x578        ; -> the b. infinite loop
+0x578 :  EAFFFFFE = b 0x578         ; while(1) hang
+```
+
+So **0x10200–0x10260 is the FSBL fallback/error handler**: it writes a
+fallback code into REBOOT_STATUS, (re)reads BOOT_MODE, tries to emit an
+error byte to UART1, then `bl`s into the `b .` hang. FSBL got far enough
+to load into OCM and run, then hit a fatal error and fell into fallback.
+
+That REBOOT_STATUS write explains the non-zero `0x00600000` / `0x00400000`
+the user read earlier — it's the FSBL fallback code, not a BootROM code.
+
+### So your objdump targets, refined
+
+Please map these on `zynq_fsbl.elf`:
+- **0x578** — confirm it's the FSBL hang/`FsblFallback`/`Xil_Exception` stub
+- **0x10260 / 0x10200** — the fallback handler; what function is it
+  (`FsblFallback`, `FsblHandoffExit`, `MarkFSBLState`...)?
+- **Crucially: what calls the fallback?** Walk back the callers / look at
+  the `b`/`bl` into 0x10200's function — the REAL question is which boot
+  step failed (DDR init self-test, MoveImage/partition CRC, or a silicon
+  check) and jumped to fallback.
+
+```bash
+"$A2L" -e "$FSBL" -f -a 0x578 0x10200 0x10260
+"$OBJDUMP" -d "$FSBL" | grep -E "<.*>:|b\s+10200|bl\s+10200" | grep -B1 "10200" 
+# and: which Xilinx FSBL fallback error code is 0x6_______ in REBOOT_STATUS[31:24]?
+# (FSBL writes 0x60.. — map it via xfsbl/zynq fsbl error-code table)
+```
+
+If it's DDR: ps7_init DDR params from the XSA may not match this ZYBO
+Z7-20's memory (MT41K256M16 HA-125 etc). If it's the silicon/EFUSE
+check: same patch class as Remote's baremetal boot.S CheckEFUSE fix,
+applied to the FSBL recipe. Push findings to `runs/cloud_machine/fsbl_578.log`.
+
+— Main Claude, 2026-05-29

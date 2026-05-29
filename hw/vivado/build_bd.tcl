@@ -94,22 +94,32 @@ set_property -dict [list \
 ] [get_bd_cells ps_0]
 
 # ============================================================================
-# 1b. DDR part fix — RE-125 -> HA-125  (Cloud takeover, 2026-05-29)
+# 1b. DDR lane-3 DQS read-window fix  (Cloud takeover, 2026-05-29)
 # ============================================================================
-# The zybo-z7-20 board preset (board_part :1.0) sets the PS DDR to Micron
-# MT41K256M16 *RE-125*, but the actual ZYBO Z7-20 silicon is the *HA-125*
-# die revision. The RE->HA read-training timing difference fails byte-lane-3
-# (DQ[31:24]) read training: FSBL's DDR self-test write/readback at
-# 0x00100000 mismatches and FSBL dead-loops in FsblHookFallback (0x578)
-# before ever reaching u-boot — JTAG-confirmed on the board (low 3 byte
-# lanes perfect, lane 3 corrupt; write 0x00->0x00 ok, 0xFF->0x00,
-# pattern-dependent + deterministic = read-eye/training, not physical).
-# Override the part AFTER apply_board_preset so ps7_init.c emits HA-125
-# read-training timing. Board trace delays come from the board preset —
-# verify non-zero in Cloud's diag; if zero, add explicit
-# PCW_UIPARAM_DDR_BOARD_DELAY0..3 + DQS_TO_CLK_DELAY_0..3 here.
+# Root cause (JTAG-confirmed on board + Cloud PCW diag, URGENT_ASK_17 ef0b1c4):
+# the zybo-z7-20 :1.2 board preset keeps the correct part — MT41K256M16
+# RE-125 IS the right die (K-die, 1.35 V, matching the board supply; the
+# earlier "should be HA-125" theory was wrong, and HA-125 at this density
+# isn't even in the Vivado 2024.1 PCW catalog). The real defect is the
+# preset's per-lane DQS_TO_CLK skew:
+#     lane0 -0.050  lane1 -0.044  lane2 -0.035  lane3 -0.100  <-- 2x outlier
+# Lane 3 is pushed so far forward it overshoots the read window on this
+# board → byte-lane-3 (DQ[31:24]) read training fails → FSBL DDR self-test
+# write/readback mismatch at 0x00100000 → FsblHookFallback dead-loop (0x578)
+# before u-boot. The JTAG DDR test saw EXACTLY this: lanes 0/1/2 perfect,
+# lane 3 corrupt, deterministic + pattern-dependent (read-eye, not physical).
+#
+# Fix (Option B, minimal blast radius): touch ONLY lane 3. Lanes 0/1/2 read
+# correctly on this board under their preset skews (-0.050/-0.044/-0.035) —
+# don't move what works. Pull lane 3 from -0.100 to 0.000 (no skew, read
+# window centered on the DQS rising edge): +0.100 ns back from the failing
+# value, into the same near-zero region as the three working lanes. Part,
+# voltage class (K-die 1.35 V RE-125), and board trace delays (BOARD_DELAY*
+# ~0.22 ns) all stay as the preset set them.
+# If the board still hangs after this, broaden to all-4=0.000, then escalate
+# to Custom-part explicit timing (URGENT_ASK_17 Option C).
 set_property -dict [list \
-    CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41K256M16 HA-125} \
+    CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {0.000} \
 ] [get_bd_cells ps_0]
 
 # ============================================================================

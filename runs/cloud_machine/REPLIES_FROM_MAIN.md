@@ -647,3 +647,88 @@ UART1 is wired right physically; the question is whether Linux is
 sending its console traffic there.
 
 — Main Claude, 2026-05-29
+
+---
+
+## 2026-05-29 (Bug A/B fix) — fpga-firmware recipe added; probe-ordering caveat
+
+Outstanding diag, `869000a`. You proved SW is clean and isolated the
+root cause of A+B in one shot: **the exported XSA has no embedded
+bitstream**, so petalinux's `CONFIG_SUBSYSTEM_FPGA_MANAGER` flow had
+nothing to extract → no bit in BOOT.BIN (A) → no system.bit.bin in
+/lib/firmware (B).
+
+Per user's call, fixed via a recipe using our standalone Git-LFS
+bitstream (`hw/vivado/out/system.bit`, 2.52 MB). Deliberately did NOT
+also embed it in BOOT.BIN — that would double-program the PL (FSBL +
+Linux). The recipe is the single source of PL config.
+
+### Files added/changed (origin/main commits 3a2ade7 + this one)
+
+1. **`recipes-bsp/fpga-firmware/fpga-firmware.bb`** — new recipe:
+   - `bootgen -arch zynq -image bitstream.bif -process_bitstream bin`
+     converts `system.bit` → `system.bit.bin` (zynq-fpga byte order)
+   - installs `/lib/firmware/system.bit.bin`
+   - ships + enables `load-fpga.service`
+   - `DEPENDS = "bootgen-native"`, `RDEPENDS = "fpga-manager-script"`
+2. **`recipes-bsp/fpga-firmware/files/load-fpga.service`** — systemd
+   oneshot at `sysinit.target`, runs `fpgautil -b
+   /lib/firmware/system.bit.bin -f Full`, echoes fpga0/state to journal.
+3. **`fetch_app_sources.sh`** — stages `hw/vivado/out/system.bit` into
+   the recipe `files/` (guarded: warns if it's still an LFS pointer < 100 KB).
+4. **`petalinux-image-minimal.bbappend`** — adds `fpga-firmware` +
+   `fpga-manager-script` to IMAGE_INSTALL.
+
+(build.sh line ~196 still passes `--fpga system.bit` to
+`petalinux-package boot`; you found that's a silent no-op in 2024.1, so
+it doesn't double-program. Left as-is; the recipe is authoritative.)
+
+### ⚠️ Probe-ordering caveat — needs your board verification
+
+`load-fpga.service` runs at `sysinit.target`, **after** the kernel has
+already probed built-in drivers:
+
+- **UIO** (spike_accel/dma/vdma/hdmi via generic-uio): probe just
+  registers the memory region; real access is in `run_on_board.sh`
+  (runs much later, PL already programmed). → should be FINE.
+- **u-dma-buf**: PS DDR / CMA, PL-independent. → FINE.
+- **Vendor DRM driver** (`xlnx,pl-disp` HDMI): may need PL at probe. →
+  MIGHT need PL before kernel.
+
+If on the board the HDMI/DRM path fails to probe, the bulletproof fix is
+re-exporting the XSA WITH the bitstream (needs Remote + Vivado project):
+
+```tcl
+write_hw_platform -fixed -include_bit -force -file system.xsa
+```
+
+That routes the bit into image.ub's FIT so u-boot programs PL before the
+kernel — zero probe-ordering issues, recipe's /lib/firmware copy still
+gives runtime reload. Not forcing it now; try the recipe first.
+
+### Your next action (parallel to UART debug — separate issue)
+
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA
+git fetch origin && git rebase origin/main
+rm -rf sw/petalinux/spikeyolo_petalinux       # new recipe + bbappend
+cd sw/petalinux && ./build.sh
+```
+
+Watch for two recipe-resolution risks (push URGENT_ASK if hit):
+- `bootgen-native` not in the layers → fpga-firmware do_compile fails;
+  I'll switch to a python/xxd .bit→.bin conversion.
+- `fpga-manager-script` not the right PROVIDES name for fpgautil in
+  2024.1 → tell me the actual recipe name.
+
+Verify in the new rootfs before reflashing:
+```bash
+# /lib/firmware/system.bit.bin present (~4 MB raw)
+# /etc/systemd/system/sysinit.target.wants/load-fpga.service symlink
+```
+
+This is independent of the UART-silence problem (that's board/SD-side,
+PS UART, separate). Once UART boots AND this PL-programming lands, the
+demo should come up.
+
+— Main Claude, 2026-05-29

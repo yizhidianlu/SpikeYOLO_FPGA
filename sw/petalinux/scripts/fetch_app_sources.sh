@@ -28,6 +28,21 @@ else
     echo "[fetch_app_sources] WARN: sw/driver/uio_config.dts missing — system-user.dtsi /include/ will fail at dtc" >&2
 fi
 
+# FPGA bitstream: the exported XSA has no embedded .bit, so petalinux's
+# FPGA_MANAGER flow can't auto-extract one.  Stage the standalone Git-LFS
+# bitstream into the fpga-firmware recipe's files/; that recipe converts it
+# to system.bit.bin and ships it to /lib/firmware + programs PL at boot
+# (Cloud Claude uart_diag 869000a Bug A/B, 2026-05-29).
+FPGA_RECIPE="${ROOT}/sw/petalinux/project-spec/meta-user/recipes-bsp/fpga-firmware/files"
+mkdir -p "${FPGA_RECIPE}"
+if [ -f "${ROOT}/hw/vivado/out/system.bit" ] \
+        && [ "$(stat -c%s "${ROOT}/hw/vivado/out/system.bit" 2>/dev/null || echo 0)" -gt 100000 ]; then
+    cp "${ROOT}/hw/vivado/out/system.bit" "${FPGA_RECIPE}/system.bit"
+    echo "[fetch_app_sources] bitstream: hw/vivado/out/system.bit -> ${FPGA_RECIPE}/system.bit"
+else
+    echo "[fetch_app_sources] WARN: hw/vivado/out/system.bit missing or is an LFS pointer (run 'git lfs pull') — PL will not be programmed at boot" >&2
+fi
+
 # Pick the source INT8 weight set baked into the image.
 #   SA_WEIGHTS_BIN env: override source filename (under models/).
 #   Default: PBT (person/bus/train) ep20 — Path B demo-grade model.

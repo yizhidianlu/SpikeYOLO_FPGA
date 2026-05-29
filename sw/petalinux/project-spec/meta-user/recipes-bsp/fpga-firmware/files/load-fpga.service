@@ -1,0 +1,18 @@
+[Unit]
+Description=Program PL with SpikeYOLO v12c bitstream via FPGA manager
+DefaultDependencies=no
+After=systemd-tmpfiles-setup.service
+Before=sysinit.target
+ConditionPathExists=/lib/firmware/system.bit.bin
+ConditionPathExists=/sys/class/fpga_manager/fpga0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# fpgautil programs a full (non-partial) bitstream on Zynq-7000.
+ExecStart=/usr/bin/fpgautil -b /lib/firmware/system.bit.bin -f Full
+# Surface the result in the journal for first-boot debugging.
+ExecStartPost=/bin/sh -c 'cat /sys/class/fpga_manager/fpga0/state || true'
+
+[Install]
+WantedBy=sysinit.target

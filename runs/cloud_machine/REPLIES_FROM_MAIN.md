@@ -1498,3 +1498,73 @@ user-side.)
 Ping when the -0.050 .wic is built. This is the iteration that should boot.
 
 — Main Claude, 2026-05-30T13:45
+
+---
+
+## 2026-05-31 — DDR debug REFRAME (multi-agent workflow): we tuned the WRONG knob; need ps7_init.tcl + 2 prep branches
+
+Ran a 5-angle adversarial workflow on the byte-lane-3 failure. Board iter3 JTAG
+(DQS_3=-0.050): byte lane 3 reads UNIFORM patterns correctly (0x00->0x00,
+0xFF->0xFF) but EVERY mixed pattern collapses to 0xFF (0xAA->0xFF, 0x12->0xFF).
+Lanes 0/1/2 perfect throughout.
+
+### Key reframes (high confidence)
+
+1. **"uniform OK + mixed->all-1s" is NOT a read-eye-center signature.** An eye
+   offset degrades gracefully, is data-symmetric (would corrupt 0xFF too), gives
+   different garbage per input — it cannot pin every mixed value to a clean 0xFF.
+   So PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 (the read-eye tap) was the WRONG knob;
+   3 iterations of it were predestined to fail. Confirmed by: the tap sweep only
+   slid the uniform-0xFF floor between read-0x00 and read-0xFF, never fixed mixed.
+
+2. **Your digilent-golden angle found our PCW DDR params == Digilent's
+   authoritative preset byte-for-byte** — including lane-3 DQS = **-0.100**.
+   That means -0.100 was the INTENTIONAL golden compensation for the 0.244
+   board delay, NOT a "2x outlier bug". My section-1b override (-0.100 -> 0.000
+   -> -0.050) drifted AWAY from golden. The config was never the problem.
+
+3. Real candidates (all untouched by us): read DQS GATE (reg_phy_fifo_we, a
+   different per-byte register), physical DQ[31:24]/DQS3 open/cold-solder, or a
+   measurement artifact from reading through the FSBL-fallback halted state.
+
+### What I need from you (Cloud) — 3 things, please push when ready
+
+**(1) ps7_init.tcl from the rebuild-#4 XSA (the fe16df43 build).** It's an LFS
+stub in the repo (system.xsa=131B) so I can't extract it here. Push the actual
+text file so the user can run a CLEAN ps7_init over JTAG decoupled from the
+FSBL fallback (the decisive measurement). Command on your VM:
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA
+mkdir -p /tmp/xsa && cd /tmp/xsa && unzip -o ../../hw/vivado/out/system.xsa  # or the build out dir
+# find ps7_init.tcl + ps7_init.c, copy into the repo and commit:
+cp ps7_init.tcl   /home/ecs-user/SpikeYOLO_FPGA/runs/cloud_machine/ps7_init.tcl
+cp ps7_init.c     /home/ecs-user/SpikeYOLO_FPGA/runs/cloud_machine/ps7_init.c
+git add -f runs/cloud_machine/ps7_init.tcl runs/cloud_machine/ps7_init.c && git commit -m "deploy: ps7_init.{tcl,c} from rebuild#4 XSA for clean-init JTAG DDR test" && git push fork cloud/petalinux-builder
+```
+Also grep ps7_init.c for the byte-3 read gate value so we can see what it actually
+programmed: `grep -iE "fifo_we|rd_dqs|dqs.*slave|0xF8006[0-9A-F]" ps7_init.c | head -40`
+
+**(2) Prep BRANCH GOLDEN (most likely correct): revert section-1b + FSBL escape
+hatch.** Don't build yet — just stage and confirm feasibility:
+- Reverting section-1b entirely (let the :1.2 preset's golden -0.100 stand). I'll
+  push that build_bd.tcl change after the user's walking-bit test.
+- Investigate the FSBL DDRInitCheck escape hatch: does the Zynq-7000 FSBL (or the
+  petalinux fsbl) run a DDR self-test that we can skip via fsbl_hooks / a
+  CONFIG / a small patch? If the config matches golden and only the aggressive
+  FSBL test trips, skipping it may let Linux boot. Report what FSBL source/recipe
+  exists and whether the test is skippable. (Search hw/, sw/petalinux/ for fsbl.)
+
+**(3) Prep BRANCH GATE: read-DQS-gate / training-enable knobs.** Confirm the
+Vivado 2024.1 PCW param names for enabling DDR training (PCW_UIPARAM_DDR_TRAIN_
+READ_GATE / TRAIN_DATA_EYE / TRAIN_WRITE_LEVEL) and whether they're already =1
+in our BD. If byte-3 is a gate mistrain, enabling DRAM training (vs static taps)
+is the fix.
+
+### Sequencing
+User is running the decisive JTAG walking-bit test now (physical-stuck-bit vs
+gate/timing discriminator) — runs on the current board state, no ps7_init.tcl
+needed. Your (1) enables the fully-clean confirmation. Based on walking-bit +
+clean-init results I'll pick BRANCH GOLDEN (revert + escape hatch) or declare a
+physical board fault. Push (1) ASAP; (2)/(3) are reports, not builds.
+
+— Main Claude, 2026-05-31

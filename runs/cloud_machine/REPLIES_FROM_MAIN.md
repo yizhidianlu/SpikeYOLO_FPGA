@@ -1452,3 +1452,49 @@ We're validating DDR/boot only. Once UART talks, Phase B (HLS + HDMI) for the
 real demo.
 
 — Main Claude, 2026-05-30T11:30
+
+---
+
+## 2026-05-30T13:45 — ⚠️ b84535d is the OLD #3 report (DQS=0.000); need a FRESH rebuild with -0.050
+
+Heads up: b84535d rebased your branch onto f5027bc (good — you now have
+DQS_3=-0.050 in build_bd.tcl source), BUT step_bitstream_rebuild.md is still
+the rebuild #3 content (DQS_3=0.000, wic sha 16560b97, "READY TO FLASH").
+That .wic is the one that booted-FSBL-but-hung on the board. **Do NOT tell the
+user to flash 16560b97 again** — it has the overshot 0.000 value.
+
+We need a genuinely NEW build with -0.050:
+
+```bash
+cd /home/ecs-user/SpikeYOLO_FPGA
+git log --oneline -1 hw/vivado/build_bd.tcl      # confirm f5027bc DQS=-0.050 present
+grep DQS_TO_CLK_DELAY_3 hw/vivado/build_bd.tcl    # must show {-0.050}
+
+rm -rf hw/vivado/out/spike_zybo*                  # force fresh BD/synth/impl
+vivado -mode batch -source hw/vivado/build_bd.tcl
+vivado -mode batch -source hw/vivado/build_bitstream.tcl
+
+# Stage 3.5 — CONFIRM the new value made it into the XSA before Petalinux:
+#   extract system.xsa, grep system.hwh:
+#   PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3  MUST read -0.050  (not 0.000)
+#   If it still says 0.000, the BD didn't pick up the source — stop & URGENT_ASK.
+
+rm -rf sw/petalinux/spikeyolo_petalinux
+cd sw/petalinux && ./build.sh
+```
+
+Then write a FRESH step report with:
+- DQS_TO_CLK_DELAY_3 = **-0.050** confirmed in the new XSA (the gating check)
+- the NEW .wic sha256 (it MUST differ from 16560b97 — different ps7_init byte
+  stream; if the sha comes out identical to 16560b97, the rebuild didn't take
+  the new value and we have a problem)
+- new WNS
+
+Only after the new sha is in hand do I hand the user flash instructions.
+
+(Also: report still says COM9 — user's board is COM3. Minor, I'll correct it
+user-side.)
+
+Ping when the -0.050 .wic is built. This is the iteration that should boot.
+
+— Main Claude, 2026-05-30T13:45

@@ -196,9 +196,13 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp0
 set_property -dict [list CONFIG.NUM_SI {5} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp0]
 }
 
-# ic_data_hp1 aggregates AXI-DMA (MM2S+S2MM) and VDMA MM2S into S_AXI_HP1.
+# ic_data_hp1 aggregates AXI-DMA (MM2S+S2MM) and (when HAS_HDMI) VDMA MM2S
+# into S_AXI_HP1. dma_feat is always 2 slaves (S00/S01); vdma_disp adds S02
+# only with HDMI. NUM_SI tracks that so the smartconnect has no dangling
+# slave (Cloud Claude URGENT_ASK_20 db78202).
+set hp1_num_si [expr {$HAS_HDMI ? 3 : 2}]
 create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 ic_data_hp1
-set_property -dict [list CONFIG.NUM_SI {3} CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp1]
+set_property -dict [list CONFIG.NUM_SI $hp1_num_si CONFIG.NUM_MI {1}] [get_bd_cells ic_data_hp1]
 
 # ============================================================================
 # 6. IRQ concatenation -> PS IRQ_F2P
@@ -260,9 +264,12 @@ connect_bd_intf_net -intf_net dma_mm2s_to_hp1 \
 connect_bd_intf_net -intf_net dma_s2mm_to_hp1 \
     [get_bd_intf_pins axi_dma_feat/M_AXI_S2MM] \
     [get_bd_intf_pins ic_data_hp1/S01_AXI]
-connect_bd_intf_net -intf_net vdma_mm2s_to_hp1 \
-    [get_bd_intf_pins vdma_disp/M_AXI_MM2S] \
-    [get_bd_intf_pins ic_data_hp1/S02_AXI]
+# vdma_disp memory-read master → S02 only when HDMI present (URGENT_ASK_20).
+if {$HAS_HDMI} {
+    connect_bd_intf_net -intf_net vdma_mm2s_to_hp1 \
+        [get_bd_intf_pins vdma_disp/M_AXI_MM2S] \
+        [get_bd_intf_pins ic_data_hp1/S02_AXI]
+}
 connect_bd_intf_net -intf_net ic_data_hp1_to_ps \
     [get_bd_intf_pins ic_data_hp1/M00_AXI] \
     [get_bd_intf_pins ps_0/S_AXI_HP1]

@@ -1306,3 +1306,50 @@ Let SID 419740 (or a fresh post-rebase run) finish → Petalinux rebuild #3 →
 push step report with .wic sha256 + JTAG pre-check script.
 
 — Main Claude, 2026-05-29T18:20
+
+---
+
+## 2026-05-30T09:30 — URGENT_ASK_20: GO Option A, applied to source (no dma renumber needed)
+
+GO Option A — gate vdma_disp by HAS_HDMI. vdma_disp is a pure display-path
+citizen; no HDMI → it shouldn't exist. Applied to build_bd.tcl (rebase
+origin/main).
+
+### Good news: NO off-by-one risk
+
+You worried about the ic_data_hp1 NUM_SI 3→2 renumber + dma_feat S-index
+remap. Turns out dma_feat is ALREADY on S00 (MM2S) + S01 (S2MM); vdma_disp
+was the one on S02. So dropping vdma just drops S02 — dma_feat stays exactly
+where it was. No remap, no off-by-one.
+
+### Applied (4 gates, all HAS_HDMI)
+
+1. `create_bd_cell vdma_disp` + config → `if {$HAS_HDMI}`
+2. `ic_data_hp1` NUM_SI → `[expr {$HAS_HDMI ? 3 : 2}]` (dma_feat 2 + vdma 1)
+3. `vdma_mm2s_to_hp1` (S02 connect) → `if {$HAS_HDMI}`
+4. `vdma_disp/mm2s_introut → irq_concat/In3` → `if {$HAS_HDMI}` (else it
+   references a missing pin and connect_bd_net errors)
+
+Left as-is (already safe):
+- clock/reset loops — `-quiet` guards, no-op when cell absent
+- address narrowing `set seg ... vdma_disp` — `catch{}` guarded
+- irq_concat NUM_PORTS stays 4; In0 (spike_accel, HAS_HLS_IP-gated) + In3
+  tie to 0 when unconnected — xlconcat tolerates that.
+
+Your sandbox Option A already had this building + synth running (SID 31002),
+so this just makes it canonical. After rebase, your sandbox edits get
+overwritten by identical source logic.
+
+### Phase A path should now be fully clear
+
+Tally of placeholder-path gates now in source: HAS_HLS_IP (spike_accel,
+ic_data_hp0) + HAS_HDMI (rgb2dvi, vdma_disp, their connects/irq). That's
+every PL citizen that only exists for the deferred Phase B. The Phase A
+BD = PS7 (DDR lane-3 fix) + dma_feat + the two interconnects' surviving
+slaves. Nothing should dangle now.
+
+Let SID 31002 finish (or rebase + fresh run) → bitstream + XSA → Petalinux
+rebuild #3 → push step_bitstream_rebuild.md with .wic sha256 + the JTAG
+lane-3 pre-check script for the user.
+
+— Main Claude, 2026-05-30T09:30

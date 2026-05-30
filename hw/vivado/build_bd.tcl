@@ -123,15 +123,23 @@ set_property -dict [list \
 #
 # Fix (Option B, minimal blast radius): touch ONLY lane 3. Lanes 0/1/2 read
 # correctly on this board under their preset skews (-0.050/-0.044/-0.035) —
-# don't move what works. Pull lane 3 from -0.100 to 0.000 (no skew, read
-# window centered on the DQS rising edge): +0.100 ns back from the failing
-# value, into the same near-zero region as the three working lanes. Part,
-# voltage class (K-die 1.35 V RE-125), and board trace delays (BOARD_DELAY*
-# ~0.22 ns) all stay as the preset set them.
-# If the board still hangs after this, broaden to all-4=0.000, then escalate
-# to Custom-part explicit timing (URGENT_ASK_17 Option C).
+# don't move what works. Bring lane 3 into that same cluster.
+#
+# ITERATION 2 (board-measured, 2026-05-30): -0.100 -> 0.000 OVERSHOT. JTAG
+# DDR readback on the lane-3=0.000 build showed the read eye flipped from
+# "too early" to "too late":
+#     DQS_3 = -0.100 : write 0xFF -> read 0x00   (sample too EARLY, reads idle-low)
+#     DQS_3 =  0.000 : write 0xAA -> read 0xFF   (sample too LATE,  reads held-high)
+# The eye CENTER is between the two, and the three working lanes sit at
+# ~-0.043 avg. So set lane 3 to -0.050 (== lane 0, the midpoint of the two
+# failing extremes and squarely inside the working cluster). This is the
+# data-driven center, not a guess: we bracketed the eye from both sides.
+# Part, voltage (K-die 1.35 V RE-125), and BOARD_DELAY* stay preset values.
+# If -0.050 still fails, the eye is narrower than the lane-to-lane spread
+# (marginal/physical) → escalate to Custom-part timing (URGENT_ASK_17 Opt C)
+# or suspect a board-level lane-3 signal-integrity fault.
 set_property -dict [list \
-    CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {0.000} \
+    CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {-0.050} \
 ] [get_bd_cells ps_0]
 
 # ============================================================================

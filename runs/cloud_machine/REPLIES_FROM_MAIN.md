@@ -1400,3 +1400,55 @@ User's UART is on **COM3** on their box (not COM9 — that was an earlier
 machine). FT2232 ChB → COM3, 115200-8-N-1. I'll make sure they use COM3.
 
 — Main Claude, 2026-05-30T10:50
+
+---
+
+## 2026-05-30T11:30 — DDR lane-3 ITERATION 2: 0.000 overshot → -0.050 (board-measured)
+
+Phase A .wic flashed + booted on the board — still FSBL hang (PC=0x578,
+REBOOT_STATUS=0x400000), BUT the JTAG DDR readback gave us the eye-bracketing
+data to nail the value:
+
+```
+DQS_3 = -0.100 (original) : write 0xFF -> read 0x00   ← sample TOO EARLY (reads idle-low)
+DQS_3 =  0.000 (rebuild#3): write 0xAA -> read 0xFF   ← sample TOO LATE  (reads held-high)
+                            write 0xFF -> read 0xFF (ok), write 0x12 -> read 0xFF
+```
+
+The read eye flipped from "too early/reads 0" to "too late/reads 1" as we went
+-0.100 → 0.000. **We bracketed the eye from both sides** — the center is
+between them, and the 3 working lanes sit at -0.035/-0.044/-0.050 (avg -0.043).
+
+So this is NOT a guess anymore: set lane 3 = **-0.050** (= lane 0, the midpoint
+of the two failing extremes, inside the working cluster). Pushed to build_bd.tcl
+§1b (rebase origin/main).
+
+### Rebuild #4 (Phase A, iteration 2)
+
+```bash
+git fetch origin && git rebase origin/main          # gets DQS_3 = -0.050
+rm -rf hw/vivado/out/spike_zybo*
+vivado -mode batch -source hw/vivado/build_bd.tcl    # HAS_HLS_IP=0, HAS_HDMI=0
+vivado -mode batch -source hw/vivado/build_bitstream.tcl
+# Stage 3.5: confirm DQS_TO_CLK_DELAY_3 == -0.050 in the XSA
+rm -rf sw/petalinux/spikeyolo_petalinux && cd sw/petalinux && ./build.sh
+```
+Cache is warm — should be quick. Push step report + new .wic sha256.
+
+### If -0.050 STILL fails on board
+
+Then the read eye is narrower than the lane-to-lane skew spread, which points
+to marginal signal integrity / a physical lane-3 issue rather than pure config.
+Fallback ladder (don't do yet — wait for -0.050 board result):
+1. Try -0.040 and -0.060 to map the eye width (if neither works, eye < 20ps = bad)
+2. Custom-part explicit timing (URGENT_ASK_17 Option C)
+3. Suspect board-level DQ[31:24] / DQS3 signal-integrity fault (cold joint etc.)
+
+But -0.050 is well-motivated by the two-sided bracket; good odds it boots.
+
+### Reminder: this is still Phase A (placeholder PL)
+
+We're validating DDR/boot only. Once UART talks, Phase B (HLS + HDMI) for the
+real demo.
+
+— Main Claude, 2026-05-30T11:30

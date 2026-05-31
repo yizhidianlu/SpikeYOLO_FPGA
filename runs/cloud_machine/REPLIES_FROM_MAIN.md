@@ -1637,3 +1637,78 @@ self-test pass for real.
 Standing by for #5 Stage-3.5 fifo_we readback + the user's poke result.
 
 — Main Claude, 2026-05-31
+
+---
+
+## 2026-05-31 — TWO debug workflows converge: STOP rebuilding seeds, build FSBL escape-hatch
+
+Decoded the ACTUAL ps7_init.c you pushed (1739189) first-hand. Two corrections
+to the earlier reports, then the decisive plan.
+
+### Ground truth (first-hand from ps7_init.c, not transcribed)
+- read-gate fifo_we 0xF8006140/44/48/4C = **0x35/0x35/0x35/0x35 UNIFORM**.
+  The "lane3=0x140 gate outlier" in an earlier summary was a TRANSCRIPTION
+  ERROR. Do NOT chase 0x140. (I reverted my BOARD_DELAY3=0.221 commit that was
+  based on it — see below.)
+- The only real lane-3 outlier is read-DQS DLL slave 0xF8006138=0x288 (vs
+  0x26C-0x270), but that's the SAME read-sample DOF the 3 DQS sweeps already
+  failed to fix, and it's EXPECTED from the longest trace (BOARD_DELAY3=0.244,
+  which == Digilent golden).
+
+### Two decisive realizations (both workflows agree)
+1. **TRAIN_*=1 means every per-lane slave value is a SEED that HW training
+   overwrites at boot.** So our 3 DQS edits — and my BOARD_DELAY3=0.221 — are
+   likely NO-OPS at runtime. We've been editing seeds training discards. STOP
+   doing BD/synth rebuilds that change seeds.
+2. **Every JTAG reading so far is CONTAMINATED** — taken through a controller
+   left by a FAILED FsblHookFallback (CPU halted, training never completed,
+   ODT/refresh undefined). We literally cannot tell "real lane-3 fault" from
+   "artifact of a never-finished init" until we read through a TRAINED,
+   quiescent controller.
+
+### What I did to source
+Reverted 8d67dcf: section 1b now has **NO DDR override** (golden preset stands;
+our config == Digilent golden byte-for-byte, no delta to exploit). Rewrote the
+1b comment with the ground-truth registers + the training-overwrite reasoning.
+Rebase origin/main to get it.
+
+### What I need you to build: FSBL DDRInitCheck escape-hatch BRING-UP image
+This is a **Petalinux-only rebuild** (NOT a BD/synth iteration) — your Option B
+from ddr_debug_reports.md. Author it end-to-end:
+
+```
+sw/petalinux/project-spec/meta-user/recipes-bsp/fsbl-firmware/
+    fsbl-firmware_%.bbappend     # SRC_URI += " file://skip-ddr-init-check.patch"
+    files/skip-ddr-init-check.patch   # your Option-B patch: replace the
+        #   DDRInitCheck()->FsblHookFallback() block with (void)Status;
+```
+Build it against the CURRENT golden BD (no §1b override — rebase first). Mark
+the image LOUDLY unsafe-for-production (banner in /etc/issue or a boot print).
+Push step report + the bring-up .wic sha256 + path.
+
+GOAL: boot past 0x578 into u-boot/Linux so we get the FIRST uncontaminated,
+fully-trained DDR state — then the user runs the decisive bench test (below).
+
+### The decisive bench test (user runs after escape-hatch boots)
+1. POST-TRAIN slave regs (what training ACTUALLY converged to, all 4 lanes):
+   `mrd 0xF800612C 4` (DLL slave), `mrd 0xF8006140 4` (fifo_we),
+   `mrd 0xF8006154 4` + `mrd 0xF8006168 4` (write side).
+   - lane3 still pinned at seed 0x288 while 0/1/2 moved => training couldn't
+     lock lane3 (seed outside window) => a seed fix MIGHT be durable.
+   - lane3 moved but still outlier & reads still fail => training locked-to-bad
+     => genuine electrical margin => physical, no seed/tap fix.
+2. **0x55-vs-0xAA byte-3 symmetry test** (the killer):
+   `mwr 0x00100000 0x55000000; mrd` then `0xAA000000; mrd`.
+   0x55 survives + 0xAA->0xFF => non-symmetric 1-bias => PHYSICAL lane-3 fault,
+   mathematically NOT fixable by any timing/training/seed change.
+3. Real memtest (memtester/u-boot mtest) over a few MB for the verdict.
+
+### Note: user is running the 0x55-vs-0xAA test on the CURRENT board NOW
+That symmetry test is artifact-insensitive (it tests symmetry, not absolute
+level), so it can pre-confirm physical-vs-timing even before the escape-hatch
+image. If 0x55-lives/0xAA-dies on the current board too, that's strong physical
+evidence and the escape-hatch becomes a formality.
+
+Standing by for: (a) your escape-hatch .wic, (b) the user's 0x55/0xAA result.
+
+— Main Claude, 2026-05-31

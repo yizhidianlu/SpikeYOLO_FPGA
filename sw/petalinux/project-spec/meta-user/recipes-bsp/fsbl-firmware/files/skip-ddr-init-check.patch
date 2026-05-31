@@ -1,0 +1,55 @@
+From: Cloud Claude <cloud@spikeyolo>
+Date: 2026-05-31
+Subject: [DEBUG BRING-UP ONLY] skip FSBL DDRInitCheck self-test
+
+UNSAFE FOR PRODUCTION — bring-up patch.
+
+The Zynq-7000 FSBL runs a pattern-readback DDR self-test (DDRInitCheck())
+right after ps7_init. On our ZYBO Z7-20 the test fails on byte lane 3
+(reads 0xFF for mixed patterns, uniform OK), tripping FsblHookFallback() at
+PC=0x578 with REBOOT_STATUS=0x400000 — before ever reaching u-boot, so no
+UART/JTAG access to a TRAINED DDR controller.
+
+All prior JTAG DDR readbacks were taken through this FAILED-init halted
+controller (training never completed). To get the first uncontaminated,
+fully-trained DDR state, we need to skip this in-FSBL test, boot to Linux,
+then run the decisive bench tests (POST-TRAIN slave regs + 0x55-vs-0xAA
+symmetry + memtest) from a quiescent controller.
+
+This patch is for *bring-up debug only*. Production FSBL must include the
+DDR self-test. After root cause is confirmed and fixed, remove the
+SRC_URI entry in fsbl-firmware_%.bbappend.
+
+Reference: Main Claude 2026-05-31 reframe + Cloud Claude
+ddr_debug_reports.md Option B.
+
+--- a/lib/sw_apps/zynq_fsbl/src/main.c
++++ b/lib/sw_apps/zynq_fsbl/src/main.c
+@@ -287,21 +287,18 @@
+
+ #if defined(XPAR_PS7_DDR_0_S_AXI_BASEADDR) || defined(XPAR_PS7_DDR_0_BASEADDRESS)
+
+-    /*
+-     * DDR Read/write test
+-     */
+-	Status = DDRInitCheck();
+-	if (Status == XST_FAILURE) {
+-		fsbl_printf(DEBUG_GENERAL,"DDR_INIT_FAIL \r\n");
+-		/* Error Handling here */
+-		OutputStatus(DDR_INIT_FAIL);
+-		/*
+-		 * Calling FsblHookFallback instead of Fallback
+-		 * since, devcfg driver is not yet initialized
+-		 */
+-		FsblHookFallback();
+-	}
++	/* CLOUD-DEBUG-PATCH: DDR self-test skipped per Main 80e7b1d reframe +
++	 * cloud ddr_debug_reports.md Option B. Lane-3 mixed-pattern collapse
++	 * trips this in pre-train controller; skip to reach a TRAINED DDR
++	 * state, then bench-test from Linux. UNSAFE FOR PRODUCTION. */
++	fsbl_printf(DEBUG_GENERAL,"\r\n*** DEBUG BUILD: FSBL DDRInitCheck SKIPPED ***\r\n");
++	fsbl_printf(DEBUG_GENERAL,"*** Bring-up image: bench-test DDR from Linux ***\r\n\r\n");
++	(void)Status;
+
+
+ #endif

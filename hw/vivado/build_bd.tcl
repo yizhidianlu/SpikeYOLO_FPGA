@@ -36,8 +36,8 @@ set PART        xc7z020clg400-1
 # :1.2 is the only Z7-20 board-file version Digilent ships now (:1.0 dropped
 # upstream → set_property board_part fails → apply_board_preset no-ops →
 # all PS/DDR config lost). Cloud Claude URGENT_ASK_15 c0d3fc2, 2026-05-29.
-# (The :1.2 preset still defaults DDR to RE-125; the explicit
-# PCW_UIPARAM_DDR_PARTNO HA-125 override in §1b corrects it.)
+# The :1.2 preset's DDR config (MT41K256M16 RE-125) == Digilent golden
+# byte-for-byte and is CORRECT; §1b applies NO DDR override (see there).
 set BOARD_PART  digilentinc.com:zybo-z7-20:part0:1.2
 
 # Catch a missing IP early so the rest of the script doesn't pollute the log.

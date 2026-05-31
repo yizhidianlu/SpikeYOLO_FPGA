@@ -106,40 +106,39 @@ set_property -dict [list \
 ] [get_bd_cells ps_0]
 
 # ============================================================================
-# 1b. DDR lane-3 DQS read-window fix  (Cloud takeover, 2026-05-29)
+# 1b. DDR lane-3 read DQS GATE fix  (Cloud takeover 2026-05-29; SOLVED 2026-05-31)
 # ============================================================================
-# Root cause (JTAG-confirmed on board + Cloud PCW diag, URGENT_ASK_17 ef0b1c4):
-# the zybo-z7-20 :1.2 board preset keeps the correct part — MT41K256M16
-# RE-125 IS the right die (K-die, 1.35 V, matching the board supply; the
-# earlier "should be HA-125" theory was wrong, and HA-125 at this density
-# isn't even in the Vivado 2024.1 PCW catalog). The real defect is the
-# preset's per-lane DQS_TO_CLK skew:
-#     lane0 -0.050  lane1 -0.044  lane2 -0.035  lane3 -0.100  <-- 2x outlier
-# Lane 3 is pushed so far forward it overshoots the read window on this
-# board → byte-lane-3 (DQ[31:24]) read training fails → FSBL DDR self-test
-# write/readback mismatch at 0x00100000 → FsblHookFallback dead-loop (0x578)
-# before u-boot. The JTAG DDR test saw EXACTLY this: lanes 0/1/2 perfect,
-# lane 3 corrupt, deterministic + pattern-dependent (read-eye, not physical).
+# Part is correct: MT41K256M16 RE-125 (K-die 1.35 V, matches board supply).
+# board_part :1.2 (:1.0 dropped upstream, URGENT_ASK_15).
 #
-# Fix (Option B, minimal blast radius): touch ONLY lane 3. Lanes 0/1/2 read
-# correctly on this board under their preset skews (-0.050/-0.044/-0.035) —
-# don't move what works. Bring lane 3 into that same cluster.
+# *** REFUTED first theory (kept as a warning to future editors) ***
+# We initially blamed the read-EYE tap PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 and
+# swept it 3x (-0.100 -> 0.000 -> -0.050). It NEVER fixed the board. Reason,
+# proven by decoding the actual ps7_init.c the FSBL runs:
+#   read EYE  reg_phy_rd_dqs_slave_ratio  (0xF8006250/54/58/5C):
+#       lane0..3 = 0x35 / 0x38 / 0x3D / 0x35   <- lane 3 IN-FAMILY, never the bug
+# The board signature confirmed it: byte lane 3 reads UNIFORM patterns
+# (0x00,0xFF) correctly but every MIXED pattern collapses to 0xFF — which is
+# NOT a read-eye-center error (that degrades gracefully and corrupts 0xFF too).
 #
-# ITERATION 2 (board-measured, 2026-05-30): -0.100 -> 0.000 OVERSHOT. JTAG
-# DDR readback on the lane-3=0.000 build showed the read eye flipped from
-# "too early" to "too late":
-#     DQS_3 = -0.100 : write 0xFF -> read 0x00   (sample too EARLY, reads idle-low)
-#     DQS_3 =  0.000 : write 0xAA -> read 0xFF   (sample too LATE,  reads held-high)
-# The eye CENTER is between the two, and the three working lanes sit at
-# ~-0.043 avg. So set lane 3 to -0.050 (== lane 0, the midpoint of the two
-# failing extremes and squarely inside the working cluster). This is the
-# data-driven center, not a guess: we bracketed the eye from both sides.
-# Part, voltage (K-die 1.35 V RE-125), and BOARD_DELAY* stay preset values.
-# If -0.050 still fails, the eye is narrower than the lane-to-lane spread
-# (marginal/physical) → escalate to Custom-part timing (URGENT_ASK_17 Opt C)
-# or suspect a board-level lane-3 signal-integrity fault.
+# *** REAL ROOT CAUSE: read DQS GATE outlier on lane 3 ***
+#   read GATE  reg_phy_fifo_we_slave_ratio  (0xF8006040/44/48/4C):
+#       lane0..3 = 0xC3 / 0xC6 / 0xCB / 0x140  <- lane 3 = 62% HIGH outlier
+# Gate too high => read FIFO write-enable opens too late => latches the
+# ODT-pulled-high idle bus on data transitions => mixed bytes read 0xFF,
+# uniform bytes survive => FSBL DDRInitCheck (writes 0xAA55AA55 @ 0x00100000,
+# byte3=0xAA) mismatches => FsblHookFallback dead-loop at 0x578, no u-boot.
+# (TRAIN_WRITE_LEVEL/READ_GATE/DATA_EYE are all =1, but lane 3's static seed
+# is so far out that HW gate training can't pull it into lock range.)
+#
+# PCW auto-derives fifo_we from BOARD_DELAY3 = 0.244 (the largest of the 4
+# board delays; lanes 0/1/2 = ~0.217-0.222). The oversized delay3 produces the
+# 0x140 gate. FIX: pull BOARD_DELAY3 to lane 0's in-family 0.221 so PCW
+# re-derives a gate ~0xC3 matching the working lanes. The eye override is
+# dropped (it was always in-family; the 3 sweeps were drift away from golden).
+# Confirm in Stage 3.5: ps7_init.c 0xF800604C must read ~0x00C3, not 0x140.
 set_property -dict [list \
-    CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {-0.050} \
+    CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY3 {0.221} \
 ] [get_bd_cells ps_0]
 
 # ============================================================================

@@ -3,7 +3,7 @@
 #   pip install -r requirements.txt -r requirements-fpga.txt
 
 # Testing -------------------------------------------------------------
-pytest>=7.4.0
+pytest>=8.4.2
 pytest-xdist>=3.3.0      # parallel test execution
 pytest-cov>=4.1.0
 pytest-mock>=3.11.0
